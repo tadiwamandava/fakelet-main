@@ -32,8 +32,102 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class BoardSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'id', 'imageUrl', 'title', 'updatedAt', 'updatedBy'] as const
+  $columns = BoardSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare imageUrl: string
+  @column()
+  declare title: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare updatedBy: number | null
+}
+
+export class CardSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
+  $columns = CardSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare createdBy: number | null
+  @column()
+  declare description: string | null
+  @column()
+  declare groupId: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare imageUrl: string | null
+  @column()
+  declare isArchived: boolean | null
+  @column()
+  declare isDeleted: boolean | null
+  @column()
+  declare linkTitle: string | null
+  @column()
+  declare linkUrl: string | null
+  @column()
+  declare position: number | null
+  @column()
+  declare title: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare updatedBy: number | null
+  @column()
+  declare version: number | null
+  @column()
+  declare youtubeUrl: string | null
+}
+
+export class ColumnSchema extends BaseModel {
+  static $columns = ['boardId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt'] as const
+  $columns = ColumnSchema.$columns
+  @column()
+  declare boardId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare position: number | null
+  @column()
+  declare title: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class GroupSchema extends BaseModel {
+  static $columns = ['columnId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt'] as const
+  $columns = GroupSchema.$columns
+  @column()
+  declare columnId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare position: number | null
+  @column()
+  declare title: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isAdmin', 'password', 'updatedAt', 'username'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -43,8 +137,12 @@ export class UserSchema extends BaseModel {
   declare fullName: string | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare isAdmin: boolean
   @column({ serializeAs: null })
   declare password: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare username: string
 }
