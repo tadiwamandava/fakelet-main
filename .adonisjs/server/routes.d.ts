@@ -4,15 +4,18 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
+    'boards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
   }
   GET: {
+    'boards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
+    'boards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
   }
   POST: {

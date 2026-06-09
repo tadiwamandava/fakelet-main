@@ -42,7 +42,7 @@ export class BoardSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare imageUrl: string
+  declare imageUrl: string | null
   @column()
   declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })

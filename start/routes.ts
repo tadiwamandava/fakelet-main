@@ -11,6 +11,9 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 
+const BoardsController = () => import('#controllers/boards_controller')
+router.get('/api/boards/:id', [BoardsController, 'show'])
+
 router.get('/', () => {
   return { hello: 'world' }
 })

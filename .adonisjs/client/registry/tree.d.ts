@@ -2,6 +2,9 @@
 import type { routes } from './index.ts'
 
 export interface ApiDefinition {
+  boards: {
+    show: typeof routes['boards.show']
+  }
   auth: {
     newAccount: {
       store: typeof routes['auth.new_account.store']
