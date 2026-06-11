@@ -89,7 +89,7 @@ export class CardSchema extends BaseModel {
 }
 
 export class ColumnSchema extends BaseModel {
-  static $columns = ['boardId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt'] as const
+  static $columns = ['boardId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = ColumnSchema.$columns
   @column()
   declare boardId: number | null
@@ -105,10 +105,12 @@ export class ColumnSchema extends BaseModel {
   declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare updatedBy: number | null
 }
 
 export class GroupSchema extends BaseModel {
-  static $columns = ['columnId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt'] as const
+  static $columns = ['columnId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = GroupSchema.$columns
   @column()
   declare columnId: number | null
@@ -124,6 +126,8 @@ export class GroupSchema extends BaseModel {
   declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare updatedBy: number | null
 }
 
 export class UserSchema extends BaseModel {
