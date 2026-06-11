@@ -43,18 +43,18 @@ router
     //admin only routes
     router
       .group(() => {
-        router.post('/api/columns', [ColumnsController, 'store'])
-        router.put('/api/columns/:id', [ColumnsController, 'update'])
-        router.delete('/api/columns/:id', [ColumnsController, 'destroy'])
+        router.post('/columns', [ColumnsController, 'store'])
+        router.put('/columns/:id', [ColumnsController, 'update'])
+        router.delete('/columns/:id', [ColumnsController, 'destroy'])
 
-        router.post('/api/groups', [GroupsController, 'store'])
-        router.put('/api/groups/:id', [GroupsController, 'update'])
-        router.delete('/api/groups/:id', [GroupsController, 'destroy'])
+        router.post('/groups', [GroupsController, 'store'])
+        router.put('/groups/:id', [GroupsController, 'update'])
+        router.delete('/groups/:id', [GroupsController, 'destroy'])
 
-        router.post('/api/cards', [CardsController, 'store'])
-        router.put('/api/cards/:id', [CardsController, 'update'])
-        router.delete('/api/cards/:id', [CardsController, 'destroy'])
+        router.post('/cards', [CardsController, 'store'])
+        router.put('/cards/:id', [CardsController, 'update'])
+        router.delete('/cards/:id', [CardsController, 'destroy'])
       })
-      .use(middleware.auth())
+      .use([middleware.auth(), middleware.admin()])
   })
   .prefix('/api/v1')

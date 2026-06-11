@@ -5,13 +5,13 @@ export default class CardsController {
   //POST /api/cards
   async store({ request, auth }: HttpContext) {
     const data = request.only([
-      'group_id',
+      'groupId',
       'title',
       'description',
-      'image_url',
-      'link_url',
-      'link_title',
-      'youtube_url',
+      'imageUrl',
+      'linkUrl',
+      'linkTitle',
+      'youtubeUrl',
       'position',
     ])
     const card = await Card.create({ ...data, createdBy: auth.user?.id ?? null })
@@ -25,10 +25,10 @@ export default class CardsController {
       ...request.only([
         'title',
         'description',
-        'image_url',
-        'link_url',
-        'link_title',
-        'youtube_url',
+        'imageUrl',
+        'linkUrl',
+        'linkTitle',
+        'youtubeUrl',
         'position',
       ]),
       updatedBy: auth.user?.id ?? null,

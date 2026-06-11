@@ -4,10 +4,10 @@ import Column from '#models/column'
 export default class ColumnsController {
   //POST /api/columns
   async store({ request, response, auth }: HttpContext) {
-    const data = request.only(['board_id', 'title', 'position'])
+    const data = request.only(['boardId', 'title', 'position'])
 
     //Enfore the max 8 columns for a board
-    const count = await Column.query().where('board_id', data.board_id).count('* as total')
+    const count = await Column.query().where('board_id', data.boardId).count('* as total')
 
     if (Number(count[0].$extras.total) >= 8) {
       return response.badRequest({
