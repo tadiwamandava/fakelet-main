@@ -6,12 +6,6 @@ import type { ApiDefinition } from './tree.d.ts'
 const placeholder: any = {}
 
 const routes = {
-  'boards.show': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/boards/:id',
-    tokens: [{"old":"/api/boards/:id","type":0,"val":"api","end":""},{"old":"/api/boards/:id","type":0,"val":"boards","end":""},{"old":"/api/boards/:id","type":1,"val":"id","end":""}],
-    types: placeholder as Registry['boards.show']['types'],
-  },
   'auth.new_account.store': {
     methods: ["POST"],
     pattern: '/api/v1/auth/signup',
@@ -35,6 +29,66 @@ const routes = {
     pattern: '/api/v1/account/logout',
     tokens: [{"old":"/api/v1/account/logout","type":0,"val":"api","end":""},{"old":"/api/v1/account/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/account/logout","type":0,"val":"account","end":""},{"old":"/api/v1/account/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['profile.access_tokens.destroy']['types'],
+  },
+  'boards.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/boards/:id',
+    tokens: [{"old":"/api/v1/boards/:id","type":0,"val":"api","end":""},{"old":"/api/v1/boards/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/boards/:id","type":0,"val":"boards","end":""},{"old":"/api/v1/boards/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['boards.show']['types'],
+  },
+  'columns.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/columns',
+    tokens: [{"old":"/api/v1/columns","type":0,"val":"api","end":""},{"old":"/api/v1/columns","type":0,"val":"v1","end":""},{"old":"/api/v1/columns","type":0,"val":"columns","end":""}],
+    types: placeholder as Registry['columns.store']['types'],
+  },
+  'columns.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/columns/:id',
+    tokens: [{"old":"/api/v1/columns/:id","type":0,"val":"api","end":""},{"old":"/api/v1/columns/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/columns/:id","type":0,"val":"columns","end":""},{"old":"/api/v1/columns/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['columns.update']['types'],
+  },
+  'columns.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/columns/:id',
+    tokens: [{"old":"/api/v1/columns/:id","type":0,"val":"api","end":""},{"old":"/api/v1/columns/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/columns/:id","type":0,"val":"columns","end":""},{"old":"/api/v1/columns/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['columns.destroy']['types'],
+  },
+  'groups.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/groups',
+    tokens: [{"old":"/api/v1/groups","type":0,"val":"api","end":""},{"old":"/api/v1/groups","type":0,"val":"v1","end":""},{"old":"/api/v1/groups","type":0,"val":"groups","end":""}],
+    types: placeholder as Registry['groups.store']['types'],
+  },
+  'groups.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/groups/:id',
+    tokens: [{"old":"/api/v1/groups/:id","type":0,"val":"api","end":""},{"old":"/api/v1/groups/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/groups/:id","type":0,"val":"groups","end":""},{"old":"/api/v1/groups/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['groups.update']['types'],
+  },
+  'groups.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/groups/:id',
+    tokens: [{"old":"/api/v1/groups/:id","type":0,"val":"api","end":""},{"old":"/api/v1/groups/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/groups/:id","type":0,"val":"groups","end":""},{"old":"/api/v1/groups/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['groups.destroy']['types'],
+  },
+  'cards.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/cards',
+    tokens: [{"old":"/api/v1/cards","type":0,"val":"api","end":""},{"old":"/api/v1/cards","type":0,"val":"v1","end":""},{"old":"/api/v1/cards","type":0,"val":"cards","end":""}],
+    types: placeholder as Registry['cards.store']['types'],
+  },
+  'cards.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/cards/:id',
+    tokens: [{"old":"/api/v1/cards/:id","type":0,"val":"api","end":""},{"old":"/api/v1/cards/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/cards/:id","type":0,"val":"cards","end":""},{"old":"/api/v1/cards/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['cards.update']['types'],
+  },
+  'cards.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/cards/:id',
+    tokens: [{"old":"/api/v1/cards/:id","type":0,"val":"api","end":""},{"old":"/api/v1/cards/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/cards/:id","type":0,"val":"cards","end":""},{"old":"/api/v1/cards/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['cards.destroy']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 
