@@ -4,7 +4,7 @@ import Group from '#models/group'
 export default class GroupsController {
   //POST /api/groups
   async store({ request, auth }: HttpContext) {
-    const data = request.only(['column_id', 'title', 'position'])
+    const data = request.only(['columnId', 'title', 'position'])
 
     const group = await Group.create({ ...data, createdBy: auth.user?.id ?? null })
     return group
