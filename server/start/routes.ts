@@ -47,6 +47,7 @@ router
     router
       .group(() => {
         router.put('/boards/:id', [BoardsController, 'update'])
+        router.post('/boards/:id/generate-references', [BoardsController, 'generateReferences'])
         router.post('/columns', [ColumnsController, 'store'])
         router.put('/columns/:id', [ColumnsController, 'update'])
         router.delete('/columns/:id', [ColumnsController, 'destroy'])
