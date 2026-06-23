@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LayoutDashboard, LogOut, Plus, Trash2 } from 'lucide-react'
+import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
 import { useAuth } from '../store/authStore'
@@ -86,7 +87,7 @@ export default function BoardListPage() {
               >
                 {board.imageUrl ? (
                   <img
-                    src={board.imageUrl}
+                    src={resolveImageUrl(board.imageUrl)}
                     alt={board.title}
                     className="w-full h-28 object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}

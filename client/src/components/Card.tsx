@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Bookmark, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import CardEditor from './CardEditor'
+import { resolveImageUrl } from '../utils/imageUrl'
 
 export interface CardData {
   id: number
@@ -55,7 +56,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
       {/* Image (if the card has one) */}
       {card.imageUrl && (
         <img
-          src={card.imageUrl}
+          src={resolveImageUrl(card.imageUrl)}
           alt={card.title}
           className="w-full h-28 object-cover border-b border-line"
           onError={(e) => {

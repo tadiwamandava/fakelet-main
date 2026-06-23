@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, LogOut, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react'
 import { useAuth } from '../store/authStore'
+import { resolveImageUrl } from '../utils/imageUrl'
 import { useGenerateReferences, useUpdateBoard } from '../hooks/useBoardMutations'
 import logo from '../assets/k20center-logo-full.svg'
 import type { CardData } from './Card'
@@ -57,7 +58,7 @@ export default function Sidebar({ board, bookmarks, allCards, open, onClose }: S
 
         {board.imageUrl && (
           <img
-            src={board.imageUrl}
+            src={resolveImageUrl(board.imageUrl)}
             alt={board.title}
             className="w-full h-20 object-cover rounded-lg border border-line mb-3"
             onError={(e) => { e.currentTarget.style.display = 'none' }}

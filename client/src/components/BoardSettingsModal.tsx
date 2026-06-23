@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { ImagePlus, Link2 } from 'lucide-react'
 import Modal from './ui/Modal'
 import { useUpdateBoardMeta, useUploadBoardImage } from '../hooks/useBoardMutations'
+import { resolveImageUrl } from '../utils/imageUrl'
 import type { Board } from '../hooks/useBoard'
 
 interface BoardSettingsModalProps {
@@ -110,7 +111,7 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
 
           {imageUrl && (
             <img
-              src={imageUrl}
+              src={resolveImageUrl(imageUrl)}
               alt="Preview"
               className="mt-2 w-full h-24 object-cover rounded-lg border border-line"
               onError={(e) => { e.currentTarget.style.display = 'none' }}

@@ -31,6 +31,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
 
+  // Allowed CORS origin in production (e.g. https://your-app.netlify.app)
+  CORS_ORIGIN: Env.schema.string.optional(),
+
   // SMTP (optional — omit in dev to print codes to console instead)
   SMTP_HOST: Env.schema.string.optional(),
   SMTP_PORT: Env.schema.number.optional(),
