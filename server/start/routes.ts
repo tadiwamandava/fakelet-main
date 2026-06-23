@@ -74,6 +74,7 @@ router
         router.post('/cards', [CardsController, 'store'])
         router.put('/cards/:id', [CardsController, 'update'])
         router.delete('/cards/:id', [CardsController, 'destroy'])
+        router.post('/cards/:id/image', [CardsController, 'uploadImage'])
       })
       .use(middleware.auth())
   })
