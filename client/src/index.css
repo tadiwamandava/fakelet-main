@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Roboto+Slab:wght@300;400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* K20 brand palette */
+  --color-brand: #910D28;        /* crimson — primary actions, accents */
+  --color-brand-light: #f7e6ea;  /* soft tint of crimson for backgrounds */
+  --color-blue: #298AC4;
+  --color-gold: #E8BF3D;
+  --color-ink: #231F20;          /* near-black — body text */
+  --color-muted: #626262;        /* grey — secondary text */
+  --color-teal: #1C546E;
+  --color-paper: #f7f7f7;        /* light neutral background */
+  --color-line: #e2e2e2;         /* borders */
+
+  /* K20 brand fonts */
+  --font-sans: 'Roboto', system-ui, sans-serif;
+  --font-serif: 'Roboto Slab', Georgia, serif;
+}
+body {
+  font-family: var(--font-sans);
+}

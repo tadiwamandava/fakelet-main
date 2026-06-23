@@ -1,0 +1,256 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, LogOut, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react'
+import { useAuth } from '../store/authStore'
+import { useGenerateReferences, useUpdateBoard } from '../hooks/useBoardMutations'
+import logo from '../assets/k20center-logo-full.svg'
+import type { CardData } from './Card'
+
+export interface BoardData {
+  id: number
+  title: string
+  imageUrl?: string | null
+  references?: string[]
+}
+
+interface SidebarProps {
+  board: BoardData
+  bookmarks: number[]
+  allCards: CardData[]
+  open: boolean
+  onClose: () => void
+}
+
+export default function Sidebar({ board, bookmarks, allCards, open, onClose }: SidebarProps) {
+  const bookmarkedCards = allCards.filter((c) => bookmarks.includes(c.id))
+  const [bookmarksOpen, setBookmarksOpen] = useState(true)
+
+  return (
+    <aside
+      className={[
+        'fixed inset-y-0 left-0 z-40 w-72',
+        'md:static md:w-56 md:translate-x-0',
+        'shrink-0 bg-white border-r border-line flex flex-col',
+        'transition-transform duration-200 ease-in-out',
+        open ? 'translate-x-0' : '-translate-x-full',
+      ].join(' ')}
+    >
+      <div className="md:hidden flex justify-end px-4 pt-4">
+        <button onClick={onClose} aria-label="Close menu" className="text-muted hover:text-ink p-1">
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        <Link
+          to="/boards"
+          className="flex items-center gap-1.5 text-xs text-muted hover:text-brand mb-4"
+        >
+          <LayoutDashboard size={13} />
+          All boards
+        </Link>
+        <img src={logo} alt="K20 Center" className="h-8 self-start" />
+        <p className="text-xs font-semibold tracking-widest text-[#910D28] uppercase mb-4 mt-1" style={{ letterSpacing: '1.2em' }}>
+          Fakelet
+        </p>
+        <hr className="border-line mb-1 border-black" />
+
+        {board.imageUrl && (
+          <img
+            src={board.imageUrl}
+            alt={board.title}
+            className="w-full h-20 object-cover rounded-lg border border-line mb-3"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        )}
+
+        <h1 className="font-serif text-bold text-lg text-ink leading-snug mb-6">
+          {board.title}
+        </h1>
+
+        <div>
+          <button
+            onClick={() => setBookmarksOpen((o) => !o)}
+            className="flex items-center gap-2 w-full text-sm text-muted mb-2"
+          >
+            <Bookmark size={14} />
+            <span className="font-medium flex-1 text-left">Bookmarks</span>
+            {bookmarkedCards.length > 0 && (
+              <span className="bg-brand text-white text-xs rounded-full px-2 py-0.5">
+                {bookmarkedCards.length}
+              </span>
+            )}
+            {bookmarksOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+          </button>
+
+          {bookmarksOpen && (
+            <div className="text-xs text-ink space-y-1">
+              {bookmarkedCards.length === 0 ? (
+                <p className="text-muted">Nothing bookmarked yet.</p>
+              ) : (
+                bookmarkedCards.map((c) => (
+                  <p key={c.id} className="truncate border-b border-line pb-1">
+                    {c.title}
+                  </p>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-line p-4">
+        <SidebarReferences board={board} />
+        <SidebarUser />
+      </div>
+    </aside>
+  )
+}
+
+function SidebarReferences({ board }: { board: BoardData }) {
+  const isAdmin = useAuth((s) => s.isAdmin)
+  const updateBoard = useUpdateBoard(board.id)
+  const generateRefs = useGenerateReferences(board.id)
+  const [open, setOpen] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<string[]>([])
+
+  const references = board.references ?? []
+
+  function startEdit() {
+    setDraft([...references])
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    setEditing(false)
+    setDraft([])
+  }
+
+  function save() {
+    updateBoard.mutate(
+      draft.filter((r) => r.trim()),
+      { onSuccess: () => setEditing(false) }
+    )
+  }
+
+  function setLine(i: number, value: string) {
+    setDraft((d) => d.map((r, j) => (j === i ? value : r)))
+  }
+
+  function removeLine(i: number) {
+    setDraft((d) => d.filter((_, j) => j !== i))
+  }
+
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => !editing && setOpen((o) => !o)}
+        className="flex items-center gap-2 w-full text-xs font-semibold uppercase tracking-wide text-muted mb-2"
+      >
+        <BookOpen size={13} />
+        <span className="flex-1 text-left">References</span>
+        {isAdmin && !editing && (
+          <>
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="Generate references from cards"
+              onClick={(e) => { e.stopPropagation(); generateRefs.mutate() }}
+              onKeyDown={(e) => e.key === 'Enter' && generateRefs.mutate()}
+              className={`p-0.5 ${generateRefs.isPending ? 'text-brand animate-pulse' : 'text-muted hover:text-brand'}`}
+              title="Generate from card content via CrossRef"
+            >
+              <Sparkles size={11} />
+            </span>
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="Edit references"
+              onClick={(e) => { e.stopPropagation(); startEdit() }}
+              onKeyDown={(e) => e.key === 'Enter' && startEdit()}
+              className="text-muted hover:text-ink p-0.5"
+            >
+              <Pencil size={11} />
+            </span>
+          </>
+        )}
+        {!editing && (open ? <ChevronDown size={13} /> : <ChevronRight size={13} />)}
+      </button>
+
+      {!editing && open && (
+        references.length === 0 ? (
+          <p className="text-xs text-muted">None yet.</p>
+        ) : (
+          <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
+            {references.map((ref, i) => (
+              <li key={i} className="leading-snug">{ref}</li>
+            ))}
+          </ol>
+        )
+      )}
+
+      {editing && (
+        <div className="flex flex-col gap-1.5">
+          {draft.map((ref, i) => (
+            <div key={i} className="flex gap-1 items-center">
+              <input
+                value={ref}
+                onChange={(e) => setLine(i, e.target.value)}
+                placeholder={`Reference ${i + 1}`}
+                className="flex-1 text-xs bg-paper border border-line rounded px-2 py-1 outline-none focus:border-brand"
+              />
+              <button
+                onClick={() => removeLine(i)}
+                aria-label="Remove"
+                className="text-muted hover:text-brand shrink-0"
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
+          ))}
+
+          <button
+            onClick={() => setDraft((d) => [...d, ''])}
+            className="flex items-center gap-1 text-xs text-muted hover:text-brand mt-0.5"
+          >
+            <Plus size={11} /> Add reference
+          </button>
+
+          <div className="flex gap-1 mt-1">
+            <button
+              onClick={save}
+              disabled={updateBoard.isPending}
+              className="text-xs bg-brand text-white rounded px-2.5 py-1 disabled:opacity-40"
+            >
+              {updateBoard.isPending ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="text-xs text-muted rounded px-2.5 py-1 hover:text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SidebarUser() {
+  const { user, isAdmin, logout } = useAuth()
+  if (!user) return null
+  return (
+    <div className="pt-4 border-t border-line">
+      <p className="text-sm font-medium text-ink">{user.fullName || user.username}</p>
+      <p className="text-xs text-muted mb-2">{isAdmin ? 'Administrator' : 'Viewer'}</p>
+      <button
+        onClick={logout}
+        className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
+      >
+        <LogOut size={13} /> Sign out
+      </button>
+    </div>
+  )
+}
