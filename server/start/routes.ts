@@ -15,6 +15,7 @@ const BoardsController = () => import('#controllers/boards_controller')
 const ColumnsController = () => import('#controllers/columns_controller')
 const GroupsController = () => import('#controllers/groups_controller')
 const CardsController = () => import('#controllers/cards_controller')
+const PasswordResetsController = () => import('#controllers/password_resets_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -26,6 +27,8 @@ router
       .group(() => {
         router.post('signup', [controllers.NewAccount, 'store'])
         router.post('login', [controllers.AccessTokens, 'store'])
+        router.post('forgot-password', [PasswordResetsController, 'requestCode'])
+        router.post('reset-password', [PasswordResetsController, 'resetPassword'])
       })
       .prefix('auth')
       .as('auth')
@@ -43,6 +46,7 @@ router
     //admin only routes
     router
       .group(() => {
+        router.put('/boards/:id', [BoardsController, 'update'])
         router.post('/columns', [ColumnsController, 'store'])
         router.put('/columns/:id', [ColumnsController, 'update'])
         router.delete('/columns/:id', [ColumnsController, 'destroy'])

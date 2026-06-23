@@ -20,4 +20,21 @@ export default class BoardsController {
 
     return board
   }
+
+  async update({ params, request, auth, response }: HttpContext) {
+    const user = await auth.authenticate()
+    if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
+
+    const board = await Board.findOrFail(params.id)
+    const { references } = request.only(['references'])
+
+    if (Array.isArray(references)) {
+      board.references = (references as unknown[]).filter(
+        (r): r is string => typeof r === 'string' && r.trim() !== ''
+      )
+    }
+
+    await board.save()
+    return board
+  }
 }
