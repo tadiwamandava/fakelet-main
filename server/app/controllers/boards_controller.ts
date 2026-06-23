@@ -3,6 +3,12 @@ import Board from '#models/board'
 import { searchCrossRef } from '#services/cross_ref_service'
 
 export default class BoardsController {
+  async index({ auth }: HttpContext) {
+    await auth.authenticate()
+    const boards = await Board.query().select('id', 'title', 'imageUrl').orderBy('id')
+    return boards
+  }
+
   async show({ params }: HttpContext) {
     const board = await Board.query()
       .where('id', params.id)

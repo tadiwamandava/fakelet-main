@@ -50,6 +50,7 @@ router
       })
       .use(middleware.auth())
 
+    router.get('/boards', [BoardsController, 'index']).use(middleware.auth())
     router.get('/boards/:id', [BoardsController, 'show'])
     //admin only routes
     router
