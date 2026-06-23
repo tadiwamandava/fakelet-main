@@ -15,6 +15,7 @@ const BoardsController = () => import('#controllers/boards_controller')
 const ColumnsController = () => import('#controllers/columns_controller')
 const GroupsController = () => import('#controllers/groups_controller')
 const CardsController = () => import('#controllers/cards_controller')
+const BookmarksController = () => import('#controllers/bookmarks_controller')
 const PasswordResetsController = () => import('#controllers/password_resets_controller')
 
 router.get('/', () => {
@@ -40,6 +41,13 @@ router
       })
       .prefix('account')
       .as('profile')
+      .use(middleware.auth())
+
+    router
+      .group(() => {
+        router.get('/bookmarks', [BookmarksController, 'index'])
+        router.post('/bookmarks/toggle', [BookmarksController, 'toggle'])
+      })
       .use(middleware.auth())
 
     router.get('/boards/:id', [BoardsController, 'show'])
