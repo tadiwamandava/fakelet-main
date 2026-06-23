@@ -18,9 +18,10 @@ const CardsController = () => import('#controllers/cards_controller')
 const BookmarksController = () => import('#controllers/bookmarks_controller')
 const PasswordResetsController = () => import('#controllers/password_resets_controller')
 
-router.get('/', () => {
-  return { hello: 'world' }
-})
+router.get('/', () => ({ hello: 'world' }))
+
+// Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
+router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
 
 router
   .group(() => {
@@ -52,11 +53,16 @@ router
 
     router.get('/boards', [BoardsController, 'index']).use(middleware.auth())
     router.get('/boards/:id', [BoardsController, 'show'])
-    //admin only routes
+
+    // Admin-only routes
     router
       .group(() => {
+        router.post('/boards', [BoardsController, 'store'])
         router.put('/boards/:id', [BoardsController, 'update'])
+        router.delete('/boards/:id', [BoardsController, 'destroy'])
+        router.post('/boards/:id/image', [BoardsController, 'uploadImage'])
         router.post('/boards/:id/generate-references', [BoardsController, 'generateReferences'])
+
         router.post('/columns', [ColumnsController, 'store'])
         router.put('/columns/:id', [ColumnsController, 'update'])
         router.delete('/columns/:id', [ColumnsController, 'destroy'])
