@@ -25,3 +25,20 @@ export const loginValidator = vine.create({
   username: vine.string().minLength(1).maxLength(30),
   password: vine.string(),
 })
+
+/**
+ * Validator for the forgot-password request (just a valid email)
+ */
+export const forgotPasswordValidator = vine.create({
+  email: vine.string().email().maxLength(254),
+})
+
+/**
+ * Validator for submitting a reset code and choosing a new password
+ */
+export const resetPasswordValidator = vine.create({
+  email: vine.string().email().maxLength(254),
+  code: vine.string().regex(/^\d{6}$/),
+  password: password(),
+  passwordConfirmation: password().sameAs('password'),
+})

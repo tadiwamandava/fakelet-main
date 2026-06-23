@@ -46,7 +46,7 @@ export default class CardsController {
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
     const image = request.file('image', {
-      size: '5mb',
+      size: '20mb',
       extnames: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     })
     if (!image) return response.badRequest({ error: 'No image provided' })

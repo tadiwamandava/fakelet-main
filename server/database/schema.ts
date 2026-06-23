@@ -8,18 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = [
-    'abilities',
-    'createdAt',
-    'expiresAt',
-    'hash',
-    'id',
-    'lastUsedAt',
-    'name',
-    'tokenableId',
-    'type',
-    'updatedAt',
-  ] as const
+  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
   $columns = AuthAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -44,15 +33,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class BoardSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'createdBy',
-    'id',
-    'imageUrl',
-    'title',
-    'updatedAt',
-    'updatedBy',
-  ] as const
+  static $columns = ['createdAt', 'createdBy', 'id', 'imageUrl', 'references', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = BoardSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -63,6 +44,8 @@ export class BoardSchema extends BaseModel {
   @column()
   declare imageUrl: string | null
   @column()
+  declare references: string | null
+  @column()
   declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
@@ -71,24 +54,7 @@ export class BoardSchema extends BaseModel {
 }
 
 export class CardSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'createdBy',
-    'description',
-    'groupId',
-    'id',
-    'imageUrl',
-    'isArchived',
-    'isDeleted',
-    'linkTitle',
-    'linkUrl',
-    'position',
-    'title',
-    'updatedAt',
-    'updatedBy',
-    'version',
-    'youtubeUrl',
-  ] as const
+  static $columns = ['createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
   $columns = CardSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -125,16 +91,7 @@ export class CardSchema extends BaseModel {
 }
 
 export class ColumnSchema extends BaseModel {
-  static $columns = [
-    'boardId',
-    'createdAt',
-    'createdBy',
-    'id',
-    'position',
-    'title',
-    'updatedAt',
-    'updatedBy',
-  ] as const
+  static $columns = ['boardId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = ColumnSchema.$columns
   @column()
   declare boardId: number | null
@@ -155,16 +112,7 @@ export class ColumnSchema extends BaseModel {
 }
 
 export class GroupSchema extends BaseModel {
-  static $columns = [
-    'columnId',
-    'createdAt',
-    'createdBy',
-    'id',
-    'position',
-    'title',
-    'updatedAt',
-    'updatedBy',
-  ] as const
+  static $columns = ['columnId', 'createdAt', 'createdBy', 'id', 'position', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = GroupSchema.$columns
   @column()
   declare columnId: number | null
@@ -184,17 +132,38 @@ export class GroupSchema extends BaseModel {
   declare updatedBy: number | null
 }
 
+export class PasswordResetSchema extends BaseModel {
+  static $columns = ['codeHash', 'createdAt', 'email', 'expiresAt', 'id', 'usedAt'] as const
+  $columns = PasswordResetSchema.$columns
+  @column()
+  declare codeHash: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare usedAt: DateTime | null
+}
+
+export class UserBookmarkSchema extends BaseModel {
+  static $columns = ['cardId', 'createdAt', 'id', 'userId'] as const
+  $columns = UserBookmarkSchema.$columns
+  @column()
+  declare cardId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare userId: number
+}
+
 export class UserSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'email',
-    'fullName',
-    'id',
-    'isAdmin',
-    'password',
-    'updatedAt',
-    'username',
-  ] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isAdmin', 'password', 'updatedAt', 'username'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
