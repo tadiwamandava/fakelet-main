@@ -44,6 +44,7 @@ export default class CardsController {
   async uploadImage({ params, request, auth, response }: HttpContext) {
     const user = await auth.authenticate()
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
+    await Card.findOrFail(params.id)
 
     const image = request.file('image', {
       size: '20mb',

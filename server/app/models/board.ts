@@ -11,7 +11,7 @@ export default class Board extends BoardSchema {
       try { return JSON.parse(value) as string[] } catch { return [] }
     },
   })
-  declare references: string[]
+  declare references: any
 
   @hasMany(() => Column)
   declare columns: HasMany<typeof Column>
