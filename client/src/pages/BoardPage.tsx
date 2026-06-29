@@ -19,7 +19,7 @@ export default function BoardPage() {
   const toggleBookmark = useToggleBookmark()
   const [search, setSearch] = useState('')
   const { isAdmin } = useAuth()
-  const [editMode, setEditMode] = useState(false)
+  const [editMode, setEditMode] = useState(isAdmin)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [addingColumn, setAddingColumn] = useState(false)
