@@ -52,6 +52,7 @@ function getYouTubeId(url?: string | null): string | null {
 export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone }: CardProps) {
   const ytId = getYouTubeId(card.youtubeUrl)
   const [editing, setEditing] = useState(autoEdit)
+  const [descExpanded, setDescExpanded] = useState(false)
 
   return (
     <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden transition-shadow hover:shadow-sm">
@@ -103,9 +104,19 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
         <p className="font-semibold text-sm text-ink mb-1">{card.title}</p>
 
         {card.description && (
-          <p className="text-xs text-muted leading-relaxed mb-2 line-clamp-3">
-            {card.description}
-          </p>
+          <div className="mb-2">
+            <p className={`text-xs text-muted leading-relaxed ${descExpanded ? '' : 'line-clamp-3'}`}>
+              {card.description}
+            </p>
+            {card.description.length > 120 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setDescExpanded((x) => !x) }}
+                className="text-xs text-brand font-medium hover:underline mt-0.5"
+              >
+                {descExpanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
+          </div>
         )}
 
         <div className="flex items-center justify-between">
