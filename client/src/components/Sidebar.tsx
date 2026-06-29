@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useUpdateBoard } from '../hooks/useBoardMutations'
@@ -107,7 +107,6 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
 
       <div className="shrink-0 border-t border-line p-4">
         <SidebarReferences board={board} />
-        <SidebarUser />
       </div>
     </aside>
   )
@@ -226,23 +225,6 @@ function SidebarReferences({ board }: { board: BoardData }) {
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function SidebarUser() {
-  const { user, isAdmin, logout } = useAuth()
-  if (!user) return null
-  return (
-    <div className="pt-4 border-t border-line">
-      <p className="text-sm font-medium text-ink">{user.fullName || user.username}</p>
-      <p className="text-xs text-muted mb-2">{isAdmin ? 'Administrator' : 'Viewer'}</p>
-      <button
-        onClick={logout}
-        className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
-      >
-        <LogOut size={13} /> Sign out
-      </button>
     </div>
   )
 }

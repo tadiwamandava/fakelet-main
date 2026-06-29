@@ -6,7 +6,7 @@ import Column from '../components/Column'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/ui/Modal'
 import BoardSettingsModal from '../components/BoardSettingsModal'
-import { Eye, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
+import { Eye, LogOut, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 
@@ -18,7 +18,7 @@ export default function BoardPage() {
   const bookmarkIds = useBookmarkIds()
   const toggleBookmark = useToggleBookmark()
   const [search, setSearch] = useState('')
-  const { isAdmin } = useAuth()
+  const { user, isAdmin, logout } = useAuth()
   const [editMode, setEditMode] = useState(isAdmin)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -162,6 +162,25 @@ export default function BoardPage() {
               {editMode ? <Pencil size={13} /> : <Eye size={13} />}
               <span className="hidden sm:inline">{editMode ? 'Edit mode' : 'Read-only'}</span>
             </button>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-2 ml-auto pl-2 border-l border-line">
+              <span className="text-xs text-muted hidden sm:block">
+                {user.fullName || user.username}
+                {isAdmin && (
+                  <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
+                )}
+              </span>
+              <button
+                onClick={logout}
+                aria-label="Sign out"
+                className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
+              >
+                <LogOut size={13} />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </div>
           )}
 
           {isAdmin && editMode && (
