@@ -54,7 +54,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   const [editing, setEditing] = useState(autoEdit)
 
   return (
-    <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden">
+    <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden transition-shadow hover:shadow-sm">
       {/* Image (if the card has one) */}
       {card.imageUrl && (
         <img
@@ -86,14 +86,14 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
             <button
               onClick={() => setEditing(true)}
               aria-label="Edit card"
-              className="text-muted hover:text-ink"
+              className="text-muted hover:text-ink transition-colors"
             >
               <Pencil size={13} />
             </button>
             <button
               onClick={() => window.confirm('Delete this card?') && cardM?.deleteCard.mutate(card.id)}
               aria-label="Delete card"
-              className="text-muted hover:text-brand"
+              className="text-muted hover:text-brand transition-colors"
             >
               <Trash2 size={13} />
             </button>
@@ -126,7 +126,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
           <button
             onClick={() => onToggleBookmark(card.id)}
             aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this card'}
-            className={`p-1 -m-1 ${bookmarked ? 'text-brand' : 'text-muted hover:text-ink'}`}
+            className={`p-1 -m-1 transition-colors ${bookmarked ? 'text-brand' : 'text-muted hover:text-ink'}`}
           >
             <Bookmark size={15} fill={bookmarked ? 'currentColor' : 'none'} />
           </button>

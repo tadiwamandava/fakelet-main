@@ -50,10 +50,10 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           All boards
         </Link>
         <img src={logo} alt="K20 Center" className="h-8 self-start" />
-        <p className="text-xs font-semibold tracking-widest text-[#910D28] uppercase mb-4 mt-1" style={{ letterSpacing: '1.2em' }}>
+        <p className="text-xs font-semibold tracking-widest text-brand uppercase mb-4 mt-1" style={{ letterSpacing: '1.2em' }}>
           Fakelet
         </p>
-        <hr className="border-line mb-1 border-black" />
+        <hr className="border-line mb-3" />
 
         {board.imageUrl && (
           <img
@@ -71,7 +71,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
         <div>
           <button
             onClick={() => setBookmarksOpen((o) => !o)}
-            className="flex items-center gap-2 w-full text-sm text-muted mb-2"
+            className="flex items-center gap-2 w-full text-sm text-muted hover:text-ink transition-colors mb-2"
           >
             <Bookmark size={14} />
             <span className="font-medium flex-1 text-left">Bookmarks</span>
@@ -152,7 +152,7 @@ function SidebarReferences({ board }: { board: BoardData }) {
     <div className="mb-4">
       <button
         onClick={() => !editing && setOpen((o) => !o)}
-        className="flex items-center gap-2 w-full text-xs font-semibold uppercase tracking-wide text-muted mb-2"
+        className="flex items-center gap-2 w-full text-xs font-semibold uppercase tracking-wide text-muted hover:text-ink transition-colors mb-2"
       >
         <BookOpen size={13} />
         <span className="flex-1 text-left">References</span>

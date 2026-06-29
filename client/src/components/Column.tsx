@@ -79,7 +79,7 @@ export default function Column({
                 <button
                   onClick={() => setEditingTitle(true)}
                   aria-label="Rename column"
-                  className="text-muted hover:text-ink"
+                  className="text-muted hover:text-ink transition-colors"
                 >
                   <Pencil size={13} />
                 </button>
@@ -90,7 +90,7 @@ export default function Column({
                     }
                   }}
                   aria-label="Delete column"
-                  className="text-muted hover:text-brand"
+                  className="text-muted hover:text-brand transition-colors"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -129,7 +129,7 @@ export default function Column({
           ) : (
             <button
               onClick={() => setAddingGroup(true)}
-              className="w-full text-xs text-muted border border-dashed border-line rounded py-2 hover:text-brand hover:border-brand"
+              className="w-full text-xs text-muted border border-dashed border-line rounded py-2 hover:text-brand hover:border-brand transition-colors"
             >
               + Add group
             </button>

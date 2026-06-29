@@ -96,7 +96,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />
-        <h1 className="text-base font-semibold text-left text-[#1C546E] uppercase mt-1 mb-3 ml-18.5" style={{ letterSpacing: '1.1em' }}>Fakelet</h1>
+        <div className="flex justify-center mb-3">
+          <h1 className="text-xs font-semibold text-brand uppercase mt-1" style={{ letterSpacing: '1.2em', paddingRight: '1.2em' }}>Fakelet</h1>
+        </div>
 
         {(mode === 'login' || mode === 'signup') && (
           <>
