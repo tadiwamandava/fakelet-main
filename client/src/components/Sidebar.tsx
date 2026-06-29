@@ -190,7 +190,7 @@ function SidebarReferences({ board }: { board: BoardData }) {
         ) : (
           <ol className="max-h-40 overflow-y-auto overflow-x-hidden text-xs text-muted space-y-1 list-decimal list-inside pr-0.5">
             {references.map((ref, i) => (
-              <li key={i} className="leading-snug break-all">{ref}</li>
+              <RefItem key={i} text={ref} />
             ))}
           </ol>
         )
@@ -258,5 +258,25 @@ function SidebarUser() {
         <LogOut size={13} /> Sign out
       </button>
     </div>
+  )
+}
+
+const TRUNCATE_AT = 80
+
+function RefItem({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const long = text.length > TRUNCATE_AT
+  return (
+    <li className="leading-snug break-all">
+      {long && !expanded ? text.slice(0, TRUNCATE_AT) + '…' : text}
+      {long && (
+        <button
+          onClick={() => setExpanded((x) => !x)}
+          className="ml-1 text-blue hover:underline whitespace-nowrap"
+        >
+          {expanded ? 'see less' : 'see more'}
+        </button>
+      )}
+    </li>
   )
 }
