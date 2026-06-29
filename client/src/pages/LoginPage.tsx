@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/authStore'
 import logo from '../assets/k20center-logo-full.svg'
 
@@ -13,6 +14,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export default function LoginPage() {
   const { login, signup, forgotPassword, resetPassword } = useAuth()
+  const navigate = useNavigate()
 
   const [mode, setMode] = useState<Mode>('login')
 
@@ -53,7 +55,7 @@ export default function LoginPage() {
   async function handleLogin() {
     if (!username.trim()) return setError('Username is required.')
     if (!password)        return setError('Password is required.')
-    await run(() => login(username.trim(), password))
+    await run(async () => { await login(username.trim(), password); navigate('/boards') })
   }
 
   async function handleSignup() {
@@ -62,9 +64,10 @@ export default function LoginPage() {
     if (password.length < 8)          return setError('Password must be at least 8 characters.')
     if (password.length > 32)         return setError('Password must be 32 characters or fewer.')
     if (password !== confirm)         return setError('Passwords do not match.')
-    await run(() =>
-      signup({ username: username.trim(), fullName: fullName.trim() || null, email: email.trim(), password, passwordConfirmation: confirm })
-    )
+    await run(async () => {
+      await signup({ username: username.trim(), fullName: fullName.trim() || null, email: email.trim(), password, passwordConfirmation: confirm })
+      navigate('/boards')
+    })
   }
 
   async function handleForgot() {

@@ -6,14 +6,11 @@ import BoardPage from './pages/BoardPage'
 import LoginPage from './pages/LoginPage'
 
 export default function App() {
-  const { user, ready, restore } = useAuth()
+  const { restore } = useAuth()
 
   useEffect(() => {
     restore()
   }, [restore])
-
-  if (!ready) return null
-  if (!user) return <LoginPage />
 
   return (
     <BrowserRouter>
@@ -21,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/boards" replace />} />
         <Route path="/boards" element={<BoardListPage />} />
         <Route path="/boards/:id" element={<BoardPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<Navigate to="/boards" replace />} />
       </Routes>
     </BrowserRouter>

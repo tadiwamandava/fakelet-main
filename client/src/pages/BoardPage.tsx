@@ -17,7 +17,7 @@ export default function BoardPage() {
   const { data: bookmarks = [] } = useBookmarks()
   const toggleBookmarkMutation = useToggleBookmark()
   const [search, setSearch] = useState('')
-  const isAdmin = useAuth((s) => s.isAdmin)
+  const { isAdmin, user } = useAuth()
   const [editMode, setEditMode] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -180,7 +180,7 @@ export default function BoardPage() {
               key={col.id}
               column={col}
               bookmarks={bookmarks}
-              onToggleBookmark={(id) => toggleBookmarkMutation.mutate(id)}
+              onToggleBookmark={(id) => user && toggleBookmarkMutation.mutate(id)}
               editMode={editMode && isAdmin}
               cardM={cardM}
               groupM={groupM}

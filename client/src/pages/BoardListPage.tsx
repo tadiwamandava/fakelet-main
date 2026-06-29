@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Plus, Trash2 } from 'lucide-react'
+import { LayoutDashboard, LogIn, LogOut, Plus, Trash2 } from 'lucide-react'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
@@ -53,22 +53,31 @@ export default function BoardListPage() {
               <Plus size={13} /> New board
             </button>
           )}
-          {user && (
-            <span className="text-xs text-muted hidden sm:block">
-              {user.fullName || user.username}
-              {isAdmin && (
-                <span className="ml-1.5 bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5 rounded">
-                  Admin
-                </span>
-              )}
-            </span>
+          {user ? (
+            <>
+              <span className="text-xs text-muted hidden sm:block">
+                {user.fullName || user.username}
+                {isAdmin && (
+                  <span className="ml-1.5 bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5 rounded">
+                    Admin
+                  </span>
+                )}
+              </span>
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
+              >
+                <LogOut size={13} /> Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
+            >
+              <LogIn size={13} /> Admin sign in
+            </Link>
           )}
-          <button
-            onClick={logout}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
-          >
-            <LogOut size={13} /> Sign out
-          </button>
         </div>
       </header>
 
