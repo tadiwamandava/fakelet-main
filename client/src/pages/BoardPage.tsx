@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useBoard } from '../hooks/useBoard'
 import { useBookmarks, useBookmarkIds, useToggleBookmark } from '../hooks/useBookmarks'
@@ -30,6 +30,7 @@ export default function BoardPage() {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const highlightId = Number(searchParams.get('highlight')) || null
+  const activeHighlight = useRef<HTMLElement | null>(null)
 
   // Build card title map for bookmark toggle
   const cardTitleMap = useMemo(() => {
@@ -47,14 +48,22 @@ export default function BoardPage() {
   // Scroll to and highlight the target card
   useEffect(() => {
     if (!highlightId || !board) return
-    const el = document.getElementById(`card-${highlightId}`)
+    // Clear any previously highlighted card first
+    if (activeHighlight.current) {
+      activeHighlight.current.style.outline = ''
+      activeHighlight.current.style.boxShadow = ''
+      activeHighlight.current = null
+    }
+    const el = document.getElementById(`card-${highlightId}`) as HTMLElement | null
     if (!el) return
+    activeHighlight.current = el
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.style.outline = '2px solid #1C546E'
-    el.style.outlineOffset = '2px'
+    el.style.outline = '1.5px solid #EF4444'
+    el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.25), 0 0 12px rgba(239,68,68,0.3)'
     const timer = setTimeout(() => {
       el.style.outline = ''
-      el.style.outlineOffset = ''
+      el.style.boxShadow = ''
+      activeHighlight.current = null
       setSearchParams({}, { replace: true })
     }, 2500)
     return () => clearTimeout(timer)

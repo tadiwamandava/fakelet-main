@@ -22,6 +22,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProps) {
+  const boardBookmarks = bookmarks.filter((b) => b.boardId === board.id)
   const [bookmarksOpen, setBookmarksOpen] = useState(true)
 
   return (
@@ -67,6 +68,10 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           {board.title}
         </h1>
 
+        <p className="text-xs text-muted mb-2">
+          {board.description || 'No description provided...'}
+        </p>
+
         <div>
           <button
             onClick={() => setBookmarksOpen((o) => !o)}
@@ -74,25 +79,29 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           >
             <Bookmark size={14} />
             <span className="font-medium flex-1 text-left">Bookmarks</span>
-            {bookmarks.length > 0 && (
+            {boardBookmarks.length > 0 && (
               <span className="bg-brand text-white text-xs rounded-full px-2 py-0.5">
-                {bookmarks.length}
+                {boardBookmarks.length}
               </span>
             )}
             {bookmarksOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
           </button>
 
           {bookmarksOpen && (
-            <div className="text-xs text-ink space-y-1">
-              {bookmarks.length === 0 ? (
+            <div className="max-h-40 overflow-y-auto text-xs text-ink space-y-1 pr-0.5">
+              {boardBookmarks.length === 0 ? (
                 <p className="text-muted">Nothing bookmarked yet.</p>
               ) : (
-                bookmarks.map((b) => (
+                boardBookmarks.map((b) => (
                   <Link
                     key={b.cardId}
                     to={`/boards/${b.boardId}?highlight=${b.cardId}`}
                     onClick={onClose}
-                    className="block truncate border-b border-line pb-1 hover:text-brand"
+                    className="block truncate rounded px-2 py-1 hover:text-red-600"
+                    style={{
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      boxShadow: '0 0 6px rgba(239,68,68,0.15)',
+                    }}
                   >
                     {b.title}
                   </Link>
