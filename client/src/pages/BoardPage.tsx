@@ -51,18 +51,21 @@ export default function BoardPage() {
     // Clear any previously highlighted card first
     if (activeHighlight.current) {
       activeHighlight.current.style.outline = ''
-      activeHighlight.current.style.boxShadow = ''
+      activeHighlight.current.style.outlineOffset = ''
+      activeHighlight.current.style.borderRadius = ''
       activeHighlight.current = null
     }
     const el = document.getElementById(`card-${highlightId}`) as HTMLElement | null
     if (!el) return
     activeHighlight.current = el
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.style.outline = '1.5px solid #EF4444'
-    el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.25), 0 0 12px rgba(239,68,68,0.3)'
+    el.style.outline = '2px solid rgba(28,84,110,0.5)'
+    el.style.outlineOffset = '3px'
+    el.style.borderRadius = '8px'
     const timer = setTimeout(() => {
       el.style.outline = ''
-      el.style.boxShadow = ''
+      el.style.outlineOffset = ''
+      el.style.borderRadius = ''
       activeHighlight.current = null
       setSearchParams({}, { replace: true })
     }, 2500)
