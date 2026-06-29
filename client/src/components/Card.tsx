@@ -39,6 +39,8 @@ interface CardProps {
   onToggleBookmark: (id: number) => void
   editMode?: boolean
   cardM?: CardMutations
+  autoEdit?: boolean
+  onAutoEditDone?: () => void
 }
 
 // Pull the 11-char video id out of any YouTube URL shape
@@ -47,9 +49,9 @@ function getYouTubeId(url?: string | null): string | null {
   return match ? match[1] : null
 }
 
-export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM }: CardProps) {
+export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone }: CardProps) {
   const ytId = getYouTubeId(card.youtubeUrl)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(autoEdit)
 
   return (
     <div className="bg-white border border-line rounded-lg overflow-hidden">
@@ -134,7 +136,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
       {cardM && (
         <CardEditor
           open={editing}
-          onClose={() => setEditing(false)}
+          onClose={() => { setEditing(false); onAutoEditDone?.() }}
           card={card}
           saving={cardM.updateCard.isPending}
           onSave={(data: CardUpdateInput) => {

@@ -16,8 +16,15 @@ interface GroupProps {
 
 export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM }: GroupProps) {
   const [collapsed, setCollapsed] = useState(false)
-  const [addingCard, setAddingCard] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
+  const [newCardId, setNewCardId] = useState<number | null>(null)
+
+  function addCard() {
+    cardM.createCard.mutate(
+      { groupId: group.id, title: 'New card', position: group.cards.length },
+      { onSuccess: (card) => setNewCardId(card.id) }
+    )
+  }
 
   return (
     <div className="mb-4">
@@ -79,6 +86,8 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
               onToggleBookmark={onToggleBookmark}
               editMode={editMode}
               cardM={cardM}
+              autoEdit={card.id === newCardId}
+              onAutoEditDone={() => setNewCardId(null)}
             />
           ))}
 
@@ -89,26 +98,13 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
           )}
 
           {editMode && (
-            addingCard ? (
-              <InlineForm
-                placeholder="Card title…"
-                loading={cardM.createCard.isPending}
-                onSave={(title: string) =>
-                  cardM.createCard.mutate(
-                    { groupId: group.id, title, position: group.cards.length },
-                    { onSuccess: () => setAddingCard(false) }
-                  )
-                }
-                onCancel={() => setAddingCard(false)}
-              />
-            ) : (
-              <button
-                onClick={() => setAddingCard(true)}
-                className="text-xs text-muted border border-dashed border-line rounded py-2 hover:text-brand hover:border-brand"
-              >
-                + Add card
-              </button>
-            )
+            <button
+              onClick={addCard}
+              disabled={cardM.createCard.isPending}
+              className="text-xs text-muted border border-dashed border-line rounded py-2 hover:text-brand hover:border-brand disabled:opacity-40"
+            >
+              {cardM.createCard.isPending ? 'Adding…' : '+ Add card'}
+            </button>
           )}
         </div>
       )}
