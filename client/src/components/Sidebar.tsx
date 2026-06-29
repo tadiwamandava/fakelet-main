@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, LogOut, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react'
+import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { resolveImageUrl } from '../utils/imageUrl'
-import { useGenerateReferences, useUpdateBoard } from '../hooks/useBoardMutations'
+import { useUpdateBoard } from '../hooks/useBoardMutations'
 import logo from '../assets/k20center-logo-full.svg'
 import type { LocalBookmark } from '../hooks/useBookmarks'
 
@@ -116,7 +116,6 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
 function SidebarReferences({ board }: { board: BoardData }) {
   const isAdmin = useAuth((s) => s.isAdmin)
   const updateBoard = useUpdateBoard(board.id)
-  const generateRefs = useGenerateReferences(board.id)
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<string[]>([])
@@ -157,29 +156,16 @@ function SidebarReferences({ board }: { board: BoardData }) {
         <BookOpen size={13} />
         <span className="flex-1 text-left">References</span>
         {isAdmin && !editing && (
-          <>
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="Generate references from cards"
-              onClick={(e) => { e.stopPropagation(); generateRefs.mutate() }}
-              onKeyDown={(e) => e.key === 'Enter' && generateRefs.mutate()}
-              className={`p-0.5 ${generateRefs.isPending ? 'text-brand animate-pulse' : 'text-muted hover:text-brand'}`}
-              title="Generate from card content via CrossRef"
-            >
-              <Sparkles size={11} />
-            </span>
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="Edit references"
-              onClick={(e) => { e.stopPropagation(); startEdit() }}
-              onKeyDown={(e) => e.key === 'Enter' && startEdit()}
-              className="text-muted hover:text-ink p-0.5"
-            >
-              <Pencil size={11} />
-            </span>
-          </>
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Edit references"
+            onClick={(e) => { e.stopPropagation(); startEdit() }}
+            onKeyDown={(e) => e.key === 'Enter' && startEdit()}
+            className="text-muted hover:text-ink p-0.5"
+          >
+            <Pencil size={11} />
+          </span>
         )}
         {!editing && (open ? <ChevronDown size={13} /> : <ChevronRight size={13} />)}
       </button>
