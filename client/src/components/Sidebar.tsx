@@ -190,7 +190,7 @@ function SidebarReferences({ board }: { board: BoardData }) {
         ) : (
           <ol className="max-h-40 overflow-y-auto overflow-x-hidden text-xs text-muted space-y-1 list-decimal list-inside pr-0.5">
             {references.map((ref, i) => (
-              <li key={i} className="leading-snug">{ref}</li>
+              <li key={i} className="leading-snug break-all">{ref}</li>
             ))}
           </ol>
         )
