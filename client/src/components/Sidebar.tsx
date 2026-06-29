@@ -68,10 +68,6 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           {board.title}
         </h1>
 
-        <p className="text-xs text-muted mb-2">
-          {board.description || 'No description provided...'}
-        </p>
-
         <div>
           <button
             onClick={() => setBookmarksOpen((o) => !o)}
@@ -97,7 +93,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
                     key={b.cardId}
                     to={`/boards/${b.boardId}?highlight=${b.cardId}`}
                     onClick={onClose}
-                    className="flex items-center gap-1.5 truncate rounded px-2 py-1.5 text-ink hover:bg-paper hover:text-brand transition-colors"
+                    className="flex items-center gap-1.5 truncate rounded px-2 py-1.5 text-muted hover:bg-paper hover:text-brand transition-colors"
                   >
                     <Bookmark size={10} className="shrink-0 text-muted" />
                     <span className="truncate">{b.title}</span>
