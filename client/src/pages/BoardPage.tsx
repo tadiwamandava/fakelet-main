@@ -59,7 +59,7 @@ export default function BoardPage() {
     if (!el) return
     activeHighlight.current = el
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.style.outline = '2px solid rgba(28,84,110,0.5)'
+    el.style.outline = '2px solid rgba(145,13,40,0.6)'
     el.style.outlineOffset = '3px'
     el.style.borderRadius = '8px'
     const timer = setTimeout(() => {
