@@ -59,7 +59,7 @@ export default function Column({
   const [editingTitle, setEditingTitle] = useState(false)
 
   return (
-    <div className="w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col max-h-full">
+    <div className="w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col">
       <div className="px-4 py-3 border-b border-line shrink-0">
         {editingTitle ? (
           <InlineForm
@@ -100,7 +100,7 @@ export default function Column({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="p-3">
         {column.groups.map((group) => (
           <Group
             key={group.id}
