@@ -5,7 +5,7 @@ import { useAuth } from '../store/authStore'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useGenerateReferences, useUpdateBoard } from '../hooks/useBoardMutations'
 import logo from '../assets/k20center-logo-full.svg'
-import type { CardData } from './Card'
+import type { LocalBookmark } from '../hooks/useBookmarks'
 
 export interface BoardData {
   id: number
@@ -16,14 +16,12 @@ export interface BoardData {
 
 interface SidebarProps {
   board: BoardData
-  bookmarks: number[]
-  allCards: CardData[]
+  bookmarks: LocalBookmark[]
   open: boolean
   onClose: () => void
 }
 
-export default function Sidebar({ board, bookmarks, allCards, open, onClose }: SidebarProps) {
-  const bookmarkedCards = allCards.filter((c) => bookmarks.includes(c.id))
+export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProps) {
   const [bookmarksOpen, setBookmarksOpen] = useState(true)
 
   return (
@@ -76,9 +74,9 @@ export default function Sidebar({ board, bookmarks, allCards, open, onClose }: S
           >
             <Bookmark size={14} />
             <span className="font-medium flex-1 text-left">Bookmarks</span>
-            {bookmarkedCards.length > 0 && (
+            {bookmarks.length > 0 && (
               <span className="bg-brand text-white text-xs rounded-full px-2 py-0.5">
-                {bookmarkedCards.length}
+                {bookmarks.length}
               </span>
             )}
             {bookmarksOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
@@ -86,13 +84,18 @@ export default function Sidebar({ board, bookmarks, allCards, open, onClose }: S
 
           {bookmarksOpen && (
             <div className="text-xs text-ink space-y-1">
-              {bookmarkedCards.length === 0 ? (
+              {bookmarks.length === 0 ? (
                 <p className="text-muted">Nothing bookmarked yet.</p>
               ) : (
-                bookmarkedCards.map((c) => (
-                  <p key={c.id} className="truncate border-b border-line pb-1">
-                    {c.title}
-                  </p>
+                bookmarks.map((b) => (
+                  <Link
+                    key={b.cardId}
+                    to={`/boards/${b.boardId}?highlight=${b.cardId}`}
+                    onClick={onClose}
+                    className="block truncate border-b border-line pb-1 hover:text-brand"
+                  >
+                    {b.title}
+                  </Link>
                 ))
               )}
             </div>

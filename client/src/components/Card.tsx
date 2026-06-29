@@ -54,7 +54,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   const [editing, setEditing] = useState(autoEdit)
 
   return (
-    <div className="bg-white border border-line rounded-lg overflow-hidden">
+    <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden">
       {/* Image (if the card has one) */}
       {card.imageUrl && (
         <img

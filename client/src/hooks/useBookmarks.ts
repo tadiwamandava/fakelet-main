@@ -1,33 +1,46 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import api from '../api/client'
+import { useState, useCallback, useEffect } from 'react'
 
-export function useBookmarks() {
-  return useQuery<number[]>({
-    queryKey: ['bookmarks'],
-    queryFn: async () => {
-      const res = await api.get<{ cardIds: number[] }>('/bookmarks')
-      return res.data.cardIds
-    },
-  })
+export interface LocalBookmark {
+  cardId: number
+  title: string
+  boardId: number
+}
+
+const KEY = 'fakelet_bookmarks'
+
+function load(): LocalBookmark[] {
+  try { return JSON.parse(localStorage.getItem(KEY) ?? '[]') } catch { return [] }
+}
+
+// Shared cache + listeners so all components stay in sync without a context
+let cache: LocalBookmark[] = load()
+const listeners = new Set<() => void>()
+
+function notify() { listeners.forEach((fn) => fn()) }
+
+function persist(next: LocalBookmark[]) {
+  cache = next
+  localStorage.setItem(KEY, JSON.stringify(next))
+  notify()
+}
+
+export function useBookmarks(): LocalBookmark[] {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const fn = () => tick((n) => n + 1)
+    listeners.add(fn)
+    return () => { listeners.delete(fn) }
+  }, [])
+  return cache
+}
+
+export function useBookmarkIds(): number[] {
+  return useBookmarks().map((b) => b.cardId)
 }
 
 export function useToggleBookmark() {
-  const qc = useQueryClient()
-  return useMutation<{ bookmarked: boolean; cardId: number }, Error, number, { prev: number[] }>({
-    mutationFn: (cardId) =>
-      api.post<{ bookmarked: boolean; cardId: number }>('/bookmarks/toggle', { cardId }).then((r) => r.data),
-    onMutate: async (cardId) => {
-      await qc.cancelQueries({ queryKey: ['bookmarks'] })
-      const prev = qc.getQueryData<number[]>(['bookmarks']) ?? []
-      qc.setQueryData(
-        ['bookmarks'],
-        prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
-      )
-      return { prev }
-    },
-    onError: (_err, _cardId, context) => {
-      if (context?.prev) qc.setQueryData(['bookmarks'], context.prev)
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['bookmarks'] }),
-  })
+  return useCallback((cardId: number, title: string, boardId: number) => {
+    const exists = cache.some((b) => b.cardId === cardId)
+    persist(exists ? cache.filter((b) => b.cardId !== cardId) : [...cache, { cardId, title, boardId }])
+  }, [])
 }

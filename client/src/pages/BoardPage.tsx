@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useBoard } from '../hooks/useBoard'
-import { useBookmarks, useToggleBookmark } from '../hooks/useBookmarks'
+import { useBookmarks, useBookmarkIds, useToggleBookmark } from '../hooks/useBookmarks'
 import Column from '../components/Column'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/ui/Modal'
@@ -14,10 +14,11 @@ export default function BoardPage() {
   const { id } = useParams<{ id: string }>()
   const boardId = Number(id)
   const { data: board, isLoading, error } = useBoard(boardId)
-  const { data: bookmarks = [] } = useBookmarks()
-  const toggleBookmarkMutation = useToggleBookmark()
+  const bookmarks = useBookmarks()
+  const bookmarkIds = useBookmarkIds()
+  const toggleBookmark = useToggleBookmark()
   const [search, setSearch] = useState('')
-  const { isAdmin, user } = useAuth()
+  const { isAdmin } = useAuth()
   const [editMode, setEditMode] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -27,11 +28,41 @@ export default function BoardPage() {
   const columnM = useColumnMutations(boardId)
   const groupM = useGroupMutations(boardId)
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const highlightId = Number(searchParams.get('highlight')) || null
+
+  // Build card title map for bookmark toggle
+  const cardTitleMap = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const col of board?.columns ?? []) {
+      for (const group of col.groups ?? []) {
+        for (const card of group.cards ?? []) {
+          map.set(card.id, card.title)
+        }
+      }
+    }
+    return map
+  }, [board])
+
+  // Scroll to and highlight the target card
+  useEffect(() => {
+    if (!highlightId || !board) return
+    const el = document.getElementById(`card-${highlightId}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.style.outline = '2px solid #1C546E'
+    el.style.outlineOffset = '2px'
+    const timer = setTimeout(() => {
+      el.style.outline = ''
+      el.style.outlineOffset = ''
+      setSearchParams({}, { replace: true })
+    }, 2500)
+    return () => clearTimeout(timer)
+  }, [highlightId, board])
+
   if (isLoading) return <p className="p-8 text-muted">Loading board…</p>
   if (error) return <p className="p-8 text-brand">Couldn't load the board. Is the server running?</p>
   if (!board) return null
-
-  const allCards = board.columns.flatMap((col) => col.groups.flatMap((g) => g.cards))
 
   const q = search.trim().toLowerCase()
   const columns = q
@@ -73,7 +104,6 @@ export default function BoardPage() {
       <Sidebar
         board={board}
         bookmarks={bookmarks}
-        allCards={allCards}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -179,8 +209,11 @@ export default function BoardPage() {
             <Column
               key={col.id}
               column={col}
-              bookmarks={bookmarks}
-              onToggleBookmark={(id) => user && toggleBookmarkMutation.mutate(id)}
+              bookmarks={bookmarkIds}
+              onToggleBookmark={(cardId) => {
+                const title = cardTitleMap.get(cardId) ?? 'Untitled'
+                toggleBookmark(cardId, title, boardId)
+              }}
               editMode={editMode && isAdmin}
               cardM={cardM}
               groupM={groupM}
