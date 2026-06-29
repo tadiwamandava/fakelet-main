@@ -188,7 +188,7 @@ function SidebarReferences({ board }: { board: BoardData }) {
         references.length === 0 ? (
           <p className="text-xs text-muted">None yet.</p>
         ) : (
-          <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
+          <ol className="max-h-40 overflow-y-auto text-xs text-muted space-y-1 list-decimal list-inside pr-0.5">
             {references.map((ref, i) => (
               <li key={i} className="leading-snug">{ref}</li>
             ))}
