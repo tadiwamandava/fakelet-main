@@ -29,7 +29,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
     <aside
       className={[
         'fixed inset-y-0 left-0 z-40 w-72',
-        'md:sticky md:top-0 md:h-screen md:w-56 md:translate-x-0',
+        'md:static md:w-56 md:translate-x-0',
         'shrink-0 bg-white border-r border-line flex flex-col',
         'transition-transform duration-200 ease-in-out',
         open ? 'translate-x-0' : '-translate-x-full',

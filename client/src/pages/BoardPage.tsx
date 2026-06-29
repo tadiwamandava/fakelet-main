@@ -105,7 +105,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="flex bg-paper min-h-screen">
+    <div className="h-screen overflow-hidden flex bg-paper">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 md:hidden"
@@ -121,7 +121,7 @@ export default function BoardPage() {
       />
 
       <main className="flex-1 min-w-0 flex flex-col">
-        <div className="sticky top-0 z-20 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
@@ -216,7 +216,7 @@ export default function BoardPage() {
           )}
         </div>
 
-        <div className="overflow-x-auto flex gap-3 sm:gap-4 p-3 sm:p-5 items-start">
+        <div className="flex-1 overflow-x-auto overflow-y-hidden flex gap-3 sm:gap-4 p-3 sm:p-5 items-start">
           {columns.map((col) => (
             <Column
               key={col.id}
