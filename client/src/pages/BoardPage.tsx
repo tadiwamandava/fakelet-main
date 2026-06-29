@@ -164,25 +164,6 @@ export default function BoardPage() {
             </button>
           )}
 
-          {user && (
-            <div className="flex items-center gap-2 ml-auto pl-2 border-l border-line">
-              <span className="text-xs text-muted hidden sm:block">
-                {user.fullName || user.username}
-                {isAdmin && (
-                  <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
-                )}
-              </span>
-              <button
-                onClick={logout}
-                aria-label="Sign out"
-                className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
-              >
-                <LogOut size={13} />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
-            </div>
-          )}
-
           {isAdmin && editMode && (
             <>
               <button
@@ -232,6 +213,25 @@ export default function BoardPage() {
                 </div>
               </Modal>
             </>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-2 ml-auto pl-2 border-l border-line">
+              <span className="text-xs text-muted hidden sm:block">
+                {user.fullName || user.username}
+                {isAdmin && (
+                  <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
+                )}
+              </span>
+              <button
+                onClick={logout}
+                aria-label="Sign out"
+                className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
+              >
+                <LogOut size={13} />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </div>
           )}
         </div>
 
