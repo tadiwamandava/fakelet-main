@@ -58,7 +58,7 @@ export default function BoardListPage() {
               <span className="text-xs text-muted hidden sm:block">
                 {user.fullName || user.username}
                 {isAdmin && (
-                  <span className="ml-1.5 bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5 rounded">
+                  <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">
                     Admin
                   </span>
                 )}

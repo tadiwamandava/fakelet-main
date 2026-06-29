@@ -153,9 +153,9 @@ export default function BoardPage() {
           {isAdmin && (
             <button
               onClick={() => setEditMode((m) => !m)}
-              className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap ${
+              className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap transition-colors ${
                 editMode
-                  ? 'bg-brand-light text-brand border-brand'
+                  ? 'bg-gold/15 text-ink border-gold'
                   : 'text-muted border-line hover:text-ink'
               }`}
             >

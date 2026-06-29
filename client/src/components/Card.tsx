@@ -114,7 +114,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
               href={card.linkUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-brand font-medium"
+              className="inline-flex items-center gap-1 text-xs text-blue font-medium"
             >
               <ExternalLink size={12} />
               {card.linkTitle || 'Link'}
