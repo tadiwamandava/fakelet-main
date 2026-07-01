@@ -16,7 +16,7 @@ const MIME: Record<string, string> = {
 
 export default class BoardsController {
   async index({}: HttpContext) {
-    const boards = await Board.query().select('id', 'title', 'imageUrl', 'description').orderBy('id')
+    const boards = await Board.query().orderBy('id')
     return boards
   }
 

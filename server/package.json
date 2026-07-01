@@ -10,6 +10,7 @@
   },
   "scripts": {
     "start": "node bin/server.js",
+    "start:prod": "node ace.js migration:run --force && node bin/server.js",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
