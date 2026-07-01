@@ -6,7 +6,6 @@ import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
 import { useAuth } from '../store/authStore'
 import Modal from '../components/ui/Modal'
-import InvitationsModal from '../components/InvitationsModal'
 import logo from '../assets/k20center-logo-full.svg'
 
 export default function BoardListPage() {
@@ -19,7 +18,6 @@ export default function BoardListPage() {
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
-  const [invitationsOpen, setInvitationsOpen] = useState(false)
 
   function submitCreate() {
     const title = newTitle.trim()
@@ -57,13 +55,13 @@ export default function BoardListPage() {
               >
                 <Plus size={13} /> New board
               </button>
-              <button
-                onClick={() => setInvitationsOpen(true)}
-                title="Manage admin invitations"
+              <Link
+                to="/admin"
+                title="Admin dashboard"
                 className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
               >
                 <KeyRound size={14} />
-              </button>
+              </Link>
             </>
           )}
           {user ? (
@@ -182,8 +180,6 @@ export default function BoardListPage() {
           </div>
         </div>
       </Modal>
-
-      <InvitationsModal open={invitationsOpen} onClose={() => setInvitationsOpen(false)} />
 
       {/* Delete confirmation modal */}
       <Modal

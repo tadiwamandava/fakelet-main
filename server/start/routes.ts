@@ -18,6 +18,7 @@ const CardsController = () => import('#controllers/cards_controller')
 const BookmarksController = () => import('#controllers/bookmarks_controller')
 const PasswordResetsController = () => import('#controllers/password_resets_controller')
 const InvitationsController = () => import('#controllers/invitations_controller')
+const AdminController = () => import('#controllers/admin_controller')
 
 router.get('/', () => ({ hello: 'world' }))
 
@@ -57,6 +58,10 @@ router
         router.get('/invitations', [InvitationsController, 'index'])
         router.post('/invitations', [InvitationsController, 'store'])
         router.delete('/invitations/:id', [InvitationsController, 'destroy'])
+
+        router.get('/admin/users', [AdminController, 'users'])
+        router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
+        router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
       })
       .use(middleware.auth())
 

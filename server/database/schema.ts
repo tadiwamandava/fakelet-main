@@ -135,12 +135,14 @@ export class GroupSchema extends BaseModel {
 }
 
 export class InvitationSchema extends BaseModel {
-  static $columns = ['createdAt', 'createdBy', 'id', 'key', 'usedAt', 'usedBy'] as const
+  static $columns = ['createdAt', 'createdBy', 'email', 'id', 'key', 'usedAt', 'usedBy'] as const
   $columns = InvitationSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
   declare createdBy: number | null
+  @column()
+  declare email: string | null
   @column({ isPrimary: true })
   declare id: number
   @column()

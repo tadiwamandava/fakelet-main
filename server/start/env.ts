@@ -34,6 +34,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   // Allowed CORS origin in production (e.g. https://your-app.netlify.app)
   CORS_ORIGIN: Env.schema.string.optional(),
 
+  // Frontend URL used in invitation emails (e.g. https://your-app.netlify.app)
+  FRONTEND_URL: Env.schema.string.optional(),
+
   // SMTP (optional — omit in dev to print codes to console instead)
   SMTP_HOST: Env.schema.string.optional(),
   SMTP_PORT: Env.schema.number.optional(),
