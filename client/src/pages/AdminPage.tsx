@@ -234,7 +234,7 @@ function InvitationsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
 function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>; currentUserId: number }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
-  const { data: users, isLoading } = useQuery<AdminUser[]>({
+  const { data: users, isLoading, error } = useQuery<AdminUser[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const res = await api.get<AdminUser[]>('/admin/users')
@@ -265,7 +265,8 @@ function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>
   return (
     <div className="flex flex-col gap-4">
       {isLoading && <p className="text-xs text-muted">Loading…</p>}
-      {users && users.length === 0 && <p className="text-xs text-muted">No users found.</p>}
+      {error && <p className="text-xs text-brand">Error loading users: {(error as Error).message}</p>}
+      {!isLoading && !error && users && users.length === 0 && <p className="text-xs text-muted">No users found.</p>}
 
       {users && users.length > 0 && (
         <div className="flex flex-col gap-2">
