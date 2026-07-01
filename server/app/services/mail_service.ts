@@ -19,7 +19,7 @@ function makeTransporter() {
 const transporter = makeTransporter()
 
 export async function sendInvitationEmail(to: string, key: string, frontendUrl: string): Promise<void> {
-  const signupLink = `${frontendUrl}/signup?key=${key}`
+  const signupLink = `${frontendUrl.replace(/\/$/, '')}/signup?key=${key}`
 
   if (!transporter) {
     console.log(`\n[MAIL] Admin invitation for ${to}:\n  Key: ${key}\n  Link: ${signupLink}\n`)
