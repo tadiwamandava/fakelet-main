@@ -8,7 +8,11 @@ export default class Board extends BoardSchema {
     prepare: (value: string[] | null) => (value ? JSON.stringify(value) : null),
     consume: (value: string | null) => {
       if (!value) return []
-      try { return JSON.parse(value) as string[] } catch { return [] }
+      try {
+        return JSON.parse(value) as string[]
+      } catch {
+        return []
+      }
     },
   })
   declare references: any

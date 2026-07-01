@@ -50,8 +50,8 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           All boards
         </Link>
         <img src={logo} alt="K20 Center" className="h-8 self-start" />
-        <p className="text-xs font-semibold tracking-widest text-brand uppercase mb-4 mt-1" style={{ letterSpacing: '1.2em' }}>
-          Fakelet
+        <p className="text-xs font-semibold tracking-widest text-brand uppercase mb-4 mt-1" style={{ letterSpacing: '2.9em' }}>
+          Hive
         </p>
         <hr className="border-line mb-3" />
 
