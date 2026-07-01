@@ -5,6 +5,7 @@ import User from '#models/user'
 import PasswordReset from '#models/password_reset'
 import { sendPasswordResetEmail } from '#services/mail_service'
 import { forgotPasswordValidator, resetPasswordValidator } from '#validators/user'
+import hash from '@adonisjs/core/services/hash'
 
 function hashCode(code: string): string {
   return createHash('sha256').update(code).digest('hex')
@@ -62,8 +63,8 @@ export default class PasswordResetsController {
     }
 
     const user = await User.findByOrFail('email', email)
-    user.password = password
-    await user.save()
+    const hashedPassword = await hash.make(password)
+    await User.query().where('id', user.id).update({ password: hashedPassword })
 
     reset.usedAt = DateTime.now()
     await reset.save()
