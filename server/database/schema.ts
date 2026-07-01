@@ -33,12 +33,14 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class BoardSchema extends BaseModel {
-  static $columns = ['createdAt', 'createdBy', 'id', 'imageUrl', 'references', 'title', 'updatedAt', 'updatedBy'] as const
+  static $columns = ['createdAt', 'createdBy', 'description', 'id', 'imageUrl', 'references', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = BoardSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column()
   declare createdBy: number | null
+  @column()
+  declare description: string | null
   @column({ isPrimary: true })
   declare id: number
   @column()
