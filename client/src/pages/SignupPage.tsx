@@ -15,30 +15,25 @@ export default function SignupPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
 
-  const [username, setUsername]   = useState('')
-  const [fullName, setFullName]   = useState('')
-  const [email, setEmail]         = useState('')
-  const [password, setPassword]   = useState('')
-  const [confirm, setConfirm]     = useState('')
-  const [invKey, setInvKey]       = useState(params.get('key') ?? '')
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm]   = useState('')
+  const [invKey, setInvKey]     = useState(params.get('key') ?? '')
 
   const [error, setError] = useState('')
   const [busy, setBusy]   = useState(false)
 
   async function handleSignup() {
-    if (username.trim().length < 3)   return setError('Username must be at least 3 characters.')
     if (!EMAIL_RE.test(email.trim())) return setError('Please enter a valid email address.')
-    if (password.length < 8)          return setError('Password must be at least 8 characters.')
-    if (password.length > 32)         return setError('Password must be 32 characters or fewer.')
-    if (password !== confirm)         return setError('Passwords do not match.')
-    if (!invKey.trim())               return setError('An invitation key is required.')
+    if (password.length < 8)  return setError('Password must be at least 8 characters.')
+    if (password.length > 32) return setError('Password must be 32 characters or fewer.')
+    if (password !== confirm)  return setError('Passwords do not match.')
+    if (!invKey.trim())        return setError('An invitation key is required.')
 
     setError('')
     setBusy(true)
     try {
       await signup({
-        username: username.trim(),
-        fullName: fullName.trim() || null,
         email: email.trim(),
         password,
         passwordConfirmation: confirm,
@@ -61,23 +56,9 @@ export default function SignupPage() {
         <div className="flex justify-center mb-3">
           <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '3.9em', paddingLeft: '3.8em' }}>Hive</p>
         </div>
-        <p className="text-sm text-muted text-center mb-6">Create your admin account</p>
-
-        <label className={labelClass}>Username</label>
-        <input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          autoComplete="username"
-          className={inputClass}
-        />
-
-        <label className={labelClass}>Full name <span className="normal-case font-normal text-muted">(optional)</span></label>
-        <input
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          autoComplete="name"
-          className={inputClass}
-        />
+        <div className="flex justify-center mb-6">
+          <span className="text-xs text-muted border border-line rounded-full px-3 py-1">Create your admin account</span>
+        </div>
 
         <label className={labelClass}>Email</label>
         <input

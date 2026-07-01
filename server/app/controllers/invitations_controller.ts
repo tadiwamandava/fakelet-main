@@ -9,7 +9,7 @@ export default class InvitationsController {
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
     const invitations = await Invitation.query()
-      .preload('creator', (q) => q.select('id', 'username'))
+      .preload('creator', (q) => q.select('id', 'email'))
       .orderBy('created_at', 'desc')
 
     return invitations.map((inv) => ({
@@ -17,7 +17,7 @@ export default class InvitationsController {
       key: inv.key,
       email: inv.email,
       createdAt: inv.createdAt,
-      createdBy: inv.creator ? { id: inv.creator.id, username: inv.creator.username } : null,
+      createdBy: inv.creator ? { id: inv.creator.id, email: inv.creator.email } : null,
       usedAt: inv.usedAt,
       usedBy: inv.usedBy,
     }))
@@ -41,7 +41,7 @@ export default class InvitationsController {
       key: invitation.key,
       email: invitation.email,
       createdAt: invitation.createdAt,
-      createdBy: { id: user.id, username: user.username },
+      createdBy: { id: user.id, email: user.email },
       usedAt: null,
       usedBy: null,
     }

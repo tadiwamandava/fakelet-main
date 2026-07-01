@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const [mode, setMode] = useState<Mode>('login')
 
-  const [username, setUsername] = useState('')
+  const [loginEmail, setLoginEmail] = useState('')
   const [password, setPassword] = useState('')
   const [email, setEmail]       = useState('')
   const [confirm, setConfirm]   = useState('')
@@ -51,9 +51,9 @@ export default function LoginPage() {
   }
 
   async function handleLogin() {
-    if (!username.trim()) return setError('Username is required.')
-    if (!password)        return setError('Password is required.')
-    await run(async () => { await login(username.trim(), password); navigate('/boards') })
+    if (!loginEmail.trim()) return setError('Email is required.')
+    if (!password)          return setError('Password is required.')
+    await run(async () => { await login(loginEmail.trim(), password); navigate('/boards') })
   }
 
   async function handleForgot() {
@@ -92,11 +92,13 @@ export default function LoginPage() {
               <span className="text-xs text-muted border border-line rounded-full px-3 py-1">Admin sign in</span>
             </div>
 
-            <label className={labelClass}>Username</label>
+            <label className={labelClass}>Email</label>
             <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              type="email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              autoComplete="email"
+              inputMode="email"
               className={inputClass}
             />
 

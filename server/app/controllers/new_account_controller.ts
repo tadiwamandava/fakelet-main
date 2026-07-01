@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 
 export default class NewAccountController {
   async store({ request, serialize, response }: HttpContext) {
-    const { username, fullName, email, password } = await request.validateUsing(signupValidator)
+    const { email, password } = await request.validateUsing(signupValidator)
 
     const invitationKey = (request.input('invitationKey') as string | undefined)?.trim()
     if (!invitationKey) {
@@ -23,7 +23,7 @@ export default class NewAccountController {
       return response.badRequest({ errors: [{ message: 'Invalid or already-used invitation key.' }] })
     }
 
-    const user = await User.create({ username, fullName, email, password, isAdmin: true })
+    const user = await User.create({ email, password, isAdmin: true })
 
     invitation.usedAt = DateTime.now()
     invitation.usedBy = user.id

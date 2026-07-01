@@ -11,19 +11,16 @@ interface Invitation {
   key: string
   email: string | null
   createdAt: string
-  createdBy: { id: number; username: string } | null
+  createdBy: { id: number; email: string } | null
   usedAt: string | null
   usedBy: number | null
 }
 
 interface AdminUser {
   id: number
-  username: string
-  fullName: string | null
   email: string
   isAdmin: boolean
   createdAt: string
-  initials: string
 }
 
 type Tab = 'invitations' | 'users'
@@ -57,7 +54,7 @@ export default function AdminPage() {
           <h1 className="text-sm font-semibold text-ink">Admin Dashboard</h1>
         </div>
         <span className="text-xs text-muted hidden sm:block">
-          {user?.fullName || user?.username}
+          {user?.email}
           <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
         </span>
       </header>
@@ -185,7 +182,7 @@ function InvitationsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
                   <p className="text-sm text-ink truncate">{inv.email ?? '—'}</p>
                   <p className="text-xs text-muted mt-0.5">
                     Sent {new Date(inv.createdAt).toLocaleDateString()}
-                    {inv.createdBy && ` by @${inv.createdBy.username}`}
+                    {inv.createdBy && ` by ${inv.createdBy.email}`}
                   </p>
                 </div>
                 <code className="text-xs font-mono text-muted hidden sm:block shrink-0">{inv.key}</code>
@@ -277,11 +274,11 @@ function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>
             return (
               <div key={u.id} className="bg-white border border-line rounded-xl px-4 py-3 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-brand/10 text-brand text-xs font-semibold flex items-center justify-center shrink-0">
-                  {u.initials}
+                  {u.email.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-ink truncate">{u.username}</span>
+                    <span className="text-sm font-medium text-ink truncate">{u.email}</span>
                     {u.isAdmin && (
                       <span className="bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0">Admin</span>
                     )}
@@ -289,7 +286,7 @@ function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>
                       <span className="text-[10px] text-muted shrink-0">(you)</span>
                     )}
                   </div>
-                  <p className="text-xs text-muted truncate">{u.email}</p>
+                  <p className="text-xs text-muted truncate">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ''}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
@@ -320,7 +317,7 @@ function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>
           <div className="bg-white rounded-xl border border-line p-6 w-full max-w-sm shadow-lg">
             <h3 className="text-sm font-semibold text-ink mb-2">Delete user</h3>
             <p className="text-sm text-muted mb-4">
-              Permanently delete <strong className="text-ink">@{toDelete?.username}</strong>? This cannot be undone.
+              Permanently delete <strong className="text-ink">{toDelete?.email}</strong>? This cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
               <button

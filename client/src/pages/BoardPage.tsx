@@ -218,7 +218,7 @@ export default function BoardPage() {
           {user && (
             <div className="flex items-center gap-2 ml-auto pl-2 border-l border-line">
               <span className="text-xs text-muted hidden sm:block">
-                {user.fullName || user.username}
+                {user.email}
                 {isAdmin && (
                   <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
                 )}

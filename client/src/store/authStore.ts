@@ -3,15 +3,11 @@ import api from '../api/client'
 
 export interface User {
   id: number
-  username: string
-  fullName: string | null
   email: string
   isAdmin: boolean
 }
 
 interface SignupData {
-  username: string
-  fullName: string | null
   email: string
   password: string
   passwordConfirmation: string
@@ -36,7 +32,7 @@ interface AuthState {
   user: User | null
   isAdmin: boolean
   ready: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   signup: (data: SignupData) => Promise<void>
   restore: () => Promise<void>
   forgotPassword: (email: string) => Promise<void>
@@ -49,15 +45,15 @@ export const useAuth = create<AuthState>((set) => ({
   isAdmin: false,
   ready: false,
 
-  async login(username, password) {
-    const res = await api.post<AuthResponse>('/auth/login', { username, password })
+  async login(email, password) {
+    const res = await api.post<AuthResponse>('/auth/login', { email, password })
     localStorage.setItem('token', res.data.data.token)
     set({ user: res.data.data.user, isAdmin: !!res.data.data.user.isAdmin })
   },
 
-  async signup({ username, fullName, email, password, passwordConfirmation, invitationKey }) {
+  async signup({ email, password, passwordConfirmation, invitationKey }) {
     const res = await api.post<AuthResponse>('/auth/signup', {
-      username, fullName, email, password, passwordConfirmation,
+      email, password, passwordConfirmation,
       ...(invitationKey ? { invitationKey } : {}),
     })
     localStorage.setItem('token', res.data.data.token)

@@ -5,9 +5,9 @@ import UserTransformer from '#transformers/user_transformer'
 
 export default class AccessTokensController {
   async store({ request, serialize }: HttpContext) {
-    const { username, password } = await request.validateUsing(loginValidator)
+    const { email, password } = await request.validateUsing(loginValidator)
 
-    const user = await User.verifyCredentials(username, password)
+    const user = await User.verifyCredentials(email, password)
     const token = await User.accessTokens.create(user)
 
     return serialize({
