@@ -88,7 +88,9 @@ export default function LoginPage() {
 
         {mode === 'login' && (
           <>
-            <p className="text-sm text-muted text-center mb-6">Admin sign in</p>
+            <div className="flex justify-center mb-6">
+              <span className="text-xs text-muted border border-line rounded-full px-3 py-1">Admin sign in</span>
+            </div>
 
             <label className={labelClass}>Username</label>
             <input
