@@ -6,6 +6,7 @@ export interface BoardSummary {
   id: number
   title: string
   imageUrl?: string | null
+  description?: string | null
 }
 
 export interface Board extends BoardSummary {

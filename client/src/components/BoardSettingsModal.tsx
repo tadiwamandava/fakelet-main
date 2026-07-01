@@ -16,12 +16,14 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
   const uploadImage = useUploadBoardImage(board.id)
 
   const [title, setTitle] = useState(board.title)
+  const [description, setDescription] = useState(board.description ?? '')
   const [imageUrl, setImageUrl] = useState(board.imageUrl ?? '')
   const [imageTab, setImageTab] = useState<'url' | 'upload'>('url')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleOpen() {
     setTitle(board.title)
+    setDescription(board.description ?? '')
     setImageUrl(board.imageUrl ?? '')
   }
 
@@ -29,7 +31,7 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
 
   function save() {
     updateMeta.mutate(
-      { title: title.trim() || board.title, imageUrl: imageUrl.trim() || null },
+      { title: title.trim() || board.title, description: description.trim() || null, imageUrl: imageUrl.trim() || null },
       { onSuccess: onClose }
     )
   }
@@ -55,6 +57,20 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">
+            Description (optional)
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What is this board about?"
+            rows={3}
+            className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand resize-none"
           />
         </div>
 

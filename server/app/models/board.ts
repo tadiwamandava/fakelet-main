@@ -17,6 +17,9 @@ export default class Board extends BoardSchema {
   })
   declare references: any
 
+  @column()
+  declare description: string | null
+
   @hasMany(() => Column)
   declare columns: HasMany<typeof Column>
 }

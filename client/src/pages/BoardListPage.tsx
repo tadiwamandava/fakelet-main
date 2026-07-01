@@ -16,14 +16,16 @@ export default function BoardListPage() {
 
   const [creating, setCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
+  const [newDescription, setNewDescription] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
   function submitCreate() {
     const title = newTitle.trim()
     if (!title) return
-    createBoard.mutate(title, {
-      onSuccess: () => { setCreating(false); setNewTitle('') },
-    })
+    createBoard.mutate(
+      { title, description: newDescription.trim() || undefined },
+      { onSuccess: () => { setCreating(false); setNewTitle(''); setNewDescription('') } }
+    )
   }
 
   function confirmDelete(id: number) {
@@ -129,7 +131,7 @@ export default function BoardListPage() {
       </main>
 
       {/* New board modal */}
-      <Modal open={creating} onClose={() => { setCreating(false); setNewTitle('') }} title="New board">
+      <Modal open={creating} onClose={() => { setCreating(false); setNewTitle(''); setNewDescription('') }} title="New board">
         <div className="flex flex-col gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">Title</label>
@@ -142,9 +144,19 @@ export default function BoardListPage() {
               className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
             />
           </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">Description (optional)</label>
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="What is this board about?"
+              rows={3}
+              className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand resize-none"
+            />
+          </div>
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => { setCreating(false); setNewTitle('') }}
+              onClick={() => { setCreating(false); setNewTitle(''); setNewDescription('') }}
               className="text-sm text-muted px-4 py-2 rounded-lg hover:text-ink"
             >
               Cancel

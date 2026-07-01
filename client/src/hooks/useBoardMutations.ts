@@ -111,8 +111,8 @@ export function useGenerateReferences(boardId: number) {
 
 export function useCreateBoard() {
   const qc = useQueryClient()
-  return useMutation<BoardSummary, Error, string>({
-    mutationFn: (title) => api.post<BoardSummary>('/boards', { title }).then((r) => r.data),
+  return useMutation<BoardSummary, Error, { title: string; description?: string }>({
+    mutationFn: (data) => api.post<BoardSummary>('/boards', data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
   })
 }
@@ -128,6 +128,7 @@ export function useDeleteBoard() {
 interface BoardMetaInput {
   title?: string
   imageUrl?: string | null
+  description?: string | null
 }
 
 export function useUpdateBoardMeta(boardId: number) {

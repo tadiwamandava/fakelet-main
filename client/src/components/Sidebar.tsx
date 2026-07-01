@@ -10,6 +10,7 @@ import type { LocalBookmark } from '../hooks/useBookmarks'
 export interface BoardData {
   id: number
   title: string
+  description?: string | null
   imageUrl?: string | null
   references?: string[]
 }
@@ -64,9 +65,14 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           />
         )}
 
-        <h1 className="font-serif text-bold text-lg text-ink leading-snug mb-6">
+        <h1 className="font-serif text-bold text-lg text-ink leading-snug mb-1">
           {board.title}
         </h1>
+
+        {board.description && (
+          <p className="text-xs text-muted leading-relaxed mb-6">{board.description}</p>
+        )}
+        {!board.description && <div className="mb-6" />}
 
         <div>
           <button

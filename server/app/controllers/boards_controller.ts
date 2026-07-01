@@ -16,7 +16,7 @@ const MIME: Record<string, string> = {
 
 export default class BoardsController {
   async index({}: HttpContext) {
-    const boards = await Board.query().select('id', 'title', 'imageUrl').orderBy('id')
+    const boards = await Board.query().select('id', 'title', 'imageUrl', 'description').orderBy('id')
     return boards
   }
 
@@ -43,10 +43,14 @@ export default class BoardsController {
     const user = await auth.authenticate()
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
-    const { title } = request.only(['title']) as { title: string }
+    const { title, description } = request.only(['title', 'description']) as { title: string; description?: string }
     if (!title?.trim()) return response.badRequest({ error: 'Title is required' })
 
-    const board = await Board.create({ title: title.trim(), createdBy: user.id })
+    const board = await Board.create({
+      title: title.trim(),
+      description: description?.trim() || null,
+      createdBy: user.id,
+    })
     return board
   }
 
@@ -55,10 +59,11 @@ export default class BoardsController {
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
     const board = await Board.findOrFail(params.id)
-    const { title, imageUrl, references } = request.only(['title', 'imageUrl', 'references'])
+    const { title, imageUrl, description, references } = request.only(['title', 'imageUrl', 'description', 'references'])
 
     if (typeof title === 'string' && title.trim()) board.title = title.trim()
     if (typeof imageUrl === 'string') board.imageUrl = imageUrl || null
+    if (typeof description === 'string') board.description = description.trim() || null
     if (Array.isArray(references)) {
       board.references = (references as unknown[]).filter(
         (r): r is string => typeof r === 'string' && r.trim() !== ''
