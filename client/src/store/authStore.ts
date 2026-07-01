@@ -8,7 +8,6 @@ export interface User {
 }
 
 interface SignupData {
-  email: string
   password: string
   passwordConfirmation: string
   invitationKey?: string
@@ -51,9 +50,9 @@ export const useAuth = create<AuthState>((set) => ({
     set({ user: res.data.data.user, isAdmin: !!res.data.data.user.isAdmin })
   },
 
-  async signup({ email, password, passwordConfirmation, invitationKey }) {
+  async signup({ password, passwordConfirmation, invitationKey }) {
     const res = await api.post<AuthResponse>('/auth/signup', {
-      email, password, passwordConfirmation,
+      password, passwordConfirmation,
       ...(invitationKey ? { invitationKey } : {}),
     })
     localStorage.setItem('token', res.data.data.token)
