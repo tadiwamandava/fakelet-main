@@ -24,6 +24,8 @@ export default function LoginPage() {
   const [confirm, setConfirm]   = useState('')
   const [fullName, setFullName] = useState('')
 
+  const [invitationKey, setInvitationKey] = useState('')
+
   const [code, setCode]             = useState('')
   const [resetEmail, setResetEmail] = useState('')
 
@@ -65,7 +67,7 @@ export default function LoginPage() {
     if (password.length > 32)         return setError('Password must be 32 characters or fewer.')
     if (password !== confirm)         return setError('Passwords do not match.')
     await run(async () => {
-      await signup({ username: username.trim(), fullName: fullName.trim() || null, email: email.trim(), password, passwordConfirmation: confirm })
+      await signup({ username: username.trim(), fullName: fullName.trim() || null, email: email.trim(), password, passwordConfirmation: confirm, invitationKey: invitationKey.trim() || undefined })
       navigate('/boards')
     })
   }
@@ -167,8 +169,17 @@ export default function LoginPage() {
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSignup()}
                   autoComplete="new-password"
+                  className={inputClass}
+                />
+
+                <label className={labelClass}>Admin invitation key <span className="normal-case font-normal text-muted">(optional)</span></label>
+                <input
+                  value={invitationKey}
+                  onChange={(e) => setInvitationKey(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSignup()}
+                  placeholder="Leave blank for a regular account"
+                  autoComplete="off"
                   className={inputClass}
                 />
               </>

@@ -15,6 +15,7 @@ interface SignupData {
   email: string
   password: string
   passwordConfirmation: string
+  invitationKey?: string
 }
 
 interface ResetPasswordData {
@@ -54,9 +55,10 @@ export const useAuth = create<AuthState>((set) => ({
     set({ user: res.data.data.user, isAdmin: !!res.data.data.user.isAdmin })
   },
 
-  async signup({ username, fullName, email, password, passwordConfirmation }) {
+  async signup({ username, fullName, email, password, passwordConfirmation, invitationKey }) {
     const res = await api.post<AuthResponse>('/auth/signup', {
       username, fullName, email, password, passwordConfirmation,
+      ...(invitationKey ? { invitationKey } : {}),
     })
     localStorage.setItem('token', res.data.data.token)
     set({ user: res.data.data.user, isAdmin: !!res.data.data.user.isAdmin })

@@ -134,6 +134,23 @@ export class GroupSchema extends BaseModel {
   declare updatedBy: number | null
 }
 
+export class InvitationSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'id', 'key', 'usedAt', 'usedBy'] as const
+  $columns = InvitationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare key: string
+  @column.dateTime()
+  declare usedAt: DateTime | null
+  @column()
+  declare usedBy: number | null
+}
+
 export class PasswordResetSchema extends BaseModel {
   static $columns = ['codeHash', 'createdAt', 'email', 'expiresAt', 'id', 'usedAt'] as const
   $columns = PasswordResetSchema.$columns

@@ -17,6 +17,7 @@ const GroupsController = () => import('#controllers/groups_controller')
 const CardsController = () => import('#controllers/cards_controller')
 const BookmarksController = () => import('#controllers/bookmarks_controller')
 const PasswordResetsController = () => import('#controllers/password_resets_controller')
+const InvitationsController = () => import('#controllers/invitations_controller')
 
 router.get('/', () => ({ hello: 'world' }))
 
@@ -48,6 +49,14 @@ router
       .group(() => {
         router.get('/bookmarks', [BookmarksController, 'index'])
         router.post('/bookmarks/toggle', [BookmarksController, 'toggle'])
+      })
+      .use(middleware.auth())
+
+    router
+      .group(() => {
+        router.get('/invitations', [InvitationsController, 'index'])
+        router.post('/invitations', [InvitationsController, 'store'])
+        router.delete('/invitations/:id', [InvitationsController, 'destroy'])
       })
       .use(middleware.auth())
 

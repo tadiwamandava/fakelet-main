@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, LogIn, LogOut, Plus, Trash2 } from 'lucide-react'
+import { KeyRound, LayoutDashboard, LogIn, LogOut, Plus, Trash2 } from 'lucide-react'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
 import { useAuth } from '../store/authStore'
 import Modal from '../components/ui/Modal'
+import InvitationsModal from '../components/InvitationsModal'
 import logo from '../assets/k20center-logo-full.svg'
 
 export default function BoardListPage() {
@@ -18,6 +19,7 @@ export default function BoardListPage() {
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [invitationsOpen, setInvitationsOpen] = useState(false)
 
   function submitCreate() {
     const title = newTitle.trim()
@@ -48,12 +50,21 @@ export default function BoardListPage() {
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (
-            <button
-              onClick={() => setCreating(true)}
-              className="flex items-center gap-1.5 text-xs font-medium bg-brand text-white rounded-lg px-3 py-1.5"
-            >
-              <Plus size={13} /> New board
-            </button>
+            <>
+              <button
+                onClick={() => setCreating(true)}
+                className="flex items-center gap-1.5 text-xs font-medium bg-brand text-white rounded-lg px-3 py-1.5"
+              >
+                <Plus size={13} /> New board
+              </button>
+              <button
+                onClick={() => setInvitationsOpen(true)}
+                title="Manage admin invitations"
+                className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
+              >
+                <KeyRound size={14} />
+              </button>
+            </>
           )}
           {user ? (
             <>
@@ -171,6 +182,8 @@ export default function BoardListPage() {
           </div>
         </div>
       </Modal>
+
+      <InvitationsModal open={invitationsOpen} onClose={() => setInvitationsOpen(false)} />
 
       {/* Delete confirmation modal */}
       <Modal
