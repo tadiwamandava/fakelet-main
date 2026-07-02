@@ -5,12 +5,14 @@ import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
 import { useAuth } from '../store/authStore'
+import { useTitle } from '../hooks/useTitle'
 import Modal from '../components/ui/Modal'
 import logo from '../assets/k20center-logo-full.svg'
 
 export default function BoardListPage() {
   const { data: boards, isLoading, error } = useBoards()
   const { user, isAdmin, logout } = useAuth()
+  useTitle('Boards')
   const createBoard = useCreateBoard()
   const deleteBoard = useDeleteBoard()
 

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldOff, Trash2, Users } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../store/authStore'
+import { useTitle } from '../hooks/useTitle'
 import logo from '../assets/k20center-logo-full.svg'
 
 interface Invitation {
@@ -29,6 +30,7 @@ export default function AdminPage() {
   const { user } = useAuth()
   const qc = useQueryClient()
   const [tab, setTab] = useState<Tab>('invitations')
+  useTitle(`${tab === 'invitations' ? 'Invitations' : 'Users'} · Admin`)
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">

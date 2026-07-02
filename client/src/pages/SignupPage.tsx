@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../store/authStore'
+import { useTitle } from '../hooks/useTitle'
 import logo from '../assets/k20center-logo-full.svg'
 
 const inputClass =
@@ -15,6 +16,8 @@ export default function SignupPage() {
 
   const invKey   = params.get('key') ?? ''
   const emailHint = params.get('email') ?? ''
+
+  useTitle('Create your account')
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm]   = useState('')

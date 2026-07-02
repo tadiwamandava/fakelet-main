@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../store/authStore'
+import { useTitle } from '../hooks/useTitle'
 import logo from '../assets/k20center-logo-full.svg'
 
 type Mode = 'login' | 'forgot' | 'reset'
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const redirectTo = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/boards'
 
   const [mode, setMode] = useState<Mode>('login')
+  useTitle(mode === 'login' ? 'Sign in' : 'Reset password')
 
   const [loginEmail, setLoginEmail] = useState('')
   const [password, setPassword] = useState('')

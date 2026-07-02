@@ -9,6 +9,7 @@ import BoardSettingsModal from '../components/BoardSettingsModal'
 import { Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
+import { useTitle } from '../hooks/useTitle'
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>()
@@ -32,6 +33,8 @@ export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const highlightId = Number(searchParams.get('highlight')) || null
   const activeHighlight = useRef<HTMLElement | null>(null)
+
+  useTitle(board?.title ?? null)
 
   // Build card title map for bookmark toggle
   const cardTitleMap = useMemo(() => {
