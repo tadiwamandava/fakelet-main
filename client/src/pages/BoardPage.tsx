@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useBoard } from '../hooks/useBoard'
-import { useBookmarks, useBookmarkIds, useToggleBookmark } from '../hooks/useBookmarks'
+import { useBookmarks, useBookmarkIds, useToggleBookmark, useSyncBookmarks } from '../hooks/useBookmarks'
 import Column from '../components/Column'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/ui/Modal'
@@ -17,6 +17,7 @@ export default function BoardPage() {
   const bookmarks = useBookmarks()
   const bookmarkIds = useBookmarkIds()
   const toggleBookmark = useToggleBookmark()
+  const syncBookmarks = useSyncBookmarks()
   const [search, setSearch] = useState('')
   const { user, isAdmin, logout } = useAuth()
   const [editMode, setEditMode] = useState(isAdmin)
@@ -47,6 +48,13 @@ export default function BoardPage() {
     }
     return map
   }, [board])
+
+  // Prune bookmarks pointing at cards that no longer exist (e.g. deleted cards).
+  // Runs whenever the board (re)loads, including after a delete refetch.
+  useEffect(() => {
+    if (!board) return
+    syncBookmarks(board.id, Array.from(cardTitleMap.keys()))
+  }, [board, cardTitleMap, syncBookmarks])
 
   // Scroll to and highlight the target card
   useEffect(() => {

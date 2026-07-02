@@ -44,3 +44,12 @@ export function useToggleBookmark() {
     persist(exists ? cache.filter((b) => b.cardId !== cardId) : [...cache, { cardId, title, boardId }])
   }, [])
 }
+
+// Drop bookmarks for a board whose cards no longer exist (e.g. deleted cards)
+export function useSyncBookmarks() {
+  return useCallback((boardId: number, validCardIds: number[]) => {
+    const valid = new Set(validCardIds)
+    const next = cache.filter((b) => b.boardId !== boardId || valid.has(b.cardId))
+    if (next.length !== cache.length) persist(next)
+  }, [])
+}
