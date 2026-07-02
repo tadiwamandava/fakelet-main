@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react'
 import { ImagePlus, Link2, Play } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import Modal from './ui/Modal'
-import type { CardData, CardUpdateInput } from './Card'
+import type { CardData, CardUpdateInput, MoveTarget } from './Card'
 
 type FieldKey = 'title' | 'description' | 'linkUrl' | 'linkTitle'
 type MediaMode = 'none' | 'image' | 'youtube'
@@ -19,6 +19,8 @@ interface CardEditorProps {
   onSave: (data: CardUpdateInput) => void
   saving: boolean
   uploadImage?: UseMutationResult<{ imageUrl: string }, Error, { cardId: number; file: File }>
+  moveTargets?: MoveTarget[]
+  currentMoveKey?: string
 }
 
 const FIELDS: FieldDef[] = [
@@ -34,12 +36,13 @@ function initialMediaMode(card: CardData): MediaMode {
   return 'none'
 }
 
-export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage }: CardEditorProps) {
+export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage, moveTargets, currentMoveKey }: CardEditorProps) {
   const [form, setForm] = useState<FormState>({})
   const [mediaMode, setMediaMode] = useState<MediaMode>('none')
   const [imageUrl, setImageUrl] = useState('')
   const [imageTab, setImageTab] = useState<ImageTab>('url')
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [moveKey, setMoveKey] = useState<string | undefined>(undefined)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleOpen() {
@@ -52,6 +55,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
     setMediaMode(initialMediaMode(card))
     setImageUrl(card.imageUrl || '')
     setYoutubeUrl(card.youtubeUrl || '')
+    setMoveKey(currentMoveKey)
   }
 
   if (open && form.title === undefined) handleOpen()
@@ -73,11 +77,17 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   }
 
   function handleSave() {
+    const target =
+      moveKey && moveKey !== currentMoveKey
+        ? moveTargets?.find((t) => t.key === moveKey)
+        : undefined
+
     onSave({
       id: card.id,
       ...form,
       imageUrl: mediaMode === 'image' ? (imageUrl || null) : null,
       youtubeUrl: mediaMode === 'youtube' ? (youtubeUrl || null) : null,
+      ...(target ? { groupId: target.groupId, columnId: target.columnId } : {}),
     })
   }
 
@@ -117,6 +127,26 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
             )}
           </div>
         ))}
+
+        {/* Location — move the card between groups or out to ungrouped */}
+        {moveTargets && moveTargets.length > 1 && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">
+              Location
+            </label>
+            <select
+              value={moveKey ?? ''}
+              onChange={(e) => setMoveKey(e.target.value)}
+              className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
+            >
+              {moveTargets.map((t) => (
+                <option key={t.key} value={t.key}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Media — mutually exclusive: image or YouTube */}
         <div>

@@ -4,7 +4,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import Group from './Group'
 import Card from './Card'
 import InlineForm from './ui/InlineForm'
-import type { CardData, CardMutations } from './Card'
+import type { CardData, CardMutations, MoveTarget } from './Card'
 
 export interface GroupData {
   id: number
@@ -63,6 +63,17 @@ export default function Column({
   const [newCardId, setNewCardId] = useState<number | null>(null)
 
   const ungrouped = column.cards ?? []
+
+  // Destinations a card in this column can be moved to: ungrouped, or any group
+  const moveTargets: MoveTarget[] = [
+    { key: `column-${column.id}`, label: 'Ungrouped', groupId: null, columnId: column.id },
+    ...column.groups.map((g) => ({
+      key: `group-${g.id}`,
+      label: g.title,
+      groupId: g.id,
+      columnId: null,
+    })),
+  ]
 
   function addCard() {
     cardM.createCard.mutate(
@@ -127,6 +138,8 @@ export default function Column({
                 cardM={cardM}
                 autoEdit={card.id === newCardId}
                 onAutoEditDone={() => setNewCardId(null)}
+                moveTargets={moveTargets}
+                currentMoveKey={`column-${column.id}`}
               />
             ))}
 
@@ -151,6 +164,7 @@ export default function Column({
             editMode={editMode}
             cardM={cardM}
             groupM={groupM}
+            moveTargets={moveTargets}
           />
         ))}
 

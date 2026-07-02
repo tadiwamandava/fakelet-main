@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import Card from './Card'
 import InlineForm from './ui/InlineForm'
-import type { CardMutations } from './Card'
+import type { CardMutations, MoveTarget } from './Card'
 import type { GroupData, GroupMutations } from './Column'
 
 interface GroupProps {
@@ -12,9 +12,10 @@ interface GroupProps {
   editMode: boolean
   cardM: CardMutations
   groupM: GroupMutations
+  moveTargets?: MoveTarget[]
 }
 
-export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM }: GroupProps) {
+export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM, moveTargets }: GroupProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [newCardId, setNewCardId] = useState<number | null>(null)
@@ -88,6 +89,8 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
               cardM={cardM}
               autoEdit={card.id === newCardId}
               onAutoEditDone={() => setNewCardId(null)}
+              moveTargets={moveTargets}
+              currentMoveKey={`group-${group.id}`}
             />
           ))}
 

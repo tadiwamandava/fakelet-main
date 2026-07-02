@@ -35,6 +35,8 @@ export default class CardsController {
         'linkTitle',
         'youtubeUrl',
         'position',
+        'groupId',
+        'columnId',
       ]),
       updatedBy: auth.user?.id ?? null,
     })

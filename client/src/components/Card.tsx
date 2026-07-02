@@ -17,6 +17,16 @@ export interface CardData {
 // Payload CardEditor sends back on save
 export interface CardUpdateInput extends Partial<Omit<CardData, 'id'>> {
   id: number
+  groupId?: number | null
+  columnId?: number | null
+}
+
+// A place a card can be moved to: either a group or the column itself (ungrouped)
+export interface MoveTarget {
+  key: string
+  label: string
+  groupId: number | null
+  columnId: number | null
 }
 
 // Payload for creating a card — either inside a group ("+ Add card" in a group)
@@ -43,6 +53,8 @@ interface CardProps {
   cardM?: CardMutations
   autoEdit?: boolean
   onAutoEditDone?: () => void
+  moveTargets?: MoveTarget[]
+  currentMoveKey?: string
 }
 
 // Pull the 11-char video id out of any YouTube URL shape
@@ -51,7 +63,7 @@ function getYouTubeId(url?: string | null): string | null {
   return match ? match[1] : null
 }
 
-export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone }: CardProps) {
+export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone, moveTargets, currentMoveKey }: CardProps) {
   const ytId = getYouTubeId(card.youtubeUrl)
   const [editing, setEditing] = useState(autoEdit)
   const [descExpanded, setDescExpanded] = useState(false)
@@ -156,6 +168,8 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
             cardM.updateCard.mutate(data, { onSuccess: () => setEditing(false) })
           }}
           uploadImage={cardM.uploadImage}
+          moveTargets={moveTargets}
+          currentMoveKey={currentMoveKey}
         />
       )}
     </div>
