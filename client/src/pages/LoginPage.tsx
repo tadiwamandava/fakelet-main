@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../store/authStore'
 import logo from '../assets/k20center-logo-full.svg'
 
@@ -15,6 +15,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 export default function LoginPage() {
   const { login, forgotPassword, resetPassword } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+
+  // Return to the board an admin was viewing when they clicked "Admin sign in".
+  // Only allow same-app paths to avoid open-redirects.
+  const redirectParam = params.get('redirect')
+  const redirectTo = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/boards'
 
   const [mode, setMode] = useState<Mode>('login')
 
@@ -53,7 +59,7 @@ export default function LoginPage() {
   async function handleLogin() {
     if (!loginEmail.trim()) return setError('Email is required.')
     if (!password)          return setError('Password is required.')
-    await run(async () => { await login(loginEmail.trim(), password); navigate('/boards') })
+    await run(async () => { await login(loginEmail.trim(), password); navigate(redirectTo) })
   }
 
   async function handleForgot() {

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useBoard } from '../hooks/useBoard'
 import { useBookmarks, useBookmarkIds, useToggleBookmark } from '../hooks/useBookmarks'
 import Column from '../components/Column'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/ui/Modal'
 import BoardSettingsModal from '../components/BoardSettingsModal'
-import { Eye, LogOut, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
+import { Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 
@@ -217,7 +217,7 @@ export default function BoardPage() {
             </>
           )}
 
-          {user && (
+          {user ? (
             <div className="flex items-center gap-2 ml-auto pl-2 border-l border-line">
               <span className="text-xs text-muted hidden sm:block">
                 {user.email}
@@ -233,6 +233,16 @@ export default function BoardPage() {
                 <LogOut size={13} />
                 <span className="hidden sm:inline">Sign out</span>
               </button>
+            </div>
+          ) : (
+            <div className="flex items-center ml-auto pl-2 border-l border-line">
+              <Link
+                to={`/login?redirect=/boards/${boardId}`}
+                className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
+              >
+                <LogIn size={13} />
+                <span className="hidden sm:inline">Admin sign in</span>
+              </Link>
             </div>
           )}
         </div>
