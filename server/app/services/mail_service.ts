@@ -18,7 +18,11 @@ function makeTransporter() {
 
 const transporter = makeTransporter()
 
-export async function sendInvitationEmail(to: string, key: string, frontendUrl: string): Promise<void> {
+export async function sendInvitationEmail(
+  to: string,
+  key: string,
+  frontendUrl: string
+): Promise<void> {
   const signupLink = `${frontendUrl.replace(/\/$/, '')}/signup?key=${key}&email=${encodeURIComponent(to)}`
 
   if (!transporter) {
@@ -65,12 +69,12 @@ export async function sendPasswordResetEmail(to: string, code: string): Promise<
   await transporter.sendMail({
     from,
     to,
-    subject: 'Your K20 Fakelet password reset code',
+    subject: 'Your K20 Hive password reset code',
     text: `Your password reset code is: ${code}\n\nThis code expires in 15 minutes.\n\nIf you didn't request this, you can safely ignore this email.`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;color:#231F20">
         <h2 style="color:#910D28;margin-bottom:4px">Password Reset</h2>
-        <p style="color:#626262;margin-top:0">K20 Center Fakelet</p>
+        <p style="color:#626262;margin-top:0">K20 Center Hive</p>
         <p>Use the code below to reset your password. It expires in <strong>15 minutes</strong>.</p>
         <div style="font-size:36px;font-weight:700;letter-spacing:10px;color:#231F20;padding:20px;background:#f7f7f7;border-radius:8px;text-align:center;margin:20px 0;border:1px solid #e2e2e2">
           ${code}
