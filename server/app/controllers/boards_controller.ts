@@ -14,7 +14,12 @@ const MIME: Record<string, string> = {
 }
 
 export default class BoardsController {
-  async index({}: HttpContext) {
+  async index({ auth, response }: HttpContext) {
+    // Only admins can browse every board. Viewers open specific boards via
+    // shared links (GET /boards/:id), which stays public.
+    const user = await auth.authenticate()
+    if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
+
     const boards = await Board.query().orderBy('id')
     return boards
   }

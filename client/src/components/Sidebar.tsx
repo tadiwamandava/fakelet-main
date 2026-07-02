@@ -23,6 +23,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProps) {
+  const isAdmin = useAuth((s) => s.isAdmin)
   const boardBookmarks = bookmarks.filter((b) => b.boardId === board.id)
   const [bookmarksOpen, setBookmarksOpen] = useState(true)
 
@@ -43,13 +44,15 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <Link
-          to="/boards"
-          className="flex items-center gap-1.5 text-xs text-muted hover:text-brand mb-4"
-        >
-          <LayoutDashboard size={13} />
-          All boards
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/boards"
+            className="flex items-center gap-1.5 text-xs text-muted hover:text-brand mb-4"
+          >
+            <LayoutDashboard size={13} />
+            All boards
+          </Link>
+        )}
         <img src={logo} alt="K20 Center" className="h-8 self-start" />
         <p className="text-xs font-semibold tracking-widest text-brand uppercase mb-4 mt-1" style={{ letterSpacing: '2.9em' }}>
           Hive

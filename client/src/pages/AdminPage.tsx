@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Check, Copy, KeyRound, LayoutDashboard, Mail, Shield, ShieldOff, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldOff, Trash2, Users } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../store/authStore'
 import logo from '../assets/k20center-logo-full.svg'
@@ -26,15 +26,9 @@ interface AdminUser {
 type Tab = 'invitations' | 'users'
 
 export default function AdminPage() {
-  const { user, isAdmin } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const qc = useQueryClient()
   const [tab, setTab] = useState<Tab>('invitations')
-
-  if (!isAdmin) {
-    navigate('/boards')
-    return null
-  }
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">

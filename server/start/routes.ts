@@ -65,7 +65,8 @@ router
       })
       .use(middleware.auth())
 
-    router.get('/boards', [BoardsController, 'index'])
+    // Board list is admin-only; a single board stays public for shared links
+    router.get('/boards', [BoardsController, 'index']).use(middleware.auth())
     router.get('/boards/:id', [BoardsController, 'show'])
 
     // Admin-only routes
