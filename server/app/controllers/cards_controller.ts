@@ -10,6 +10,7 @@ export default class CardsController {
   async store({ request, auth }: HttpContext) {
     const data = request.only([
       'groupId',
+      'columnId',
       'title',
       'description',
       'imageUrl',

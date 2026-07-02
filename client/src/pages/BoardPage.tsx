@@ -36,6 +36,9 @@ export default function BoardPage() {
   const cardTitleMap = useMemo(() => {
     const map = new Map<number, string>()
     for (const col of board?.columns ?? []) {
+      for (const card of col.cards ?? []) {
+        map.set(card.id, card.title)
+      }
       for (const group of col.groups ?? []) {
         for (const card of group.cards ?? []) {
           map.set(card.id, card.title)
@@ -77,22 +80,21 @@ export default function BoardPage() {
   if (!board) return null
 
   const q = search.trim().toLowerCase()
+  const matchesCard = (c: { title: string; description?: string | null }) =>
+    c.title.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q)
   const columns = q
     ? board.columns
         .map((col) => ({
           ...col,
+          cards: (col.cards ?? []).filter(matchesCard),
           groups: col.groups
             .map((g) => ({
               ...g,
-              cards: g.cards.filter(
-                (c) =>
-                  c.title.toLowerCase().includes(q) ||
-                  (c.description || '').toLowerCase().includes(q)
-              ),
+              cards: g.cards.filter(matchesCard),
             }))
             .filter((g) => g.cards.length > 0),
         }))
-        .filter((col) => col.groups.length > 0)
+        .filter((col) => col.groups.length > 0 || col.cards.length > 0)
     : board.columns
 
   function submitColumn() {

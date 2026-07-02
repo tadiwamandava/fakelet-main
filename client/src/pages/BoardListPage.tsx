@@ -95,7 +95,7 @@ export default function BoardListPage() {
       {/* Board grid */}
       <main className="flex-1 p-6 sm:p-8 max-w-5xl mx-auto w-full">
         {isLoading && <p className="text-muted text-sm">Loading boards…</p>}
-        {error && <p className="text-brand text-sm">Couldn't load boards. Is the server running?</p>}
+        {error && <p className="text-brand text-sm">Couldn't load boards. Please contact the administrator.</p>}
         {boards && boards.length === 0 && <p className="text-muted text-sm">No boards yet.</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

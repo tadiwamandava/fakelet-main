@@ -56,8 +56,10 @@ export class BoardSchema extends BaseModel {
 }
 
 export class CardSchema extends BaseModel {
-  static $columns = ['createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
+  static $columns = ['columnId', 'createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
   $columns = CardSchema.$columns
+  @column()
+  declare columnId: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column()

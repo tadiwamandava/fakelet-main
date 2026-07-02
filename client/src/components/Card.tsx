@@ -19,9 +19,11 @@ export interface CardUpdateInput extends Partial<Omit<CardData, 'id'>> {
   id: number
 }
 
-// Payload for creating a card (from Group's "+ Add card")
+// Payload for creating a card — either inside a group ("+ Add card" in a group)
+// or directly on a column ("+ Add card" at column level, no group required)
 export interface CardCreateInput {
-  groupId: number
+  groupId?: number
+  columnId?: number
   title: string
   position: number
 }

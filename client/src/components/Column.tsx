@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import Group from './Group'
+import Card from './Card'
 import InlineForm from './ui/InlineForm'
 import type { CardData, CardMutations } from './Card'
 
@@ -16,6 +17,8 @@ export interface ColumnData {
   id: number
   title: string
   groups: GroupData[]
+  // Ungrouped cards that live directly on the column
+  cards: CardData[]
 }
 
 interface ColumnUpdateInput {
@@ -57,6 +60,16 @@ export default function Column({
 }: ColumnProps) {
   const [addingGroup, setAddingGroup] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
+  const [newCardId, setNewCardId] = useState<number | null>(null)
+
+  const ungrouped = column.cards ?? []
+
+  function addCard() {
+    cardM.createCard.mutate(
+      { columnId: column.id, title: 'New card', position: ungrouped.length },
+      { onSuccess: (card) => setNewCardId(card.id) }
+    )
+  }
 
   return (
     <div className="w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col max-h-full">
@@ -101,6 +114,34 @@ export default function Column({
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
+        {/* Ungrouped cards — no sub-group required */}
+        {(ungrouped.length > 0 || editMode) && (
+          <div className="flex flex-col gap-2 mb-4">
+            {ungrouped.map((card) => (
+              <Card
+                key={card.id}
+                card={card}
+                bookmarked={bookmarks.includes(card.id)}
+                onToggleBookmark={onToggleBookmark}
+                editMode={editMode}
+                cardM={cardM}
+                autoEdit={card.id === newCardId}
+                onAutoEditDone={() => setNewCardId(null)}
+              />
+            ))}
+
+            {editMode && (
+              <button
+                onClick={addCard}
+                disabled={cardM.createCard.isPending}
+                className="text-xs text-muted border border-dashed border-line rounded py-2 hover:text-brand hover:border-brand disabled:opacity-40"
+              >
+                {cardM.createCard.isPending ? 'Adding…' : '+ Add card'}
+              </button>
+            )}
+          </div>
+        )}
+
         {column.groups.map((group) => (
           <Group
             key={group.id}

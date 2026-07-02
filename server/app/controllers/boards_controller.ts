@@ -32,6 +32,9 @@ export default class BoardsController {
                 cardQuery.where('is_deleted', false).orderBy('position')
               )
           )
+          .preload('cards', (cardQuery) =>
+            cardQuery.where('is_deleted', false).orderBy('position')
+          )
       )
       .firstOrFail()
 
