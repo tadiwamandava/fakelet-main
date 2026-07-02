@@ -47,10 +47,6 @@ export async function sendInvitationEmail(
             Create your account
           </a>
         </div>
-        <p style="color:#626262;font-size:13px">Or copy this invitation key and enter it manually on the sign-up page:</p>
-        <div style="font-size:18px;font-weight:700;letter-spacing:4px;color:#231F20;padding:14px;background:#f7f7f7;border-radius:8px;text-align:center;margin:12px 0;border:1px solid #e2e2e2;font-family:monospace">
-          ${key}
-        </div>
         <p style="color:#626262;font-size:13px">This invitation is single-use and can only be used once.</p>
       </div>
     `,
@@ -59,12 +55,12 @@ export async function sendInvitationEmail(
 
 export async function sendPasswordResetEmail(to: string, code: string): Promise<void> {
   if (!transporter) {
-    // No SMTP configured — print to console so devs can still test the flow
+    // No SMTP configured — print to console so we can still test the flow
     console.log(`\n[MAIL] Password reset code for ${to}: ${code}\n`)
     return
   }
 
-  const from = env.get('SMTP_FROM', 'no-reply@tadiwa.org')
+  const from = env.get('SMTP_FROM', 'tadiwamandava.fr@gmail.com')
 
   await transporter.sendMail({
     from,

@@ -11,7 +11,9 @@ export default class NewAccountController {
 
     const invitationKey = (request.input('invitationKey') as string | undefined)?.trim()
     if (!invitationKey) {
-      return response.badRequest({ errors: [{ message: 'An invitation key is required to create an account.' }] })
+      return response.badRequest({
+        errors: [{ message: 'An invitation key is required to create an account.' }],
+      })
     }
 
     const invitation = await Invitation.query()
@@ -20,10 +22,14 @@ export default class NewAccountController {
       .first()
 
     if (!invitation) {
-      return response.badRequest({ errors: [{ message: 'Invalid or already-used invitation key.' }] })
+      return response.badRequest({
+        errors: [{ message: 'Invalid or already-used invitation key.' }],
+      })
     }
     if (!invitation.email) {
-      return response.badRequest({ errors: [{ message: 'This invitation has no associated email.' }] })
+      return response.badRequest({
+        errors: [{ message: 'This invitation has no associated email.' }],
+      })
     }
 
     const user = await User.create({ email: invitation.email, password, isAdmin: true })

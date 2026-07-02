@@ -4,9 +4,7 @@ import UserBookmark from '#models/user_bookmark'
 export default class BookmarksController {
   async index({ auth }: HttpContext) {
     const user = await auth.authenticate()
-    const bookmarks = await UserBookmark.query()
-      .where('userId', user.id)
-      .select('cardId')
+    const bookmarks = await UserBookmark.query().where('userId', user.id).select('cardId')
     return { cardIds: bookmarks.map((b) => b.cardId) }
   }
 
