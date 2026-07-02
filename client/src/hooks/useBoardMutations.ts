@@ -98,15 +98,6 @@ export function useUpdateBoard(boardId: number) {
   })
 }
 
-export function useGenerateReferences(boardId: number) {
-  const qc = useQueryClient()
-  return useMutation<{ references: string[] }, Error, void>({
-    mutationFn: () =>
-      api.post<{ references: string[] }>(`/boards/${boardId}/generate-references`).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['board', boardId] }),
-  })
-}
-
 // ── Board-level CRUD ─────────────────────────────────────────────────────────
 
 export function useCreateBoard() {

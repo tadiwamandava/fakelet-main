@@ -2,7 +2,6 @@ import { join, basename, extname } from 'node:path'
 import { existsSync, mkdirSync, createReadStream } from 'node:fs'
 import type { HttpContext } from '@adonisjs/core/http'
 import Board from '#models/board'
-import { searchCrossRef } from '#services/cross_ref_service'
 
 const UPLOADS_DIR = join(process.cwd(), 'public', 'uploads')
 
@@ -43,7 +42,10 @@ export default class BoardsController {
     const user = await auth.authenticate()
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
-    const { title, description } = request.only(['title', 'description']) as { title: string; description?: string }
+    const { title, description } = request.only(['title', 'description']) as {
+      title: string
+      description?: string
+    }
     if (!title?.trim()) return response.badRequest({ error: 'Title is required' })
 
     const board = await Board.create({
@@ -59,7 +61,12 @@ export default class BoardsController {
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
     const board = await Board.findOrFail(params.id)
-    const { title, imageUrl, description, references } = request.only(['title', 'imageUrl', 'description', 'references'])
+    const { title, imageUrl, description, references } = request.only([
+      'title',
+      'imageUrl',
+      'description',
+      'references',
+    ])
 
     if (typeof title === 'string' && title.trim()) board.title = title.trim()
     if (typeof imageUrl === 'string') board.imageUrl = imageUrl || null
@@ -117,41 +124,5 @@ export default class BoardsController {
     response.header('Content-Type', mime)
     response.header('Cache-Control', 'public, max-age=31536000')
     return response.stream(createReadStream(filePath))
-  }
-
-  async generateReferences({ params, auth, response }: HttpContext) {
-    const user = await auth.authenticate()
-    if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
-
-    const board = await Board.query()
-      .where('id', params.id)
-      .preload('columns', (q) =>
-        q.preload('groups', (q) =>
-          q.preload('cards', (q) => q.where('is_deleted', false))
-        )
-      )
-      .firstOrFail()
-
-    const seen = new Set<string>()
-    const terms: string[] = []
-    for (const col of board.columns) {
-      for (const group of col.groups) {
-        for (const card of group.cards) {
-          const term = [card.title, card.description].filter(Boolean).join(' ').trim()
-          if (term && !seen.has(term)) {
-            seen.add(term)
-            terms.push(term)
-          }
-        }
-      }
-    }
-
-    const results = await Promise.all(terms.slice(0, 10).map(searchCrossRef))
-    const citations = results.filter((c): c is string => c !== null)
-
-    board.references = citations
-    await board.save()
-
-    return { references: citations }
   }
 }

@@ -75,7 +75,6 @@ router
         router.put('/boards/:id', [BoardsController, 'update'])
         router.delete('/boards/:id', [BoardsController, 'destroy'])
         router.post('/boards/:id/image', [BoardsController, 'uploadImage'])
-        router.post('/boards/:id/generate-references', [BoardsController, 'generateReferences'])
 
         router.post('/columns', [ColumnsController, 'store'])
         router.put('/columns/:id', [ColumnsController, 'update'])
