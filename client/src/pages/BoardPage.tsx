@@ -58,21 +58,38 @@ export default function BoardPage() {
       activeHighlight.current.style.borderRadius = ''
       activeHighlight.current = null
     }
-    const el = document.getElementById(`card-${highlightId}`) as HTMLElement | null
-    if (!el) return
-    activeHighlight.current = el
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.style.outline = '2px solid rgba(145,13,40,0.6)'
-    el.style.outlineOffset = '3px'
-    el.style.borderRadius = '8px'
-    const timer = setTimeout(() => {
-      el.style.outline = ''
-      el.style.outlineOffset = ''
-      el.style.borderRadius = ''
-      activeHighlight.current = null
-      setSearchParams({}, { replace: true })
-    }, 2500)
-    return () => clearTimeout(timer)
+
+    let pollTimer: ReturnType<typeof setTimeout> | undefined
+    let clearTimer: ReturnType<typeof setTimeout> | undefined
+    let attempts = 0
+
+    const tryHighlight = () => {
+      const el = document.getElementById(`card-${highlightId}`) as HTMLElement | null
+      if (!el) {
+        // The card may sit in a collapsed group that is still expanding — retry briefly.
+        if (attempts++ < 20) pollTimer = setTimeout(tryHighlight, 50)
+        return
+      }
+      activeHighlight.current = el
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.style.outline = '2px solid rgba(145,13,40,0.6)'
+      el.style.outlineOffset = '3px'
+      el.style.borderRadius = '8px'
+      clearTimer = setTimeout(() => {
+        el.style.outline = ''
+        el.style.outlineOffset = ''
+        el.style.borderRadius = ''
+        activeHighlight.current = null
+        setSearchParams({}, { replace: true })
+      }, 2500)
+    }
+
+    tryHighlight()
+
+    return () => {
+      if (pollTimer) clearTimeout(pollTimer)
+      if (clearTimer) clearTimeout(clearTimer)
+    }
   }, [highlightId, board])
 
   if (isLoading) return <p className="p-8 text-muted">Loading board…</p>
@@ -261,6 +278,7 @@ export default function BoardPage() {
               cardM={cardM}
               groupM={groupM}
               columnM={columnM}
+              highlightId={highlightId}
             />
           ))}
           {columns.length === 0 && (

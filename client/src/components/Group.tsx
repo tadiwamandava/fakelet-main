@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import Card from './Card'
 import InlineForm from './ui/InlineForm'
@@ -13,12 +13,20 @@ interface GroupProps {
   cardM: CardMutations
   groupM: GroupMutations
   moveTargets?: MoveTarget[]
+  highlightId?: number | null
 }
 
-export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM, moveTargets }: GroupProps) {
+export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM, moveTargets, highlightId }: GroupProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [newCardId, setNewCardId] = useState<number | null>(null)
+
+  // Expand automatically when a bookmarked card in this group is being targeted
+  useEffect(() => {
+    if (highlightId != null && group.cards.some((c) => c.id === highlightId)) {
+      setCollapsed(false)
+    }
+  }, [highlightId, group.cards])
 
   function addCard() {
     cardM.createCard.mutate(

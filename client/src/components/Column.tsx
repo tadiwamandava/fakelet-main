@@ -52,11 +52,12 @@ interface ColumnProps {
   cardM: CardMutations
   groupM: GroupMutations
   columnM: ColumnMutations
+  highlightId?: number | null
 }
 
 export default function Column({
   column, bookmarks, onToggleBookmark,
-  editMode, cardM, groupM, columnM,
+  editMode, cardM, groupM, columnM, highlightId,
 }: ColumnProps) {
   const [addingGroup, setAddingGroup] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
@@ -165,6 +166,7 @@ export default function Column({
             cardM={cardM}
             groupM={groupM}
             moveTargets={moveTargets}
+            highlightId={highlightId}
           />
         ))}
 
