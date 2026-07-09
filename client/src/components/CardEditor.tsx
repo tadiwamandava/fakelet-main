@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { ImagePlus, Link2, Play } from 'lucide-react'
+import { Check, ImagePlus, Link2, Play } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import Modal from './ui/Modal'
+import { resolveImageUrl } from '../utils/imageUrl'
 import type { CardData, CardUpdateInput, MoveTarget } from './Card'
 
 type FieldKey = 'title' | 'description' | 'linkUrl' | 'linkTitle'
@@ -43,6 +44,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   const [imageTab, setImageTab] = useState<ImageTab>('url')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [moveKey, setMoveKey] = useState<string | undefined>(undefined)
+  const [justUploaded, setJustUploaded] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleOpen() {
@@ -56,6 +58,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
     setImageUrl(card.imageUrl || '')
     setYoutubeUrl(card.youtubeUrl || '')
     setMoveKey(currentMoveKey)
+    setJustUploaded(false)
   }
 
   if (open && form.title === undefined) handleOpen()
@@ -67,12 +70,17 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
     setMediaMode(mode)
     if (mode !== 'image') { setImageUrl('') }
     if (mode !== 'youtube') { setYoutubeUrl('') }
+    setJustUploaded(false)
   }
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !uploadImage) return
-    uploadImage.mutate({ cardId: card.id, file }, { onSuccess: (data) => setImageUrl(data.imageUrl) })
+    setJustUploaded(false)
+    uploadImage.mutate(
+      { cardId: card.id, file },
+      { onSuccess: (data) => { setImageUrl(data.imageUrl); setJustUploaded(true) } }
+    )
     e.target.value = ''
   }
 
@@ -165,7 +173,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
                 {(['url', 'upload'] as const).map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setImageTab(tab)}
+                    onClick={() => { setImageTab(tab); setJustUploaded(false) }}
                     className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md ${
                       imageTab === tab ? 'bg-white text-ink shadow-sm font-medium' : 'text-muted'
                     }`}
@@ -179,7 +187,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
               {imageTab === 'url' && (
                 <input
                   value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  onChange={(e) => { setImageUrl(e.target.value); setJustUploaded(false) }}
                   placeholder="https://example.com/image.jpg"
                   className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
                 />
@@ -191,21 +199,36 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
                   <button
                     onClick={() => fileRef.current?.click()}
                     disabled={uploadImage?.isPending}
-                    className="flex items-center gap-2 text-sm border border-dashed border-line rounded-lg px-4 py-3 w-full text-muted hover:border-brand hover:text-brand disabled:opacity-40"
+                    className={`flex items-center gap-2 text-sm border border-dashed rounded-lg px-4 py-3 w-full disabled:opacity-40 ${
+                      justUploaded
+                        ? 'border-teal text-teal'
+                        : 'border-line text-muted hover:border-brand hover:text-brand'
+                    }`}
                   >
-                    <ImagePlus size={15} />
-                    {uploadImage?.isPending ? 'Uploading…' : 'Choose image file'}
+                    {justUploaded ? <Check size={15} /> : <ImagePlus size={15} />}
+                    {uploadImage?.isPending
+                      ? 'Uploading…'
+                      : justUploaded
+                        ? 'Image uploaded — choose another'
+                        : 'Choose image file'}
                   </button>
                 </>
               )}
 
               {imageUrl && (
-                <img
-                  src={imageUrl}
-                  alt="Preview"
-                  className="mt-2 w-full h-24 object-cover rounded-lg border border-line"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
+                <div className="mt-2 relative">
+                  <img
+                    src={resolveImageUrl(imageUrl)}
+                    alt="Preview"
+                    className="w-full h-32 object-cover rounded-lg border border-line"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                  {justUploaded && (
+                    <span className="absolute top-2 left-2 flex items-center gap-1 bg-teal text-white text-[11px] font-medium px-2 py-0.5 rounded-full shadow-sm">
+                      <Check size={11} /> Uploaded
+                    </span>
+                  )}
+                </div>
               )}
             </>
           )}
