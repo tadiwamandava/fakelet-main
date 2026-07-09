@@ -183,7 +183,7 @@ export default function BoardPage() {
           {isAdmin && (
             <button
               onClick={() => setEditMode((m) => !m)}
-              className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap transition-colors ${
+              className={`flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap transition-colors sm:min-w-[7rem] ${
                 editMode
                   ? 'bg-gold/15 text-ink border-gold'
                   : 'text-muted border-line hover:text-ink'
@@ -194,18 +194,25 @@ export default function BoardPage() {
             </button>
           )}
 
+          {/* Always reserve this slot so the toggle above doesn't shift; hidden in read-only */}
+          {isAdmin && (
+            <button
+              onClick={() => setAddingColumn(true)}
+              disabled={!editMode || board.columns.length >= 8}
+              aria-hidden={!editMode}
+              tabIndex={editMode ? undefined : -1}
+              className={`flex items-center gap-1 text-xs font-medium bg-brand text-white rounded-lg px-3 py-2 disabled:opacity-40 whitespace-nowrap ${
+                editMode ? '' : 'invisible pointer-events-none'
+              }`}
+            >
+              <Plus size={13} />
+              <span className="hidden sm:inline">Add column</span>
+              {board.columns.length >= 8 && <span className="hidden sm:inline"> (max 8)</span>}
+            </button>
+          )}
+
           {isAdmin && editMode && (
             <>
-              <button
-                onClick={() => setAddingColumn(true)}
-                disabled={board.columns.length >= 8}
-                className="flex items-center gap-1 text-xs font-medium bg-brand text-white rounded-lg px-3 py-2 disabled:opacity-40 whitespace-nowrap"
-              >
-                <Plus size={13} />
-                <span className="hidden sm:inline">Add column</span>
-                {board.columns.length >= 8 && <span className="hidden sm:inline"> (max 8)</span>}
-              </button>
-
               <Modal
                 open={addingColumn}
                 onClose={() => { setAddingColumn(false); setNewColumnTitle('') }}
