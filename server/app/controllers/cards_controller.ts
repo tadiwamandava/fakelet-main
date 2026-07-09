@@ -71,4 +71,23 @@ export default class CardsController {
     await card.save()
     return { deleted: true }
   }
+
+  //POST /api/cards/reorder - persist a new order for a set of cards
+  async reorder({ request, auth, response }: HttpContext) {
+    const user = await auth.authenticate()
+    if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
+
+    const ids = request.input('ids') as unknown
+    if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'number')) {
+      return response.badRequest({ error: 'ids must be an array of card ids' })
+    }
+
+    await Promise.all(
+      ids.map((id, index) =>
+        Card.query().where('id', id).update({ position: index, updatedBy: user.id })
+      )
+    )
+
+    return { ok: true }
+  }
 }

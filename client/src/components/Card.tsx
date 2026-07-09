@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Bookmark, ExternalLink, Pencil, Trash2 } from 'lucide-react'
+import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import CardEditor from './CardEditor'
 import { resolveImageUrl } from '../utils/imageUrl'
@@ -42,6 +42,7 @@ export interface CardMutations {
   createCard: UseMutationResult<CardData, Error, CardCreateInput>
   updateCard: UseMutationResult<CardData, Error, CardUpdateInput>
   deleteCard: UseMutationResult<void, Error, number>
+  reorderCards: UseMutationResult<void, Error, number[]>
   uploadImage: UseMutationResult<{ imageUrl: string }, Error, { cardId: number; file: File }>
 }
 
@@ -53,6 +54,8 @@ interface CardProps {
   cardM?: CardMutations
   autoEdit?: boolean
   onAutoEditDone?: () => void
+  onMoveUp?: () => void
+  onMoveDown?: () => void
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
 }
@@ -63,7 +66,7 @@ function getYouTubeId(url?: string | null): string | null {
   return match ? match[1] : null
 }
 
-export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone, moveTargets, currentMoveKey }: CardProps) {
+export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone, onMoveUp, onMoveDown, moveTargets, currentMoveKey }: CardProps) {
   const ytId = getYouTubeId(card.youtubeUrl)
   const [editing, setEditing] = useState(autoEdit)
   const [descExpanded, setDescExpanded] = useState(false)
@@ -107,23 +110,43 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
       )}
 
       <div className="p-3">
-        {/* Edit / delete — only in edit mode */}
+        {/* Reorder / edit / delete — only in edit mode */}
         {editMode && (
-          <div className="flex justify-end gap-2 mb-1">
-            <button
-              onClick={() => setEditing(true)}
-              aria-label="Edit card"
-              className="text-muted hover:text-ink transition-colors"
-            >
-              <Pencil size={13} />
-            </button>
-            <button
-              onClick={() => window.confirm('Delete this card?') && cardM?.deleteCard.mutate(card.id)}
-              aria-label="Delete card"
-              className="text-muted hover:text-brand transition-colors"
-            >
-              <Trash2 size={13} />
-            </button>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex gap-0.5">
+              <button
+                onClick={onMoveUp}
+                disabled={!onMoveUp}
+                aria-label="Move card up"
+                className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronUp size={15} />
+              </button>
+              <button
+                onClick={onMoveDown}
+                disabled={!onMoveDown}
+                aria-label="Move card down"
+                className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronDown size={15} />
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(true)}
+                aria-label="Edit card"
+                className="text-muted hover:text-ink transition-colors"
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                onClick={() => window.confirm('Delete this card?') && cardM?.deleteCard.mutate(card.id)}
+                aria-label="Delete card"
+                className="text-muted hover:text-brand transition-colors"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
           </div>
         )}
 

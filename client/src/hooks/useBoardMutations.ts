@@ -51,6 +51,10 @@ export function useCardMutations(boardId: number) {
       (id) => api.delete(`/cards/${id}`).then(() => undefined),
       boardId
     ),
+    reorderCards: useBoardMutation<void, number[]>(
+      (ids) => api.post('/cards/reorder', { ids }).then(() => undefined),
+      boardId
+    ),
     uploadImage: useUploadCardImage(boardId),
   }
 }

@@ -83,6 +83,14 @@ export default function Column({
     )
   }
 
+  function moveCard(index: number, dir: -1 | 1) {
+    const target = index + dir
+    if (target < 0 || target >= ungrouped.length) return
+    const ids = ungrouped.map((c) => c.id)
+    ;[ids[index], ids[target]] = [ids[target], ids[index]]
+    cardM.reorderCards.mutate(ids)
+  }
+
   return (
     <div className="w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col max-h-full">
       <div className="px-4 py-3 border-b border-line shrink-0">
@@ -129,7 +137,7 @@ export default function Column({
         {/* Ungrouped cards — no sub-group required */}
         {(ungrouped.length > 0 || editMode) && (
           <div className="flex flex-col gap-2 mb-4">
-            {ungrouped.map((card) => (
+            {ungrouped.map((card, i) => (
               <Card
                 key={card.id}
                 card={card}
@@ -139,6 +147,8 @@ export default function Column({
                 cardM={cardM}
                 autoEdit={card.id === newCardId}
                 onAutoEditDone={() => setNewCardId(null)}
+                onMoveUp={i > 0 ? () => moveCard(i, -1) : undefined}
+                onMoveDown={i < ungrouped.length - 1 ? () => moveCard(i, 1) : undefined}
                 moveTargets={moveTargets}
                 currentMoveKey={`column-${column.id}`}
               />

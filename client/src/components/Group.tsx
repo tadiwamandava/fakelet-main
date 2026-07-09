@@ -35,6 +35,14 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
     )
   }
 
+  function moveCard(index: number, dir: -1 | 1) {
+    const target = index + dir
+    if (target < 0 || target >= group.cards.length) return
+    const ids = group.cards.map((c) => c.id)
+    ;[ids[index], ids[target]] = [ids[target], ids[index]]
+    cardM.reorderCards.mutate(ids)
+  }
+
   return (
     <div className="mb-4">
       <div className="flex items-center gap-1 mb-2 pb-1 border-b border-line">
@@ -87,7 +95,7 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
 
       {!collapsed && (
         <div className="flex flex-col gap-2">
-          {group.cards.map((card) => (
+          {group.cards.map((card, i) => (
             <Card
               key={card.id}
               card={card}
@@ -97,6 +105,8 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
               cardM={cardM}
               autoEdit={card.id === newCardId}
               onAutoEditDone={() => setNewCardId(null)}
+              onMoveUp={i > 0 ? () => moveCard(i, -1) : undefined}
+              onMoveDown={i < group.cards.length - 1 ? () => moveCard(i, 1) : undefined}
               moveTargets={moveTargets}
               currentMoveKey={`group-${group.id}`}
             />

@@ -86,6 +86,7 @@ router
         router.delete('/groups/:id', [GroupsController, 'destroy'])
 
         router.post('/cards', [CardsController, 'store'])
+        router.post('/cards/reorder', [CardsController, 'reorder'])
         router.put('/cards/:id', [CardsController, 'update'])
         router.delete('/cards/:id', [CardsController, 'destroy'])
         router.post('/cards/:id/image', [CardsController, 'uploadImage'])
