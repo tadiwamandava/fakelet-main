@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Bookmark, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import CardEditor from './CardEditor'
@@ -67,6 +67,18 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   const ytId = getYouTubeId(card.youtubeUrl)
   const [editing, setEditing] = useState(autoEdit)
   const [descExpanded, setDescExpanded] = useState(false)
+  // Track whether a freshly-added card was ever saved, so cancelling it discards it
+  const savedRef = useRef(false)
+
+  function handleClose() {
+    setEditing(false)
+    // A just-added card dismissed without saving is abandoned — remove it
+    // rather than leaving a blank "New card" behind.
+    if (autoEdit && !savedRef.current) {
+      cardM?.deleteCard.mutate(card.id)
+    }
+    onAutoEditDone?.()
+  }
 
   return (
     <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden transition-shadow hover:shadow-sm">
@@ -161,11 +173,13 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
       {cardM && (
         <CardEditor
           open={editing}
-          onClose={() => { setEditing(false); onAutoEditDone?.() }}
+          onClose={handleClose}
           card={card}
           saving={cardM.updateCard.isPending}
           onSave={(data: CardUpdateInput) => {
-            cardM.updateCard.mutate(data, { onSuccess: () => setEditing(false) })
+            cardM.updateCard.mutate(data, {
+              onSuccess: () => { savedRef.current = true; setEditing(false) },
+            })
           }}
           uploadImage={cardM.uploadImage}
           moveTargets={moveTargets}
