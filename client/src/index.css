@@ -35,6 +35,15 @@ html :focus-visible {
   border-radius: 3px;
 }
 
+/* Text fields already recolor their border on focus, so an offset outline on top
+   reads as a thick double border. Give them a soft, thin halo instead. */
+html input:focus-visible,
+html textarea:focus-visible,
+html select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
+}
+
 /* Respect users who ask for less motion (vestibular disorders, etc.) */
 @media (prefers-reduced-motion: reduce) {
   *,
