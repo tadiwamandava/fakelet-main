@@ -27,7 +27,7 @@ export default function SignupPage() {
 
   if (!invKey) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+      <main id="main-content" className="min-h-screen flex items-center justify-center bg-paper px-4">
         <div className="bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm text-center">
           <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-4" />
           <p className="text-sm text-brand font-medium mb-2">No invitation key found</p>
@@ -38,7 +38,7 @@ export default function SignupPage() {
             Back to sign in
           </Link>
         </div>
-      </div>
+      </main>
     )
   }
 
@@ -62,7 +62,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />
         <div className="flex justify-center mb-3">
@@ -79,8 +79,9 @@ export default function SignupPage() {
           </div>
         )}
 
-        <label className={labelClass}>Password</label>
+        <label htmlFor="signup-password" className={labelClass}>Password</label>
         <input
+          id="signup-password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -88,8 +89,9 @@ export default function SignupPage() {
           className={inputClass}
         />
 
-        <label className={labelClass}>Confirm password</label>
+        <label htmlFor="signup-confirm" className={labelClass}>Confirm password</label>
         <input
+          id="signup-confirm"
           type="password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
@@ -115,6 +117,6 @@ export default function SignupPage() {
           Already have an account? Sign in
         </Link>
       </div>
-    </div>
+    </main>
   )
 }

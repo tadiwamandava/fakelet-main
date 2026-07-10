@@ -87,7 +87,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />
         <div className="flex justify-center mb-6">
@@ -100,8 +100,9 @@ export default function LoginPage() {
               <span className="text-xs text-muted border border-line rounded-full px-3 py-1">Admin sign in</span>
             </div>
 
-            <label className={labelClass}>Email</label>
+            <label htmlFor="login-email" className={labelClass}>Email</label>
             <input
+              id="login-email"
               type="email"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
@@ -110,8 +111,9 @@ export default function LoginPage() {
               className={inputClass}
             />
 
-            <label className={labelClass}>Password</label>
+            <label htmlFor="login-password" className={labelClass}>Password</label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -146,8 +148,9 @@ export default function LoginPage() {
               Enter your email and we'll send a reset code.
             </p>
 
-            <label className={labelClass}>Email</label>
+            <label htmlFor="forgot-email" className={labelClass}>Email</label>
             <input
+              id="forgot-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -180,8 +183,9 @@ export default function LoginPage() {
 
             {info && <p className="text-xs text-teal mb-3">{info}</p>}
 
-            <label className={labelClass}>6-digit code</label>
+            <label htmlFor="reset-code" className={labelClass}>6-digit code</label>
             <input
+              id="reset-code"
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               inputMode="numeric"
@@ -190,8 +194,9 @@ export default function LoginPage() {
               className={`${inputClass} tracking-widest text-center text-lg font-semibold`}
             />
 
-            <label className={labelClass}>New password</label>
+            <label htmlFor="reset-password" className={labelClass}>New password</label>
             <input
+              id="reset-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -199,8 +204,9 @@ export default function LoginPage() {
               className={inputClass}
             />
 
-            <label className={labelClass}>Confirm new password</label>
+            <label htmlFor="reset-confirm" className={labelClass}>Confirm new password</label>
             <input
+              id="reset-confirm"
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
@@ -228,6 +234,6 @@ export default function LoginPage() {
           </>
         )}
       </div>
-    </div>
+    </main>
   )
 }

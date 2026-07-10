@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldOff, Trash2, User
 import api from '../api/client'
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
+import Modal from '../components/ui/Modal'
 import logo from '../assets/k20center-logo-full.svg'
 
 interface Invitation {
@@ -57,7 +58,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="flex-1 p-6 sm:p-8 max-w-3xl mx-auto w-full">
+      <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-3xl mx-auto w-full outline-none">
         <div className="flex gap-1 bg-white border border-line rounded-lg p-1 mb-6 w-fit">
           {([
             { key: 'invitations', label: 'Invitations', icon: KeyRound },
@@ -149,6 +150,7 @@ function InvitationsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
             onChange={(e) => { setRecipientEmail(e.target.value); setSendError('') }}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="colleague@example.com"
+            aria-label="Recipient email address"
             className="flex-1 bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
           />
           <button
@@ -311,31 +313,30 @@ function UsersTab({ qc, currentUserId }: { qc: ReturnType<typeof useQueryClient>
         </div>
       )}
 
-      {confirmDeleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="bg-white rounded-xl border border-line p-6 w-full max-w-sm shadow-lg">
-            <h3 className="text-sm font-semibold text-ink mb-2">Delete user</h3>
-            <p className="text-sm text-muted mb-4">
-              Permanently delete <strong className="text-ink">{toDelete?.email}</strong>? This cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setConfirmDeleteId(null)}
-                className="text-sm text-muted px-4 py-2 rounded-lg hover:text-ink"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => deleteUser.mutate(confirmDeleteId)}
-                disabled={deleteUser.isPending}
-                className="text-sm bg-brand text-white px-4 py-2 rounded-lg disabled:opacity-50"
-              >
-                {deleteUser.isPending ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
+      <Modal
+        open={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        title="Delete user"
+      >
+        <p className="text-sm text-muted mb-4">
+          Permanently delete <strong className="text-ink">{toDelete?.email}</strong>? This cannot be undone.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setConfirmDeleteId(null)}
+            className="text-sm text-muted px-4 py-2 rounded-lg hover:text-ink"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => confirmDeleteId !== null && deleteUser.mutate(confirmDeleteId)}
+            disabled={deleteUser.isPending}
+            className="text-sm bg-brand text-white px-4 py-2 rounded-lg disabled:opacity-50"
+          >
+            {deleteUser.isPending ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }

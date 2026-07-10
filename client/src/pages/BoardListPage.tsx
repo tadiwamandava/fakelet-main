@@ -103,7 +103,7 @@ export default function BoardListPage() {
       </header>
 
       {/* Board grid */}
-      <main className="flex-1 p-6 sm:p-8 max-w-5xl mx-auto w-full">
+      <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-5xl mx-auto w-full outline-none">
         {isLoading && <p className="text-muted text-sm">Loading boards…</p>}
         {error && <p className="text-brand text-sm">Couldn't load boards. Please contact the administrator.</p>}
         {boards && boards.length === 0 && <p className="text-muted text-sm">No boards yet.</p>}

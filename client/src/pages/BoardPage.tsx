@@ -157,7 +157,7 @@ export default function BoardPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="flex-1 min-w-0 flex flex-col">
+      <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 flex flex-col outline-none">
         <div className="shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -170,9 +170,11 @@ export default function BoardPage() {
           <div className="relative flex-1 min-w-0">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
+              type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search cards…"
+              aria-label="Search cards"
               className="w-full bg-paper border border-line rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-brand"
             />
           </div>
@@ -202,6 +204,8 @@ export default function BoardPage() {
           {isAdmin && (
             <button
               onClick={() => setEditMode((m) => !m)}
+              aria-pressed={editMode}
+              aria-label={editMode ? 'Edit mode on, switch to read-only' : 'Read-only, switch to edit mode'}
               className={`flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap transition-colors sm:min-w-[7rem] ${
                 editMode
                   ? 'bg-gold/15 text-ink border-gold'

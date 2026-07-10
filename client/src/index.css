@@ -20,3 +20,29 @@
 body {
   font-family: var(--font-sans);
 }
+
+/* ---------------------------------------------------------------------------
+   Accessibility baseline (WCAG 2.1 AA / Section 508)
+   --------------------------------------------------------------------------- */
+
+/* Visible keyboard focus for every interactive element, even those that set
+   `outline-none` for the mouse. Higher specificity than the `outline-none`
+   utility so it always wins for keyboard users. :focus-visible keeps the ring
+   off for pointer clicks. */
+html :focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Respect users who ask for less motion (vestibular disorders, etc.) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
