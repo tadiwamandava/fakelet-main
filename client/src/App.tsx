@@ -7,6 +7,7 @@ import BoardPage from './pages/BoardPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import AdminPage from './pages/AdminPage'
+import Tooltips from './components/ui/Tooltips'
 
 // Admin-only routes. Viewers reach specific boards via shared links only —
 // they never browse the board list or the admin dashboard.
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
         <Route path="*" element={<Navigate to="/boards" replace />} />
       </Routes>
+      <Tooltips />
     </BrowserRouter>
   )
 }
