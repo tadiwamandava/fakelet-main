@@ -35,24 +35,26 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
-        <div className="flex flex-col">
-          <img src={logo} alt="K20 Center" className="h-9" />
-          <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em' }}>Hive</p>
-        </div>
-        <Link
-          to="/boards"
-          className="flex items-center gap-1.5 text-xs text-muted hover:text-brand transition-colors"
-        >
-          <ArrowLeft size={13} />
-          Boards
-        </Link>
-        <div className="flex items-center gap-1.5 flex-1">
+        <div className="flex items-center gap-3 flex-1">
+          <Link
+            to="/boards"
+            className="flex items-center gap-1.5 text-xs text-muted hover:text-brand transition-colors"
+          >
+            <ArrowLeft size={13} />
+            Boards
+          </Link>
           <h1 className="text-sm font-semibold text-ink">Admin Dashboard</h1>
         </div>
-        <span className="text-xs text-muted hidden sm:block">
-          {user?.email}
-          <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
-        </span>
+        <div className="flex flex-col items-center shrink-0">
+          <img src={logo} alt="K20 Center" className="h-9" />
+          <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em', paddingLeft: '2.2em' }}>Hive</p>
+        </div>
+        <div className="flex items-center flex-1 justify-end">
+          <span className="text-xs text-muted hidden sm:block">
+            {user?.email}
+            <span className="ml-1.5 bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded">Admin</span>
+          </span>
+        </div>
       </header>
 
       <main className="flex-1 p-6 sm:p-8 max-w-3xl mx-auto w-full">
