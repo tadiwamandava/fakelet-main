@@ -71,8 +71,7 @@ export default function BoardPage() {
     if (!highlightId || !board) return
     // Clear any previously highlighted card first
     if (activeHighlight.current) {
-      activeHighlight.current.style.outline = ''
-      activeHighlight.current.style.outlineOffset = ''
+      activeHighlight.current.style.boxShadow = ''
       activeHighlight.current.style.borderRadius = ''
       activeHighlight.current = null
     }
@@ -90,12 +89,11 @@ export default function BoardPage() {
       }
       activeHighlight.current = el
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      el.style.outline = '2px solid rgba(145,13,40,0.6)'
-      el.style.outlineOffset = '3px'
+      // Subtle thin halo — a soft 3px translucent crimson glow, matching input focus
+      el.style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--color-brand) 25%, transparent)'
       el.style.borderRadius = '8px'
       clearTimer = setTimeout(() => {
-        el.style.outline = ''
-        el.style.outlineOffset = ''
+        el.style.boxShadow = ''
         el.style.borderRadius = ''
         activeHighlight.current = null
         setSearchParams({}, { replace: true })
