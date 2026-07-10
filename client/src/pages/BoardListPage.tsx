@@ -48,15 +48,15 @@ export default function BoardListPage() {
     <div className="min-h-screen bg-paper flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
-        <div className="flex flex-col">
-          <img src={logo} alt="K20 Center" className="h-9"/>
-          <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em' }}>Hive</p>
-        </div>
         <div className="flex items-center gap-1.5 flex-1">
           <LayoutDashboard size={15} className="text-muted" />
           <h1 className="text-sm font-semibold text-ink">Boards</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center shrink-0">
+          <img src={logo} alt="K20 Center" className="h-9"/>
+          <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em', paddingLeft: '2.2em' }}>Hive</p>
+        </div>
+        <div className="flex items-center gap-3 flex-1 justify-end">
           {isAdmin && (
             <>
               <button
