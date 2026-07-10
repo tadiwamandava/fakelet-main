@@ -72,6 +72,7 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
                 <button
                   onClick={() => setEditingTitle(true)}
                   aria-label="Rename group"
+                  title="Rename group"
                   className="text-muted hover:text-ink"
                 >
                   <Pencil size={12} />
@@ -83,6 +84,7 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
                     }
                   }}
                   aria-label="Delete group"
+                  title="Delete group"
                   className="text-muted hover:text-brand"
                 >
                   <Trash2 size={12} />

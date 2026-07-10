@@ -160,6 +160,7 @@ export default function BoardPage() {
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
+            title="Open menu"
             className="md:hidden text-muted hover:text-ink p-1"
           >
             <Menu size={20} />
@@ -193,6 +194,7 @@ export default function BoardPage() {
             <button
               onClick={() => setSettingsOpen(true)}
               aria-label="Board settings"
+              title="Board settings"
               className="text-muted hover:text-ink border border-line rounded-lg p-2"
             >
               <Settings size={14} />

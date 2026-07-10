@@ -112,6 +112,7 @@ export default function Column({
                 <button
                   onClick={() => setEditingTitle(true)}
                   aria-label="Rename column"
+                  title="Rename column"
                   className="text-muted hover:text-ink transition-colors"
                 >
                   <Pencil size={13} />
@@ -123,6 +124,7 @@ export default function Column({
                     }
                   }}
                   aria-label="Delete column"
+                  title="Delete column"
                   className="text-muted hover:text-brand transition-colors"
                 >
                   <Trash2 size={14} />

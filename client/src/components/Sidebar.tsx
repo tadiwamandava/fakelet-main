@@ -38,7 +38,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
       ].join(' ')}
     >
       <div className="md:hidden flex justify-end px-4 pt-4">
-        <button onClick={onClose} aria-label="Close menu" className="text-muted hover:text-ink p-1">
+        <button onClick={onClose} aria-label="Close menu" title="Close menu" className="text-muted hover:text-ink p-1">
           <X size={20} />
         </button>
       </div>
@@ -168,6 +168,7 @@ function SidebarReferences({ board }: { board: BoardData }) {
             role="button"
             tabIndex={0}
             aria-label="Edit references"
+            title="Edit references"
             onClick={(e) => { e.stopPropagation(); startEdit() }}
             onKeyDown={(e) => e.key === 'Enter' && startEdit()}
             className="text-muted hover:text-ink p-0.5"
@@ -202,7 +203,8 @@ function SidebarReferences({ board }: { board: BoardData }) {
               />
               <button
                 onClick={() => removeLine(i)}
-                aria-label="Remove"
+                aria-label="Remove reference"
+                title="Remove reference"
                 className="text-muted hover:text-brand shrink-0"
               >
                 <Trash2 size={11} />

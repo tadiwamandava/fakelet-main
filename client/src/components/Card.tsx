@@ -118,6 +118,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
                 onClick={onMoveUp}
                 disabled={!onMoveUp}
                 aria-label="Move card up"
+                title="Move card up"
                 className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronUp size={15} />
@@ -126,6 +127,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
                 onClick={onMoveDown}
                 disabled={!onMoveDown}
                 aria-label="Move card down"
+                title="Move card down"
                 className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronDown size={15} />
@@ -135,6 +137,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
               <button
                 onClick={() => setEditing(true)}
                 aria-label="Edit card"
+                title="Edit card"
                 className="text-muted hover:text-ink transition-colors"
               >
                 <Pencil size={13} />
@@ -142,6 +145,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
               <button
                 onClick={() => window.confirm('Delete this card?') && cardM?.deleteCard.mutate(card.id)}
                 aria-label="Delete card"
+                title="Delete card"
                 className="text-muted hover:text-brand transition-colors"
               >
                 <Trash2 size={13} />
@@ -186,6 +190,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
           <button
             onClick={() => onToggleBookmark(card.id)}
             aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this card'}
+            title={bookmarked ? 'Remove bookmark' : 'Bookmark this card'}
             className={`p-1 -m-1 transition-colors ${bookmarked ? 'text-brand' : 'text-muted hover:text-ink'}`}
           >
             <Bookmark size={15} fill={bookmarked ? 'currentColor' : 'none'} />

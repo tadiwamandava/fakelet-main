@@ -148,6 +148,7 @@ export default function BoardListPage() {
                   <button
                     onClick={(e) => { e.preventDefault(); setConfirmDeleteId(board.id) }}
                     aria-label="Delete board"
+                    title="Delete board"
                     className="p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand opacity-0 group-hover:opacity-100 transition-opacity border border-line"
                   >
                     <Trash2 size={13} />
