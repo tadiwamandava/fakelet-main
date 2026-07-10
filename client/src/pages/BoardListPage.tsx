@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { KeyRound, LayoutDashboard, LogIn, LogOut, Plus, Trash2 } from 'lucide-react'
+import { Check, KeyRound, LayoutDashboard, LogIn, LogOut, Plus, Share2, Trash2 } from 'lucide-react'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
 import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
@@ -20,6 +20,14 @@ export default function BoardListPage() {
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [copiedId, setCopiedId] = useState<number | null>(null)
+
+  function shareBoard(id: number) {
+    const url = `${window.location.origin}/boards/${id}`
+    navigator.clipboard.writeText(url)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 2000)
+  }
 
   function submitCreate() {
     const title = newTitle.trim()
@@ -127,15 +135,25 @@ export default function BoardListPage() {
                 </div>
               </Link>
 
-              {isAdmin && (
+              <div className="absolute top-2 right-2 flex gap-1">
                 <button
-                  onClick={(e) => { e.preventDefault(); setConfirmDeleteId(board.id) }}
-                  aria-label="Delete board"
-                  className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand opacity-0 group-hover:opacity-100 transition-opacity border border-line"
+                  onClick={(e) => { e.preventDefault(); shareBoard(board.id) }}
+                  aria-label="Copy share link"
+                  title={copiedId === board.id ? 'Link copied!' : 'Copy link to share'}
+                  className="p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand transition-colors border border-line"
                 >
-                  <Trash2 size={13} />
+                  {copiedId === board.id ? <Check size={13} className="text-teal" /> : <Share2 size={13} />}
                 </button>
-              )}
+                {isAdmin && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); setConfirmDeleteId(board.id) }}
+                    aria-label="Delete board"
+                    className="p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand opacity-0 group-hover:opacity-100 transition-opacity border border-line"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

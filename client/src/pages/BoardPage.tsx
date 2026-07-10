@@ -6,7 +6,7 @@ import Column from '../components/Column'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/ui/Modal'
 import BoardSettingsModal from '../components/BoardSettingsModal'
-import { Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings } from 'lucide-react'
+import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2 } from 'lucide-react'
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 import { useTitle } from '../hooks/useTitle'
@@ -26,6 +26,13 @@ export default function BoardPage() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  function shareBoard() {
+    navigator.clipboard.writeText(`${window.location.origin}/boards/${boardId}`)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2000)
+  }
   const cardM = useCardMutations(boardId)
   const columnM = useColumnMutations(boardId)
   const groupM = useGroupMutations(boardId)
@@ -169,6 +176,18 @@ export default function BoardPage() {
               className="w-full bg-paper border border-line rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-brand"
             />
           </div>
+
+          <button
+            onClick={shareBoard}
+            aria-label="Copy share link"
+            title={linkCopied ? 'Link copied!' : 'Copy link to share'}
+            className={`flex items-center gap-1.5 text-xs font-medium border rounded-lg px-3 py-2 whitespace-nowrap transition-colors ${
+              linkCopied ? 'border-teal text-teal' : 'text-muted border-line hover:text-ink'
+            }`}
+          >
+            {linkCopied ? <Check size={14} /> : <Share2 size={14} />}
+            <span className="hidden sm:inline">{linkCopied ? 'Copied' : 'Share'}</span>
+          </button>
 
           {isAdmin && (
             <button
