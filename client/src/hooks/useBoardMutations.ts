@@ -106,8 +106,26 @@ export function useUpdateBoard(boardId: number) {
 
 export function useCreateBoard() {
   const qc = useQueryClient()
-  return useMutation<BoardSummary, Error, { title: string; description?: string }>({
+  return useMutation<BoardSummary, Error, { title: string; description?: string; imageUrl?: string }>({
     mutationFn: (data) => api.post<BoardSummary>('/boards', data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
+  })
+}
+
+// Upload a cover image to a board by id (used right after creating a board,
+// when the id isn't known until the create request resolves).
+export function useUploadImageToBoard() {
+  const qc = useQueryClient()
+  return useMutation<{ imageUrl: string }, Error, { boardId: number; file: File }>({
+    mutationFn: ({ boardId, file }) => {
+      const form = new FormData()
+      form.append('image', file)
+      return api
+        .post<{ imageUrl: string }>(`/boards/${boardId}/image`, form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((r) => r.data)
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
   })
 }

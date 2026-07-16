@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, KeyRound, LayoutDashboard, LogIn, LogOut, Plus, Share2, Trash2 } from 'lucide-react'
+import { Check, ImagePlus, KeyRound, LayoutDashboard, Link2, LogIn, LogOut, Plus, Share2, Trash2 } from 'lucide-react'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useBoards } from '../hooks/useBoard'
-import { useCreateBoard, useDeleteBoard } from '../hooks/useBoardMutations'
+import { useCreateBoard, useDeleteBoard, useUploadImageToBoard } from '../hooks/useBoardMutations'
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
 import Modal from '../components/ui/Modal'
@@ -15,12 +15,29 @@ export default function BoardListPage() {
   useTitle('Boards')
   const createBoard = useCreateBoard()
   const deleteBoard = useDeleteBoard()
+  const uploadImage = useUploadImageToBoard()
 
   const [creating, setCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
+  const [newImageUrl, setNewImageUrl] = useState('')
+  const [newImageFile, setNewImageFile] = useState<File | null>(null)
+  const [imageTab, setImageTab] = useState<'url' | 'upload'>('url')
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [copiedId, setCopiedId] = useState<number | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  // Local preview: the pasted URL, or an object URL for a chosen-but-not-yet-uploaded file
+  const imagePreview = newImageFile ? URL.createObjectURL(newImageFile) : resolveImageUrl(newImageUrl)
+
+  function resetCreate() {
+    setCreating(false)
+    setNewTitle('')
+    setNewDescription('')
+    setNewImageUrl('')
+    setNewImageFile(null)
+    setImageTab('url')
+  }
 
   function shareBoard(id: number) {
     const url = `${window.location.origin}/boards/${id}`
@@ -33,9 +50,33 @@ export default function BoardListPage() {
     const title = newTitle.trim()
     if (!title) return
     createBoard.mutate(
-      { title, description: newDescription.trim() || undefined },
-      { onSuccess: () => { setCreating(false); setNewTitle(''); setNewDescription('') } }
+      {
+        title,
+        description: newDescription.trim() || undefined,
+        // A pasted URL goes in with the create; an uploaded file is sent after (needs the id)
+        imageUrl: !newImageFile && newImageUrl.trim() ? newImageUrl.trim() : undefined,
+      },
+      {
+        onSuccess: (board) => {
+          if (newImageFile) {
+            uploadImage.mutate(
+              { boardId: board.id, file: newImageFile },
+              { onSuccess: resetCreate, onError: resetCreate }
+            )
+          } else {
+            resetCreate()
+          }
+        },
+      }
     )
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setNewImageFile(file)
+    setNewImageUrl('')
+    e.target.value = ''
   }
 
   function confirmDelete(id: number) {
@@ -161,7 +202,7 @@ export default function BoardListPage() {
       </main>
 
       {/* New board modal */}
-      <Modal open={creating} onClose={() => { setCreating(false); setNewTitle(''); setNewDescription('') }} title="New board">
+      <Modal open={creating} onClose={resetCreate} title="New board">
         <div className="flex flex-col gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">Title</label>
@@ -184,19 +225,84 @@ export default function BoardListPage() {
               className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand resize-none"
             />
           </div>
+
+          {/* Cover image (optional) */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-2">Cover image (optional)</label>
+            <div className="flex gap-1 bg-paper border border-line rounded-lg p-1 mb-3 w-fit">
+              {(['url', 'upload'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setImageTab(tab)}
+                  className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md ${
+                    imageTab === tab ? 'bg-white text-ink shadow-sm font-medium' : 'text-muted'
+                  }`}
+                >
+                  {tab === 'url' ? <Link2 size={11} /> : <ImagePlus size={11} />}
+                  {tab === 'url' ? 'URL' : 'Upload'}
+                </button>
+              ))}
+            </div>
+
+            {imageTab === 'url' && (
+              <input
+                value={newImageUrl}
+                onChange={(e) => { setNewImageUrl(e.target.value); setNewImageFile(null) }}
+                placeholder="https://example.com/image.jpg"
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-brand"
+              />
+            )}
+
+            {imageTab === 'upload' && (
+              <>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center gap-2 text-sm border border-dashed border-line rounded-lg px-4 py-3 w-full text-muted hover:border-brand hover:text-brand"
+                >
+                  <ImagePlus size={15} />
+                  {newImageFile ? newImageFile.name : 'Choose image file'}
+                </button>
+              </>
+            )}
+
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview}
+                  alt="Cover preview"
+                  className="w-full h-24 object-cover rounded-lg border border-line"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+                <button
+                  onClick={() => { setNewImageUrl(''); setNewImageFile(null) }}
+                  className="text-xs text-muted hover:text-brand mt-1"
+                >
+                  Remove image
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => { setCreating(false); setNewTitle(''); setNewDescription('') }}
+              onClick={resetCreate}
               className="text-sm text-muted px-4 py-2 rounded-lg hover:text-ink"
             >
               Cancel
             </button>
             <button
               onClick={submitCreate}
-              disabled={!newTitle.trim() || createBoard.isPending}
+              disabled={!newTitle.trim() || createBoard.isPending || uploadImage.isPending}
               className="text-sm bg-brand text-white px-4 py-2 rounded-lg disabled:opacity-50"
             >
-              {createBoard.isPending ? 'Creating…' : 'Create'}
+              {createBoard.isPending || uploadImage.isPending ? 'Creating…' : 'Create'}
             </button>
           </div>
         </div>

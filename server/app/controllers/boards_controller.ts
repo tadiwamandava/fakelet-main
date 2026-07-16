@@ -50,15 +50,17 @@ export default class BoardsController {
     const user = await auth.authenticate()
     if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
 
-    const { title, description } = request.only(['title', 'description']) as {
+    const { title, description, imageUrl } = request.only(['title', 'description', 'imageUrl']) as {
       title: string
       description?: string
+      imageUrl?: string
     }
     if (!title?.trim()) return response.badRequest({ error: 'Title is required' })
 
     const board = await Board.create({
       title: title.trim(),
       description: description?.trim() || null,
+      imageUrl: imageUrl?.trim() || null,
       createdBy: user.id,
     })
     return board
