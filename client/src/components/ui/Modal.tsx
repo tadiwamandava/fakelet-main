@@ -16,6 +16,12 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
+  // Keep the latest onClose without making it an effect dependency — otherwise a
+  // new inline callback on every parent render would re-run the effect (and its
+  // focus-restore cleanup) on each keystroke, kicking focus out of the inputs.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
     if (!open) return
 
@@ -28,7 +34,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab' || !dialog) return
@@ -59,7 +65,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       document.body.style.overflow = prevOverflow
       previouslyFocused.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 

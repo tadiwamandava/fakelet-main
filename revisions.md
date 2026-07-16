@@ -1,3 +1,0 @@
-//default public access--done, bookmarks that lead directly to the card --done, scrollable references--done, move admin info to top right--done, remove read only for public access--done, no edit access for public access users--done
-//remove generate references, no sign up option, invitation to admin access option, short description for board title, edit card automatically without adding title first--done, should chooses between youtube url or image url not both --done, edit mode should be default for admins -- done
-//description should expand-- done
