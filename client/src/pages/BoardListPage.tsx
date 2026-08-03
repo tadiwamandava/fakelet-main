@@ -149,9 +149,9 @@ export default function BoardListPage() {
         {error && <p className="text-brand text-sm">Couldn't load boards. Please contact the administrator.</p>}
         {boards && boards.length === 0 && <p className="text-muted text-sm">No boards yet.</p>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {boards?.map((board) => (
-            <div key={board.id} className="relative group"> 
+            <div key={board.id} className="relative group">
               <Link
                 to={`/boards/${board.id}`}
                 className="block bg-white border border-line rounded-xl overflow-hidden hover:shadow-md hover:border-brand/40 transition-shadow"
@@ -160,7 +160,7 @@ export default function BoardListPage() {
                   <img
                     src={resolveImageUrl(board.imageUrl)}
                     alt={board.title}
-                    className="w-full h-28 object-cover"
+                    className="w-full h-auto"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 ) : (
