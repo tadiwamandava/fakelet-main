@@ -129,7 +129,7 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
             <img
               src={resolveImageUrl(imageUrl)}
               alt="Preview"
-              className="mt-2 w-full max-h-48 object-contain bg-paper rounded-lg border border-line"
+              className="mt-2 w-full h-32 object-cover rounded-lg border border-line"
               onError={(e) => { e.currentTarget.style.display = 'none' }}
             />
           )}

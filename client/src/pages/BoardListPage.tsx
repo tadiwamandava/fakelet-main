@@ -160,7 +160,7 @@ export default function BoardListPage() {
                   <img
                     src={resolveImageUrl(board.imageUrl)}
                     alt={board.title}
-                    className="w-full h-28 object-contain bg-paper"
+                    className="w-full h-28 object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 ) : (
@@ -277,7 +277,7 @@ export default function BoardListPage() {
                 <img
                   src={imagePreview}
                   alt="Cover preview"
-                  className="w-full max-h-48 object-contain bg-paper rounded-lg border border-line"
+                  className="w-full h-32 object-cover rounded-lg border border-line"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
                 <button
