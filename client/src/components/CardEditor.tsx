@@ -220,7 +220,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
                   <img
                     src={resolveImageUrl(imageUrl)}
                     alt="Preview"
-                    className="w-full h-32 object-cover rounded-lg border border-line"
+                    className="w-full max-h-48 object-contain bg-paper rounded-lg border border-line"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                   {justUploaded && (

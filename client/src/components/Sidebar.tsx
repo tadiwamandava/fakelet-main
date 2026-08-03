@@ -63,7 +63,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           <img
             src={resolveImageUrl(board.imageUrl)}
             alt={board.title}
-            className="w-full h-20 object-cover rounded-lg border border-line mb-3"
+            className="w-full h-auto max-h-40 object-contain bg-paper rounded-lg border border-line mb-3"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         )}

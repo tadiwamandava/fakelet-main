@@ -151,7 +151,7 @@ export default function BoardListPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {boards?.map((board) => (
-            <div key={board.id} className="relative group">
+            <div key={board.id} className="relative group"> 
               <Link
                 to={`/boards/${board.id}`}
                 className="block bg-white border border-line rounded-xl overflow-hidden hover:shadow-md hover:border-brand/40 transition-shadow"
@@ -160,7 +160,7 @@ export default function BoardListPage() {
                   <img
                     src={resolveImageUrl(board.imageUrl)}
                     alt={board.title}
-                    className="w-full h-28 object-cover"
+                    className="w-full h-28 object-contain bg-paper"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 ) : (
@@ -277,7 +277,7 @@ export default function BoardListPage() {
                 <img
                   src={imagePreview}
                   alt="Cover preview"
-                  className="w-full h-24 object-cover rounded-lg border border-line"
+                  className="w-full max-h-48 object-contain bg-paper rounded-lg border border-line"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
                 <button
