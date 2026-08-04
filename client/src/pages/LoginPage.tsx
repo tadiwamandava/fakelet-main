@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
+import HiveBackground from '../components/ui/HiveBackground'
 import logo from '../assets/k20center-logo-full.svg'
 
 type Mode = 'login' | 'forgot' | 'reset'
@@ -87,8 +88,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="main-content" className="min-h-screen flex items-center justify-center bg-paper px-4">
-      <div className="bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
+    <main id="main-content" className="relative overflow-hidden min-h-screen flex items-center justify-center bg-paper px-4">
+      <HiveBackground />
+      <div className="relative z-10 bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />
         <div className="flex justify-center mb-6">
           <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '3.9em', paddingLeft: '3.8em' }}>Hive</p>
