@@ -6,6 +6,7 @@ import api from '../api/client'
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
 import Modal from '../components/ui/Modal'
+import HiveBackground from '../components/ui/HiveBackground'
 import logo from '../assets/k20center-logo-full.svg'
 
 interface Invitation {
@@ -34,7 +35,8 @@ export default function AdminPage() {
   useTitle(`${tab === 'invitations' ? 'Invitations' : 'Users'} · Admin`)
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="relative isolate min-h-screen bg-paper flex flex-col">
+      <HiveBackground />
       <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-3 flex-1">
           <Link

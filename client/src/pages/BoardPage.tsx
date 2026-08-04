@@ -10,6 +10,7 @@ import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 import { useTitle } from '../hooks/useTitle'
+import HiveBackground from '../components/ui/HiveBackground'
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>()
@@ -140,7 +141,8 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex bg-paper">
+    <div className="relative isolate h-screen overflow-hidden flex bg-paper">
+      <HiveBackground />
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 md:hidden"

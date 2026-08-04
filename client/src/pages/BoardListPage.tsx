@@ -7,6 +7,7 @@ import { useCreateBoard, useDeleteBoard, useUploadImageToBoard } from '../hooks/
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
 import Modal from '../components/ui/Modal'
+import HiveBackground from '../components/ui/HiveBackground'
 import logo from '../assets/k20center-logo-full.svg'
 
 export default function BoardListPage() {
@@ -86,7 +87,8 @@ export default function BoardListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="relative isolate min-h-screen bg-paper flex flex-col">
+      <HiveBackground />
       {/* Header */}
       <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-1.5 flex-1">
