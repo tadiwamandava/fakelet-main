@@ -6,7 +6,7 @@ import api from '../api/client'
 import { useAuth } from '../store/authStore'
 import { useTitle } from '../hooks/useTitle'
 import Modal from '../components/ui/Modal'
-import HiveBackground from '../components/ui/HiveBackground'
+import HiveBanner from '../components/ui/HiveBanner'
 import logo from '../assets/k20center-logo-full.svg'
 
 interface Invitation {
@@ -37,7 +37,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
-        <HiveBackground fade="right" />
+        <HiveBanner />
         <div className="flex items-center gap-3 flex-1">
           <Link
             to="/boards"

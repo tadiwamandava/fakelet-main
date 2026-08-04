@@ -10,7 +10,7 @@ import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 import { useTitle } from '../hooks/useTitle'
-import HiveBackground from '../components/ui/HiveBackground'
+import HiveBanner from '../components/ui/HiveBanner'
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>()
@@ -158,7 +158,7 @@ export default function BoardPage() {
 
       <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 flex flex-col outline-none">
         <div className="relative isolate overflow-hidden shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
-          <HiveBackground fade="right" />
+          <HiveBanner />
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"

@@ -115,8 +115,6 @@ Open http://localhost:5173 and sign in with the seeded admin account.
 |---|---|
 | `VITE_API_URL` | Base URL of the API, including `/api/v1` |
 
-> **Never commit real secrets.** Use `.env.example` as a template with placeholder values only.
-
 ---
 
 ## Database

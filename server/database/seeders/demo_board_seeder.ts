@@ -35,9 +35,19 @@ export default class extends BaseSeeder {
     })
 
     // Column 1 — grouped cards plus one ungrouped card on the column itself
-    const overview = await Column.create({ boardId: board.id, title: 'Overview', position: 0, createdBy })
+    const overview = await Column.create({
+      boardId: board.id,
+      title: 'Overview',
+      position: 0,
+      createdBy,
+    })
 
-    const concepts = await Group.create({ columnId: overview.id, title: 'Key Concepts', position: 0, createdBy })
+    const concepts = await Group.create({
+      columnId: overview.id,
+      title: 'Key Concepts',
+      position: 0,
+      createdBy,
+    })
     await Card.createMany([
       {
         groupId: concepts.id,
@@ -64,8 +74,18 @@ export default class extends BaseSeeder {
     })
 
     // Column 2 — a video resource
-    const resources = await Column.create({ boardId: board.id, title: 'Resources', position: 1, createdBy })
-    const videos = await Group.create({ columnId: resources.id, title: 'Videos', position: 0, createdBy })
+    const resources = await Column.create({
+      boardId: board.id,
+      title: 'Resources',
+      position: 1,
+      createdBy,
+    })
+    const videos = await Group.create({
+      columnId: resources.id,
+      title: 'Videos',
+      position: 0,
+      createdBy,
+    })
     await Card.create({
       groupId: videos.id,
       title: 'Crash Course: Photosynthesis',

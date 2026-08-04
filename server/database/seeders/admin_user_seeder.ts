@@ -14,10 +14,7 @@ export default class extends BaseSeeder {
     const email = env.get('ADMIN_EMAIL', 'admin@k20center.ou.edu')
     const password = env.get('ADMIN_PASSWORD', 'changeme123')
 
-    const user = await User.firstOrCreate(
-      { email },
-      { email, password, isAdmin: true }
-    )
+    const user = await User.firstOrCreate({ email }, { email, password, isAdmin: true })
 
     if (user.$isLocal) {
       // Just created — the password came from the fallback if env wasn't set.
