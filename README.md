@@ -1,92 +1,183 @@
 # Hive
 
-K20's Wakelet clone
+**K20's Hub for Integrated Visual Education** — a visual learning platform where
+educators curate boards of resources (links, images, videos, and notes) organized
+into columns and groups, then share them with students through a simple link.
+
+Inspired by tools like Wakelet, Hive is built for K‑12 classrooms: educators sign
+in to build and manage boards, while students open a shared board link and browse
+it read‑only — no account required.
+
+---
+
+## Features
+
+- **Boards → Columns → Groups → Cards** — a flexible hierarchy for organizing content. Groups are optional, so cards can also live directly on a column.
+- **Rich cards** — title, description, a link, and either an uploaded image or a YouTube embed. Cards can be reordered and moved between groups.
+- **Invitation‑only admin access** — the public can only view shared boards. New admins join via a single‑use invitation key emailed from the admin dashboard.
+- **Admin dashboard** — manage invitations and users (promote/demote admins, remove users).
+- **Public sharing** — every board has a shareable link (`/boards/:id`) that anyone can open read‑only. Editing controls appear only for signed‑in admins.
+- **Cover images** — boards and cards support image upload or an image URL, with live previews.
+- **Bookmarks & references** — students can bookmark cards (stored locally) and jump straight to them; admins can attach a reference list to each board.
+- **Search** — filter cards within a board by title or description.
+- **Accessibility** — keyboard‑navigable with visible focus, ARIA labels, focus‑trapped modals, a skip link, reduced‑motion support, and hover/focus tooltips (WCAG 2.1 AA / Section 508 baseline).
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| **Backend** | AdonisJS 6 (TypeScript), Lucid ORM, PostgreSQL, access‑token auth, Nodemailer (SMTP) |
+| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS v4, TanStack Query, Zustand, React Router, axios, lucide‑react |
+| **Hosting** | Backend on Render, frontend on Netlify |
+
+---
+
+## Project structure
+
+```
+.
+├── server/        # AdonisJS API (auth, boards, cards, invitations, admin)
+│   ├── app/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── services/        # mail_service, etc.
+│   │   └── transformers/
+│   ├── database/
+│   │   ├── migrations/
+│   │   ├── seeders/         # admin user + demo board
+│   │   └── schema.ts        # auto-generated model schema
+│   └── start/routes.ts      # all API routes (prefixed /api/v1)
+├── client/        # React + Vite single-page app
+│   └── src/
+│       ├── pages/           # BoardList, Board, Login, Signup, Admin
+│       ├── components/
+│       ├── hooks/           # useBoard, useBoardMutations, useBookmarks, …
+│       └── store/           # Zustand auth store
+└── netlify.toml   # frontend build + SPA redirect
+```
+
+---
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-ß
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Prerequisites
 
-## Add your files
+- Node.js 20+
+- A PostgreSQL database (local or hosted)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+### 1. Backend (`server/`)
 
+```bash
+cd server
+npm install
+cp .env.example .env        # then fill in real values (see below)
+node ace migration:run      # create the database tables
+node ace db:seed            # optional: create a default admin (+ demo board in dev)
+npm run dev                 # starts the API on http://localhost:3333
 ```
-cd existing_repo
-git remote add origin https://delta.k20center.ou.edu/interactive-learning/web/wakelet.git
-git branch -M main
-git push -uf origin main
+
+### 2. Frontend (`client/`)
+
+```bash
+cd client
+npm install
+# point the SPA at your API (defaults to http://localhost:3333/api/v1)
+echo "VITE_API_URL=http://localhost:3333/api/v1" > .env.local
+npm run dev                 # starts the app on http://localhost:5173
 ```
 
-## Integrate with your tools
+Open http://localhost:5173 and sign in with the seeded admin account.
 
-- [ ] [Set up project integrations](https://delta.k20center.ou.edu/interactive-learning/web/wakelet/-/settings/integrations)
+---
 
-## Collaborate with your team
+## Environment variables
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge reßquests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### Server (`server/.env`)
 
-## Test and Deploy
+| Variable | Required | Description |
+|---|---|---|
+| `APP_KEY` | yes | App encryption key (`node ace generate:key`) |
+| `APP_URL` | yes | Public URL of the API |
+| `HOST`, `PORT` | yes | Bind host/port (default `0.0.0.0` / `3333`) |
+| `NODE_ENV` | yes | `development` \| `production` \| `test` |
+| `DB_CONNECTION` | yes | `pg` |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` | yes | PostgreSQL connection |
+| `CORS_ORIGIN` | prod | Allowed frontend origin (e.g. your Netlify URL) |
+| `FRONTEND_URL` | prod | Base URL used to build signup links in invitation emails |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` | optional | Transactional email. If omitted, codes/links print to the server console for local testing. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | optional | Credentials for the seeded default admin |
 
-Use the built-in continuous integration in GitLab.
+### Client (`client/.env.local`)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Base URL of the API, including `/api/v1` |
 
-***
+> **Never commit real secrets.** Use `.env.example` as a template with placeholder values only.
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Database
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```bash
+node ace migration:run           # apply pending migrations
+node ace migration:rollback      # undo the last batch
+node ace db:seed                 # run all seeders
+node ace db:seed --files admin_user_seeder   # run one seeder
+```
 
-## Name
-Choose a self-explaining name for your project.
+Seeders live in `server/database/seeders/`:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- **`admin_user_seeder`** — idempotently bootstraps an admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` (falls back to a default with a warning). Runs in every environment.
+- **`demo_board_seeder`** — sample board with columns, groups, and cards. **Development/test only.**
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+---
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Authentication model
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- **Admins** sign in with email + password and can create/edit boards, cards, invitations, and users.
+- **New admins** are added by invitation only: an existing admin sends a single‑use key by email, and the recipient sets a password at `/signup?key=…`.
+- **Students / the public** never sign in. They open a shared board link (`/boards/:id`) and view it read‑only. The board list and admin dashboard are admin‑only.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Deployment
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- **Backend → Render.** The `start:prod` script runs pending migrations before booting (`node ace migration:run --force && node bin/server.js`). Set all server env vars in the Render dashboard.
+- **Frontend → Netlify.** Config in [`netlify.toml`](netlify.toml): builds `client/` and serves `dist/` with an SPA fallback redirect. Set `VITE_API_URL` in Netlify to your Render API URL.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+---
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Scripts
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+**Server** (`cd server`)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+| Command | Description |
+|---|---|
+| `npm run dev` | Dev server with HMR |
+| `npm run build` | Compile to `build/` |
+| `npm run typecheck` | Type-check without emitting |
+| `npm run lint` / `npm run format` | Lint / Prettier |
+| `node ace ...` | Migrations, seeders, and other AdonisJS commands |
 
-## License
-For open source projects, say how it is licensed.
+**Client** (`cd client`)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+| Command | Description |
+|---|---|
+| `npm run dev` | Vite dev server |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | ESLint |
+
+---
+
+## Repository
+
+The project is hosted on the K20 Center GitLab and mirrored to GitHub:
+
+- GitLab: `https://delta.k20center.ou.edu/interactive-learning/web/wakelet`
+- GitHub: `https://github.com/tadiwamandava/fakelet-main`
+
+A single `git push` updates both remotes.
