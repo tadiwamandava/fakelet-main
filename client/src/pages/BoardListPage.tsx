@@ -87,10 +87,10 @@ export default function BoardListPage() {
   }
 
   return (
-    <div className="relative isolate min-h-screen bg-paper flex flex-col">
-      <HiveBackground />
+    <div className="min-h-screen bg-paper flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
+      <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
+        <HiveBackground fade="right" />
         <div className="flex items-center gap-1.5 flex-1">
           <LayoutDashboard size={15} className="text-muted" />
           <h1 className="text-sm font-semibold text-ink">Boards</h1>

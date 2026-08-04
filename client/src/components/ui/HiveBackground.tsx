@@ -1,3 +1,5 @@
+type Fade = 'right' | 'left' | 'corner'
+
 interface HiveBackgroundProps {
   /** Extra classes for positioning/sizing (defaults to filling the nearest positioned parent) */
   className?: string
@@ -5,24 +7,37 @@ interface HiveBackgroundProps {
   color?: string
   /** Opacity of the honeycomb lines */
   opacity?: number
+  /**
+   * How the pattern fades out:
+   * - `right`  — full-height band, strongest on the right, fading left (header strips)
+   * - `left`   — full-height band, strongest on the left, fading right
+   * - `corner` — soft glow anchored at the top-right corner
+   */
+  fade?: Fade
+}
+
+const FADES: Record<Fade, string> = {
+  right: 'linear-gradient(to left, #000 0%, rgba(0,0,0,0.55) 28%, transparent 72%)',
+  left: 'linear-gradient(to right, #000 0%, rgba(0,0,0,0.55) 28%, transparent 72%)',
+  corner: 'radial-gradient(120% 120% at 100% 0%, #000 0%, rgba(0,0,0,0.55) 32%, transparent 62%)',
 }
 
 /**
- * A decorative honeycomb ("hive") pattern that fades in from the top-right
- * corner and dissolves seamlessly toward the rest of the page.
+ * A decorative honeycomb ("hive") pattern that fills its container and fades out
+ * so it blends seamlessly into the surrounding surface.
  *
- * Technique: a seamless hexagon SVG is tiled as a repeating background, then a
- * radial-gradient mask (opaque at the top-right, transparent by ~60% out) makes
- * it fade with no visible edge. Purely decorative — non-interactive and hidden
- * from screen readers.
+ * Technique: a seamless hexagon SVG is tiled as a repeating background, tinted
+ * with the brand gold, then a gradient mask makes it dissolve with no hard edge.
+ * Purely decorative — non-interactive and hidden from screen readers.
  *
- * Drop it inside any element that has `position: relative` (add `relative
- * overflow-hidden` to that element).
+ * Drop it inside any element made `relative isolate overflow-hidden`; it sits
+ * behind that element's content (`-z-10`).
  */
 export default function HiveBackground({
   className = '',
   color = '#E8BF3D',
   opacity = 0.4,
+  fade = 'right',
 }: HiveBackgroundProps) {
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'>` +
@@ -30,9 +45,7 @@ export default function HiveBackground({
     `</svg>`
 
   const backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
-  // Opaque at the top-right corner, fading to nothing by ~60% of the radius.
-  const fade =
-    'radial-gradient(120% 120% at 100% 0%, #000 0%, rgba(0,0,0,0.55) 32%, transparent 62%)'
+  const mask = FADES[fade]
 
   return (
     <div
@@ -41,8 +54,8 @@ export default function HiveBackground({
       style={{
         backgroundImage,
         backgroundRepeat: 'repeat',
-        WebkitMaskImage: fade,
-        maskImage: fade,
+        WebkitMaskImage: mask,
+        maskImage: mask,
       }}
     />
   )

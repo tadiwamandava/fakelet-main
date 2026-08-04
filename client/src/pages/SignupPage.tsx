@@ -29,7 +29,7 @@ export default function SignupPage() {
   if (!invKey) {
     return (
       <main id="main-content" className="relative isolate overflow-hidden min-h-screen flex items-center justify-center bg-paper px-4">
-        <HiveBackground />
+        <HiveBackground className="h-32 !bottom-auto" />
         <div className="relative z-10 bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm text-center">
           <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-4" />
           <p className="text-sm text-brand font-medium mb-2">No invitation key found</p>
@@ -65,7 +65,7 @@ export default function SignupPage() {
 
   return (
     <main id="main-content" className="relative isolate overflow-hidden min-h-screen flex items-center justify-center bg-paper px-4">
-      <HiveBackground />
+      <HiveBackground className="h-32 !bottom-auto" />
       <div className="relative z-10 bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />
         <div className="flex justify-center mb-3">

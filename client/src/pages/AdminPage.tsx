@@ -35,9 +35,9 @@ export default function AdminPage() {
   useTitle(`${tab === 'invitations' ? 'Invitations' : 'Users'} · Admin`)
 
   return (
-    <div className="relative isolate min-h-screen bg-paper flex flex-col">
-      <HiveBackground />
-      <header className="bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
+    <div className="min-h-screen bg-paper flex flex-col">
+      <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
+        <HiveBackground fade="right" />
         <div className="flex items-center gap-3 flex-1">
           <Link
             to="/boards"

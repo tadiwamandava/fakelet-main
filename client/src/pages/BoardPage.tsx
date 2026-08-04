@@ -141,8 +141,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="relative isolate h-screen overflow-hidden flex bg-paper">
-      <HiveBackground />
+    <div className="h-screen overflow-hidden flex bg-paper">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 md:hidden"
@@ -158,7 +157,8 @@ export default function BoardPage() {
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 flex flex-col outline-none">
-        <div className="shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="relative isolate overflow-hidden shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
+          <HiveBackground fade="right" />
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
