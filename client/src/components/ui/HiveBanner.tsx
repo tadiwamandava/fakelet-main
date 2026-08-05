@@ -3,6 +3,8 @@ interface HiveBannerProps {
   className?: string
   /** Overall opacity of the decoration */
   opacity?: number
+  /** Minimalist mode: outline hexagons only, no fills, no bees */
+  minimal?: boolean
 }
 
 const GOLD = '#E8BF3D'
@@ -73,8 +75,9 @@ function Bee({ x, y, rotate = 0, scale = 1 }: { x: number; y: number; rotate?: n
  * Place inside an element made `relative isolate overflow-hidden`; it renders
  * behind that element's content (`-z-10`).
  */
-export default function HiveBanner({ className = '', opacity = 0.9 }: HiveBannerProps) {
+export default function HiveBanner({ className = '', opacity = 0.9, minimal = false }: HiveBannerProps) {
   const edgeFade = 'linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%)'
+  const hexes = minimal ? HEXES.filter((h) => h.kind === 'outline') : HEXES
   return (
     <div
       aria-hidden="true"
@@ -88,14 +91,14 @@ export default function HiveBanner({ className = '', opacity = 0.9 }: HiveBanner
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {HEXES.map((hx, i) =>
+        {hexes.map((hx, i) =>
           hx.kind === 'outline' ? (
             <polygon
               key={i}
               points={hexPoints(hx.cx, hx.cy, hx.r)}
               fill="none"
               stroke={GOLD}
-              strokeOpacity={hx.o}
+              strokeOpacity={minimal ? hx.o * 0.7 : hx.o}
               strokeWidth={Math.max(1.2, hx.r * 0.12)}
               strokeLinejoin="round"
             />
@@ -104,10 +107,14 @@ export default function HiveBanner({ className = '', opacity = 0.9 }: HiveBanner
           )
         )}
 
-        <Bee x={445} y={20} rotate={-18} scale={1.15} />
-        <Bee x={705} y={18} rotate={14} scale={1.05} />
-        <Bee x={600} y={74} rotate={8} scale={1.1} />
-        <Bee x={820} y={64} rotate={-12} scale={0.95} />
+        {!minimal && (
+          <>
+            <Bee x={445} y={20} rotate={-18} scale={1.15} />
+            <Bee x={705} y={18} rotate={14} scale={1.05} />
+            <Bee x={600} y={74} rotate={8} scale={1.1} />
+            <Bee x={820} y={64} rotate={-12} scale={0.95} />
+          </>
+        )}
       </svg>
     </div>
   )
