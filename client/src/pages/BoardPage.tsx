@@ -10,6 +10,7 @@ import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2
 import { useAuth } from '../store/authStore'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '../hooks/useBoardMutations'
 import { useTitle } from '../hooks/useTitle'
+import HiveBanner from '../components/ui/HiveBanner'
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>()
@@ -323,7 +324,12 @@ export default function BoardPage() {
             />
           ))}
           {columns.length === 0 && (
-            <p className="text-muted text-sm m-auto">No cards match your search.</p>
+            <div className="relative isolate overflow-hidden m-auto flex items-center justify-center rounded-2xl px-16 py-20">
+              <HiveBanner minimal opacity={0.5} />
+              <p className="relative z-10 text-muted text-sm">
+                {search.trim() ? 'No cards match your search.' : 'This board is empty.'}
+              </p>
+            </div>
           )}
         </div>
       </main>

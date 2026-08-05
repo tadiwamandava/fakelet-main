@@ -4,6 +4,7 @@ import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, Pencil,
 import { useAuth } from '../store/authStore'
 import { resolveImageUrl } from '../utils/imageUrl'
 import { useUpdateBoard } from '../hooks/useBoardMutations'
+import HiveBanner from './ui/HiveBanner'
 import logo from '../assets/k20center-logo-full.svg'
 import type { LocalBookmark } from '../hooks/useBookmarks'
 
@@ -31,12 +32,13 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
     <aside
       className={[
         'fixed inset-y-0 left-0 z-40 w-72',
-        'md:static md:w-56 md:translate-x-0',
-        'shrink-0 bg-white border-r border-line flex flex-col',
+        'md:relative md:w-56 md:translate-x-0',
+        'shrink-0 bg-white border-r border-line flex flex-col isolate overflow-hidden',
         'transition-transform duration-200 ease-in-out',
         open ? 'translate-x-0' : '-translate-x-full',
       ].join(' ')}
     >
+      <HiveBanner minimal opacity={0.3} className="h-40 !top-auto" />
       <div className="md:hidden flex justify-end px-4 pt-4">
         <button onClick={onClose} aria-label="Close menu" title="Close menu" className="text-muted hover:text-ink p-1">
           <X size={20} />

@@ -152,7 +152,12 @@ export default function BoardListPage() {
       <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-6xl mx-auto w-full outline-none">
         {isLoading && <p className="text-muted text-sm">Loading boards…</p>}
         {error && <p className="text-brand text-sm">Couldn't load boards. Please contact the administrator.</p>}
-        {boards && boards.length === 0 && <p className="text-muted text-sm">No boards yet.</p>}
+        {boards && boards.length === 0 && (
+          <div className="relative isolate overflow-hidden flex items-center justify-center rounded-2xl py-24">
+            <HiveBanner minimal opacity={0.55} />
+            <p className="relative z-10 text-muted text-sm">No boards yet.</p>
+          </div>
+        )}
 
         {/* Masonry: cards pack tightly with varying heights from different image sizes */}
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3 [column-fill:_balance]">
