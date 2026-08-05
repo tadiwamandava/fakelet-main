@@ -95,7 +95,10 @@ export default function BoardListPage() {
           <LayoutDashboard size={15} className="text-muted" />
           <h1 className="text-sm font-semibold text-ink">Boards</h1>
         </div>
-        <div className="flex flex-col items-center shrink-0">
+        <div
+          className="relative flex flex-col items-center shrink-0 px-8"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.95) 55%, rgba(255,255,255,0) 82%)' }}
+        >
           <img src={logo} alt="K20 Center" className="h-9"/>
           <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em', paddingLeft: '2.2em' }}>Hive</p>
         </div>
