@@ -184,7 +184,7 @@ export default function BoardListPage() {
                   onClick={(e) => { e.preventDefault(); shareBoard(board.id) }}
                   aria-label="Copy share link"
                   title={copiedId === board.id ? 'Link copied!' : 'Copy link to share'}
-                  className="p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand transition-colors border border-line"
+                  className="p-1.5 bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm rounded-md text-muted hover:text-brand hover:bg-white/85 transition-colors border border-white/60"
                 >
                   {copiedId === board.id ? <Check size={13} className="text-teal" /> : <Share2 size={13} />}
                 </button>
@@ -193,7 +193,7 @@ export default function BoardListPage() {
                     onClick={(e) => { e.preventDefault(); setConfirmDeleteId(board.id) }}
                     aria-label="Delete board"
                     title="Delete board"
-                    className="p-1.5 bg-white/80 backdrop-blur-sm rounded-md text-muted hover:text-brand opacity-0 group-hover:opacity-100 transition-opacity border border-line"
+                    className="p-1.5 bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm rounded-md text-muted hover:text-brand hover:bg-white/85 opacity-0 group-hover:opacity-100 transition-opacity border border-white/60"
                   >
                     <Trash2 size={13} />
                   </button>
