@@ -146,14 +146,15 @@ export default function BoardListPage() {
       </header>
 
       {/* Board grid */}
-      <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-5xl mx-auto w-full outline-none">
+      <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-6xl mx-auto w-full outline-none">
         {isLoading && <p className="text-muted text-sm">Loading boards…</p>}
         {error && <p className="text-brand text-sm">Couldn't load boards. Please contact the administrator.</p>}
         {boards && boards.length === 0 && <p className="text-muted text-sm">No boards yet.</p>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+        {/* Masonry: cards pack tightly with varying heights from different image sizes */}
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3 [column-fill:_balance]">
           {boards?.map((board) => (
-            <div key={board.id} className="relative group">
+            <div key={board.id} className="relative group mb-3 break-inside-avoid">
               <Link
                 to={`/boards/${board.id}`}
                 className="block bg-white border border-line rounded-xl overflow-hidden hover:shadow-md hover:border-brand/40 transition-shadow"
