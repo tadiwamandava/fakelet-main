@@ -184,7 +184,7 @@ export default function BoardPage() {
             onClick={shareBoard}
             aria-label="Copy share link"
             title={linkCopied ? 'Link copied!' : 'Copy link to share'}
-            className={`flex items-center gap-1.5 text-xs font-medium border rounded-lg px-3 py-2 whitespace-nowrap transition-colors ${
+            className={`flex items-center gap-1.5 text-xs font-medium bg-white border rounded-lg px-3 py-2 whitespace-nowrap transition-colors ${
               linkCopied ? 'border-teal text-teal' : 'text-muted border-line hover:text-ink'
             }`}
           >
@@ -197,7 +197,7 @@ export default function BoardPage() {
               onClick={() => setSettingsOpen(true)}
               aria-label="Board settings"
               title="Board settings"
-              className="text-muted hover:text-ink border border-line rounded-lg p-2"
+              className="text-muted hover:text-ink bg-white border border-line rounded-lg p-2"
             >
               <Settings size={14} />
             </button>
@@ -210,8 +210,8 @@ export default function BoardPage() {
               aria-label={editMode ? 'Edit mode on, switch to read-only' : 'Read-only, switch to edit mode'}
               className={`flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg px-3 py-2 border whitespace-nowrap transition-colors sm:min-w-[7rem] ${
                 editMode
-                  ? 'bg-gold/15 text-ink border-gold'
-                  : 'text-muted border-line hover:text-ink'
+                  ? 'bg-[#FBF3DE] text-ink border-gold'
+                  : 'bg-white text-muted border-line hover:text-ink'
               }`}
             >
               {editMode ? <Pencil size={13} /> : <Eye size={13} />}
