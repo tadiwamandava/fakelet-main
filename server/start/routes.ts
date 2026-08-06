@@ -63,13 +63,13 @@ router
         router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
         router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
       })
-      .use(middleware.auth())
+      .use(middleware.admin())
 
     // Board list is admin-only; a single board stays public for shared links
     router.get('/boards', [BoardsController, 'index']).use(middleware.auth())
     router.get('/boards/:id', [BoardsController, 'show'])
 
-    // Admin-only routes
+    // Admin-only routes — the admin middleware authenticates AND requires isAdmin
     router
       .group(() => {
         router.post('/boards', [BoardsController, 'store'])
@@ -91,6 +91,6 @@ router
         router.delete('/cards/:id', [CardsController, 'destroy'])
         router.post('/cards/:id/image', [CardsController, 'uploadImage'])
       })
-      .use(middleware.auth())
+      .use(middleware.admin())
   })
   .prefix('/api/v1')

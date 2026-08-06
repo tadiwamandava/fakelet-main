@@ -8,7 +8,8 @@ export default class User extends compose(
   UserSchema,
   withAuthFinder(hash, { uids: ['email'], passwordColumnName: 'password' })
 ) {
-  static accessTokens = DbAccessTokensProvider.forModel(User)
+  // Tokens expire so a leaked token can't be used indefinitely
+  static accessTokens = DbAccessTokensProvider.forModel(User, { expiresIn: '30 days' })
   declare currentAccessToken?: AccessToken
 
   get initials() {

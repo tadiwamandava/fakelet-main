@@ -60,6 +60,17 @@ interface CardProps {
   currentMoveKey?: string
 }
 
+// Only allow safe link schemes — blocks javascript:/data: URL injection
+function safeHref(url?: string | null): string | undefined {
+  if (!url) return undefined
+  try {
+    const u = new URL(url, window.location.origin)
+    return ['http:', 'https:', 'mailto:'].includes(u.protocol) ? url : undefined
+  } catch {
+    return undefined
+  }
+}
+
 // Pull the 11-char video id out of any YouTube URL shape
 function getYouTubeId(url?: string | null): string | null {
   const match = url?.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -173,9 +184,9 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
         )}
 
         <div className="flex items-center justify-between">
-          {card.linkUrl ? (
+          {safeHref(card.linkUrl) ? (
             <a
-              href={card.linkUrl}
+              href={safeHref(card.linkUrl)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs text-blue font-medium"
