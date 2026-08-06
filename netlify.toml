@@ -7,3 +7,15 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# Always revalidate the service worker and manifest so PWA updates roll out
+# immediately instead of getting stuck behind a cached copy.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
