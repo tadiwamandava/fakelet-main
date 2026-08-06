@@ -95,21 +95,24 @@ export default function BoardListPage() {
           <LayoutDashboard size={15} className="text-muted" />
           <h1 className="text-sm font-semibold text-ink">Boards</h1>
         </div>
+        {/* Centered logo is decorative; hide on phones so the actions have room */}
         <div
-          className="relative flex flex-col items-center shrink-0 px-8"
+          className="relative hidden sm:flex flex-col items-center shrink-0 px-8"
           style={{ background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.95) 55%, rgba(255,255,255,0) 82%)' }}
         >
           <img src={logo} alt="K20 Center" className="h-9"/>
           <p className="text-xs font-bold text-brand uppercase mt-1" style={{ letterSpacing: '2.2em', paddingLeft: '2.2em' }}>Hive</p>
         </div>
-        <div className="flex items-center gap-3 flex-1 justify-end">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
           {isAdmin && (
             <>
               <button
                 onClick={() => setCreating(true)}
+                aria-label="New board"
+                title="New board"
                 className="flex items-center gap-1.5 text-xs font-medium bg-brand text-white rounded-lg px-3 py-1.5"
               >
-                <Plus size={13} /> New board
+                <Plus size={13} /> <span className="hidden sm:inline">New board</span>
               </button>
               <Link
                 to="/admin"
@@ -132,9 +135,11 @@ export default function BoardListPage() {
               </span>
               <button
                 onClick={logout}
+                aria-label="Sign out"
+                title="Sign out"
                 className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
               >
-                <LogOut size={13} /> Sign out
+                <LogOut size={13} /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </>
           ) : (
@@ -142,7 +147,7 @@ export default function BoardListPage() {
               to="/login"
               className="flex items-center gap-1.5 text-xs text-muted hover:text-brand"
             >
-              <LogIn size={13} /> Admin sign in
+              <LogIn size={13} /> <span className="hidden sm:inline">Admin sign in</span>
             </Link>
           )}
         </div>
