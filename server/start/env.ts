@@ -41,6 +41,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   ADMIN_EMAIL: Env.schema.string.optional(),
   ADMIN_PASSWORD: Env.schema.string.optional(),
 
+  // Rate limiter backing store (defaults to in-memory)
+  LIMITER_STORE: Env.schema.enum.optional(['memory'] as const),
+
   // SMTP (optional — omit in dev to print codes to console instead)
   SMTP_HOST: Env.schema.string.optional(),
   SMTP_PORT: Env.schema.number.optional(),

@@ -10,6 +10,7 @@
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
+import { authThrottle } from '#start/limiter'
 
 const BoardsController = () => import('#controllers/boards_controller')
 const ColumnsController = () => import('#controllers/columns_controller')
@@ -36,6 +37,7 @@ router
       })
       .prefix('auth')
       .as('auth')
+      .use(authThrottle)
 
     router
       .group(() => {
