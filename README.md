@@ -1,38 +1,31 @@
 # Hive
 
-**K20's Hub for Integrated Visual Education** — a visual learning platform where
+**K20's Hub for Integrated V(something) Education** — a learning platform where
 educators curate boards of resources (links, images, videos, and notes) organized
 into columns and groups, then share them with students through a simple link.
 
 Inspired by tools like Wakelet, Hive is built for K‑12 classrooms: educators sign
 in to build and manage boards, while students open a shared board link and browse
-it read‑only — no account required.
+it read‑only; no account required.
 
----
 
 ## Features
 
-- **Boards → Columns → Groups → Cards** — a flexible hierarchy for organizing content. Groups are optional, so cards can also live directly on a column.
-- **Rich cards** — title, description, a link, and either an uploaded image or a YouTube embed. Cards can be reordered and moved between groups.
-- **Invitation‑only admin access** — the public can only view shared boards. New admins join via a single‑use invitation key emailed from the admin dashboard.
-- **Admin dashboard** — manage invitations and users (promote/demote admins, remove users).
-- **Public sharing** — every board has a shareable link (`/boards/:id`) that anyone can open read‑only. Editing controls appear only for signed‑in admins.
-- **Cover images** — boards and cards support image upload or an image URL, with live previews.
-- **Bookmarks & references** — students can bookmark cards (stored locally) and jump straight to them; admins can attach a reference list to each board.
-- **Search** — filter cards within a board by title or description.
-- **Accessibility** — keyboard‑navigable with visible focus, ARIA labels, focus‑trapped modals, a skip link, reduced‑motion support, and hover/focus tooltips (WCAG 2.1 AA / Section 508 baseline).
+- Boards -> Columns -> Groups -> Cards — a flexible hierarchy for organizing content. Groups are optional, so cards can also live directly on a column.
+- Rich cards — title, description, a link, and either an uploaded image or a YouTube embed. Cards can be reordered and moved between groups.
+- Invitation‑only admin access — the public can only view shared boards. New admins join via a single‑use invitation key emailed from the admin dashboard.
+- Admin dashboard — manage invitations and users (promote/demote admins)
+- Public sharing — every board has a shareable link (`/boards/:id`) that anyone can open read‑only. Editing controls appear only for signed‑in admins.
+- Cover images — boards and cards support image upload or an image URL, with live previews.
+- Bookmarks & references — students can bookmark cards (stored locally) and jump straight to them; admins can attach a reference list to each board.
+- Search — filter cards within a board by title or description.
 
----
 
-## Tech stack
+## Stack
 
-| Layer | Technology |
-|---|---|
-| **Backend** | AdonisJS 6 (TypeScript), Lucid ORM, PostgreSQL, access‑token auth, Nodemailer (SMTP) |
-| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS v4, TanStack Query, Zustand, React Router, axios, lucide‑react |
-| **Hosting** | Backend on Render, frontend on Netlify |
+Backend - AdonisJS 6 (TypeScript), Lucid ORM, PostgreSQL, access‑token auth, Nodemailer (SMTP) 
+Frontend - React 19, Vite, TypeScript, Tailwind CSS v4, TanStack Query, Zustand, React Router, axios, lucide‑react
 
----
 
 ## Project structure
 
@@ -58,21 +51,19 @@ it read‑only — no account required.
 └── netlify.toml   # frontend build + SPA redirect
 ```
 
----
-
 ## Getting started
 
 ### Prerequisites
 
 - Node.js 20+
-- A PostgreSQL database (local or hosted)
+- A PostgreSQL database
 
 ### 1. Backend (`server/`)
 
 ```bash
 cd server
 npm install
-cp .env.example .env        # then fill in real values (see below)
+cp .env.example .env        
 node ace migration:run      # create the database tables
 node ace db:seed            # optional: create a default admin (+ demo board in dev)
 npm run dev                 # starts the API on http://localhost:3333
@@ -89,8 +80,6 @@ npm run dev                 # starts the app on http://localhost:5173
 ```
 
 Open http://localhost:5173 and sign in with the seeded admin account.
-
----
 
 ## Environment variables
 
@@ -115,8 +104,6 @@ Open http://localhost:5173 and sign in with the seeded admin account.
 |---|---|
 | `VITE_API_URL` | Base URL of the API, including `/api/v1` |
 
----
-
 ## Database
 
 ```bash
@@ -128,29 +115,19 @@ node ace db:seed --files admin_user_seeder   # run one seeder
 
 Seeders live in `server/database/seeders/`:
 
-- **`admin_user_seeder`** — idempotently bootstraps an admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` (falls back to a default with a warning). Runs in every environment.
-- **`demo_board_seeder`** — sample board with columns, groups, and cards. **Development/test only.**
+- `admin_user_seeder` — idempotently bootstraps an admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` (falls back to a default with a warning). Runs in every environment.
+- `demo_board_seeder` — sample board with columns, groups, and cards. Development/test only.
 
----
 
 ## Authentication model
 
-- **Admins** sign in with email + password and can create/edit boards, cards, invitations, and users.
-- **New admins** are added by invitation only: an existing admin sends a single‑use key by email, and the recipient sets a password at `/signup?key=…`.
-- **Students / the public** never sign in. They open a shared board link (`/boards/:id`) and view it read‑only. The board list and admin dashboard are admin‑only.
+- Admins sign in with email + password and can create/edit boards, cards, invitations, and users.
+- New admins are added by invitation only: an existing admin sends a single‑use key by email, and the recipient sets a password at `/signup?key=…`.
+- Users never sign in. They open a shared board link (`/boards/:id`) and view it read‑only. The board list and admin dashboard are admin‑only.
 
----
+## Script
 
-## Deployment
-
-- **Backend → Render.** The `start:prod` script runs pending migrations before booting (`node ace migration:run --force && node bin/server.js`). Set all server env vars in the Render dashboard.
-- **Frontend → Netlify.** Config in [`netlify.toml`](netlify.toml): builds `client/` and serves `dist/` with an SPA fallback redirect. Set `VITE_API_URL` in Netlify to your Render API URL.
-
----
-
-## Scripts
-
-**Server** (`cd server`)
+Server (`cd server`)
 
 | Command | Description |
 |---|---|
@@ -160,7 +137,7 @@ Seeders live in `server/database/seeders/`:
 | `npm run lint` / `npm run format` | Lint / Prettier |
 | `node ace ...` | Migrations, seeders, and other AdonisJS commands |
 
-**Client** (`cd client`)
+Client (`cd client`)
 
 | Command | Description |
 |---|---|
@@ -169,13 +146,9 @@ Seeders live in `server/database/seeders/`:
 | `npm run preview` | Preview the production build |
 | `npm run lint` | ESLint |
 
----
-
 ## Repository
 
 The project is hosted on the K20 Center GitLab and mirrored to GitHub:
 
 - GitLab: `https://delta.k20center.ou.edu/interactive-learning/web/wakelet`
 - GitHub: `https://github.com/tadiwamandava/fakelet-main`
-
-A single `git push` updates both remotes.
