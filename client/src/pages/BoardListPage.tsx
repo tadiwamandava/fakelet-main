@@ -87,7 +87,7 @@ export default function BoardListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-dvh bg-paper flex flex-col">
       {/* Header */}
       <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
         <HiveBanner />
@@ -171,6 +171,8 @@ export default function BoardListPage() {
                   <img
                     src={resolveImageUrl(board.imageUrl)}
                     alt={board.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-auto"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
@@ -201,7 +203,7 @@ export default function BoardListPage() {
                     onClick={(e) => { e.preventDefault(); setConfirmDeleteId(board.id) }}
                     aria-label="Delete board"
                     title="Delete board"
-                    className="p-1.5 bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm rounded-md text-muted hover:text-brand hover:bg-white/85 opacity-0 group-hover:opacity-100 transition-opacity border border-white/60"
+                    className="p-1.5 bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm rounded-md text-muted hover:text-brand hover:bg-white/85 hover-reveal transition-opacity border border-white/60"
                   >
                     <Trash2 size={13} />
                   </button>

@@ -35,7 +35,7 @@ export default function AdminPage() {
   useTitle(`${tab === 'invitations' ? 'Invitations' : 'Users'} · Admin`)
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-dvh bg-paper flex flex-col">
       <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
         <HiveBanner />
         <div className="flex items-center gap-3 flex-1">

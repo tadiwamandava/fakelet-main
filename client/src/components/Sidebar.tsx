@@ -65,6 +65,8 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
           <img
             src={resolveImageUrl(board.imageUrl)}
             alt={board.title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-28 object-cover rounded-lg border border-line mb-3"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />

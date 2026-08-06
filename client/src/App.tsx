@@ -1,13 +1,16 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './store/authStore'
-import BoardListPage from './pages/BoardListPage'
-import BoardPage from './pages/BoardPage'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import AdminPage from './pages/AdminPage'
 import Tooltips from './components/ui/Tooltips'
+
+// Code-split each page so the initial download stays small on low-end devices
+// and slow mobile connections — pages load on demand.
+const BoardListPage = lazy(() => import('./pages/BoardListPage'))
+const BoardPage = lazy(() => import('./pages/BoardPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const SignupPage = lazy(() => import('./pages/SignupPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
 
 // Admin-only routes. Viewers reach specific boards via shared links only —
 // they never browse the board list or the admin dashboard.
@@ -34,15 +37,17 @@ export default function App() {
       >
         Skip to main content
       </a>
-      <Routes>
-        <Route path="/" element={<Navigate to="/boards" replace />} />
-        <Route path="/boards" element={<RequireAdmin><BoardListPage /></RequireAdmin>} />
-        <Route path="/boards/:id" element={<BoardPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
-        <Route path="*" element={<Navigate to="/boards" replace />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/boards" replace />} />
+          <Route path="/boards" element={<RequireAdmin><BoardListPage /></RequireAdmin>} />
+          <Route path="/boards/:id" element={<BoardPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
+          <Route path="*" element={<Navigate to="/boards" replace />} />
+        </Routes>
+      </Suspense>
       <Tooltips />
     </BrowserRouter>
   )

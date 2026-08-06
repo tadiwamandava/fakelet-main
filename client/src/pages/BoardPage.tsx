@@ -141,7 +141,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex bg-paper">
+    <div className="h-dvh overflow-hidden flex bg-paper">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 md:hidden"

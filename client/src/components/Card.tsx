@@ -101,6 +101,8 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
         <img
           src={resolveImageUrl(card.imageUrl)}
           alt={card.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-auto border-b border-line"
           onError={(e) => {
             e.currentTarget.style.display = 'none'
