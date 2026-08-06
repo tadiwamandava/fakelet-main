@@ -65,7 +65,7 @@ cd server
 npm install
 cp .env.example .env        
 node ace migration:run      # create the database tables
-node ace db:seed            # optional: create a default admin (+ demo board in dev)
+node ace db:seed            # create a default admin (+ demo board in dev)
 npm run dev                 # starts the API on http://localhost:3333
 ```
 
@@ -125,26 +125,6 @@ Seeders live in `server/database/seeders/`:
 - New admins are added by invitation only: an existing admin sends a single‑use key by email, and the recipient sets a password at `/signup?key=…`.
 - Users never sign in. They open a shared board link (`/boards/:id`) and view it read‑only. The board list and admin dashboard are admin‑only.
 
-## Script
-
-Server (`cd server`)
-
-| Command | Description |
-|---|---|
-| `npm run dev` | Dev server with HMR |
-| `npm run build` | Compile to `build/` |
-| `npm run typecheck` | Type-check without emitting |
-| `npm run lint` / `npm run format` | Lint / Prettier |
-| `node ace ...` | Migrations, seeders, and other AdonisJS commands |
-
-Client (`cd client`)
-
-| Command | Description |
-|---|---|
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | ESLint |
 
 ## Repository
 
