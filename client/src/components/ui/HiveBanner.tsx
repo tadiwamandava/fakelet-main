@@ -68,10 +68,7 @@ function Bee({ x, y, rotate = 0, scale = 1 }: { x: number; y: number; rotate?: n
 }
 
 /**
- * A decorative "hive" banner — a scattered cluster of gold honeycomb hexagons
- * with a few bees, meant to sit behind a page's top header strip. Fades out at
- * the left/right edges so it blends into the bar. Purely decorative.
- *
+ * A decorative "hive" banner;
  * Place inside an element made `relative isolate overflow-hidden`; it renders
  * behind that element's content (`-z-10`).
  */
