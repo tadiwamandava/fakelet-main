@@ -7,6 +7,12 @@ import type { Authenticators } from '@adonisjs/auth/types'
  * access to unauthenticated users.
  */
 export default class AuthMiddleware {
+  /**
+   * Where an unauthenticated *web* (session) request is redirected. Token
+   * requests are unaffected — they get a 401 instead.
+   */
+  redirectTo = '/login'
+
   async handle(
     ctx: HttpContext,
     next: NextFn,
@@ -14,7 +20,7 @@ export default class AuthMiddleware {
       guards?: (keyof Authenticators)[]
     } = {}
   ) {
-    await ctx.auth.authenticateUsing(options.guards)
+    await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
     return next()
   }
 }

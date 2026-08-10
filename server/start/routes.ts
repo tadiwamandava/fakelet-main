@@ -5,6 +5,11 @@
 |
 | The routes file is used for defining the HTTP routes.
 |
+| SECURITY INVARIANT: every route under /api/v1 is pinned to the 'api' (token)
+| guard, because that surface is exempt from CSRF. Do not add the 'web' guard
+| to an /api/v1 route — a CSRF-exempt route that accepts cookie auth is a CSRF
+| hole. See #helpers/api_surface for the full explanation.
+|
 */
 
 import { middleware } from '#start/kernel'
@@ -46,14 +51,14 @@ router
       })
       .prefix('account')
       .as('profile')
-      .use(middleware.auth())
+      .use(middleware.auth({ guards: ['api'] }))
 
     router
       .group(() => {
         router.get('/bookmarks', [BookmarksController, 'index'])
         router.post('/bookmarks/toggle', [BookmarksController, 'toggle'])
       })
-      .use(middleware.auth())
+      .use(middleware.auth({ guards: ['api'] }))
 
     router
       .group(() => {
@@ -65,10 +70,10 @@ router
         router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
         router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
       })
-      .use(middleware.admin())
+      .use(middleware.admin({ guards: ['api'] }))
 
     // Board list is admin-only; a single board stays public for shared links
-    router.get('/boards', [BoardsController, 'index']).use(middleware.auth())
+    router.get('/boards', [BoardsController, 'index']).use(middleware.auth({ guards: ['api'] }))
     router.get('/boards/:id', [BoardsController, 'show'])
 
     // Admin-only routes — the admin middleware authenticates AND requires isAdmin
@@ -93,6 +98,6 @@ router
         router.delete('/cards/:id', [CardsController, 'destroy'])
         router.post('/cards/:id/image', [CardsController, 'uploadImage'])
       })
-      .use(middleware.admin())
+      .use(middleware.admin({ guards: ['api'] }))
   })
   .prefix('/api/v1')

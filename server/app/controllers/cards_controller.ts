@@ -1,9 +1,7 @@
-import { join } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import type { HttpContext } from '@adonisjs/core/http'
 import Card from '#models/card'
-
-const UPLOADS_DIR = join(process.cwd(), 'public', 'uploads')
+import { UPLOADS_DIR } from '#helpers/uploads'
 
 export default class CardsController {
   //POST /api/cards

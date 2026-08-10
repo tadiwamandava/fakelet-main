@@ -44,6 +44,11 @@ export default await Env.create(new URL('../', import.meta.url), {
   // Rate limiter backing store (defaults to in-memory)
   LIMITER_STORE: Env.schema.enum.optional(['memory'] as const),
 
+  // Absolute path for uploaded images. Defaults to <cwd>/public/uploads, which
+  // the production build recreates on every deploy — point this at a mounted
+  // persistent disk in production so uploads survive.
+  UPLOADS_DIR: Env.schema.string.optional(),
+
   // SMTP (optional — omit in dev to print codes to console instead)
   SMTP_HOST: Env.schema.string.optional(),
   SMTP_PORT: Env.schema.number.optional(),
