@@ -1,6 +1,7 @@
 import { indexEntities } from '@adonisjs/core'
 import { defineConfig } from '@adonisjs/core/app'
 import { generateRegistry } from '@tuyau/core/hooks'
+import { indexPages } from '@adonisjs/inertia'
 
 export default defineConfig({
   /*
@@ -54,7 +55,10 @@ export default defineConfig({
     () => import('@adonisjs/auth/auth_provider'),
     () => import('@adonisjs/limiter/limiter_provider'),
     () => import('#providers/api_provider'),
-    () => import('@adonisjs/static/static_provider')
+    () => import('@adonisjs/static/static_provider'),
+    () => import('@adonisjs/core/providers/edge_provider'),
+    () => import('@adonisjs/vite/vite_provider'),
+    () => import('@adonisjs/inertia/inertia_provider'),
   ],
 
   /*
@@ -70,6 +74,7 @@ export default defineConfig({
     () => import('#start/kernel'),
     () => import('#start/validator'),
     () => import('#start/limiter'),
+    () => import('#start/view'),
   ],
 
   /*
@@ -123,6 +128,10 @@ export default defineConfig({
         transformers: { enabled: true },
       }),
       generateRegistry(),
+      // Types the page names accepted by inertia.render() from inertia/pages/**
+      indexPages({ framework: 'react' }),
     ],
+    // Makes `node ace build` also produce the Vite bundle into public/assets
+    buildStarting: [() => import('@adonisjs/vite/build_hook')],
   },
 })

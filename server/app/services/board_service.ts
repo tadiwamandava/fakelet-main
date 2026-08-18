@@ -21,9 +21,7 @@ export function findBoardForDisplay(boardId: number | string) {
               cardQuery.where('is_deleted', false).orderBy('position')
             )
         )
-        .preload('cards', (cardQuery) =>
-          cardQuery.where('is_deleted', false).orderBy('position')
-        )
+        .preload('cards', (cardQuery) => cardQuery.where('is_deleted', false).orderBy('position'))
     )
     .firstOrFail()
 }

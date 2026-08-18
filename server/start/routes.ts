@@ -28,6 +28,9 @@ const AdminController = () => import('#controllers/admin_controller')
 
 router.get('/', () => ({ hello: 'world' }))
 
+// Temporary Inertia smoke test (Phase 2) — remove once real pages exist.
+router.get('/ping-ui', ({ inertia }) => inertia.render('ping_ui', {}))
+
 // Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
 router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
 

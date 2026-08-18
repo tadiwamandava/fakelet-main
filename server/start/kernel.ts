@@ -37,8 +37,14 @@ router.use([
   () => import('@adonisjs/core/bodyparser_middleware'),
   () => import('@adonisjs/session/session_middleware'),
   () => import('@adonisjs/shield/shield_middleware'),
+  () => import('@adonisjs/vite/vite_middleware'),
   () => import('@adonisjs/auth/initialize_auth_middleware'),
+  /**
+   * Order matters: silent_auth resolves the current user first, so the app's
+   * Inertia middleware can share it as a prop with every page.
+   */
   () => import('#middleware/silent_auth_middleware'),
+  () => import('#middleware/inertia_middleware'),
 ])
 
 /**
