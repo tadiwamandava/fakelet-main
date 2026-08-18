@@ -1,4 +1,5 @@
 import { defineConfig } from '@adonisjs/shield'
+import { isApiRequest } from '#helpers/api_surface'
 
 const shieldConfig = defineConfig({
   /**
@@ -30,13 +31,18 @@ const shieldConfig = defineConfig({
     /**
      * Enable CSRF token verification for state-changing requests.
      */
-    enabled: false,
+    enabled: true,
 
     /**
-     * Route patterns to exclude from CSRF checks.
-     * Useful for external webhooks or API endpoints.
+     * The token API is exempt because it authenticates with bearer tokens only.
+     *
+     * This is safe ONLY while /api/v1 stays pinned to the 'api' guard: browsers
+     * never attach an Authorization header automatically, so a cross-site
+     * request to an exempt route arrives unauthenticated and fails. If cookie
+     * auth is ever added to /api/v1, this exemption must be removed in the same
+     * change. See #helpers/api_surface.
      */
-    exceptRoutes: [],
+    exceptRoutes: (ctx) => isApiRequest(ctx),
 
     /**
      * Expose an encrypted XSRF-TOKEN cookie for frontend HTTP clients.
