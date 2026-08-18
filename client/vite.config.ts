@@ -35,8 +35,14 @@ export default defineConfig({
     }),
   ],
   server: {
+    /**
+     * The app calls the API and uploads with same-origin relative paths, so in
+     * development those are proxied to the local API server. Override the
+     * target with API_PROXY_TARGET if the API runs on a different port.
+     */
     proxy: {
-      '/uploads': 'http://localhost:3333',
+      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3333',
+      '/uploads': process.env.API_PROXY_TARGET ?? 'http://localhost:3333',
     },
   },
 })

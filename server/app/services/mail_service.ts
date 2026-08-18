@@ -1,22 +1,46 @@
-//to be changed in the future to use a proper email service
 import nodemailer from 'nodemailer'
 import env from '#start/env'
 
 function makeTransporter() {
   const host = env.get('SMTP_HOST')
   if (!host) return null
+
+  const port = env.get('SMTP_PORT', 587)
+  const user = env.get('SMTP_USERNAME')
+  const pass = env.get('SMTP_PASSWORD')
+
   return nodemailer.createTransport({
     host,
-    port: env.get('SMTP_PORT', 587),
-    secure: env.get('SMTP_PORT', 587) === 465,
-    auth: {
-      user: env.get('SMTP_USERNAME'),
-      pass: env.get('SMTP_PASSWORD'),
-    },
+    port,
+    secure: port === 465,
+    /**
+     * Only authenticate when credentials are provided. Self-hosted relays on a
+     * trusted network commonly accept mail without auth, and passing an empty
+     * auth block makes them reject the connection.
+     */
+    ...(user ? { auth: { user, pass } } : {}),
   })
 }
 
 const transporter = makeTransporter()
+
+/**
+ * Address outgoing mail is sent from.
+ *
+ * Set SMTP_FROM to control this. The fallback derives no-reply@<app domain>
+ * from APP_URL so a new deployment sends from its own domain rather than any
+ * address baked into the source.
+ */
+function fromAddress(): string {
+  const configured = env.get('SMTP_FROM')
+  if (configured) return configured
+
+  try {
+    return `no-reply@${new URL(env.get('APP_URL')).hostname}`
+  } catch {
+    return 'no-reply@localhost'
+  }
+}
 
 export async function sendInvitationEmail(
   to: string,
@@ -30,10 +54,8 @@ export async function sendInvitationEmail(
     return
   }
 
-  const from = env.get('SMTP_FROM', 'no-reply@tadiwa.org')
-
   await transporter.sendMail({
-    from,
+    from: fromAddress(),
     to,
     subject: "You've been invited to K20 Hive",
     text: `You've been invited to join K20 Hive as an admin.\n\nClick the link below to create your account:\n${signupLink}\n\nOr enter your invitation key manually: ${key}\n\nThis invitation is single-use. If you have any questions, reply to this email.`,
@@ -60,10 +82,8 @@ export async function sendPasswordResetEmail(to: string, code: string): Promise<
     return
   }
 
-  const from = env.get('SMTP_FROM', 'tadiwamandava.fr@gmail.com')
-
   await transporter.sendMail({
-    from,
+    from: fromAddress(),
     to,
     subject: 'Your K20 Hive password reset code',
     text: `Your password reset code is: ${code}\n\nThis code expires in 15 minutes.\n\nIf you didn't request this, you can safely ignore this email.`,

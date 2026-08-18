@@ -1,7 +1,15 @@
 import axios from 'axios'
 
+/**
+ * Defaults to a same-origin relative path, so a build works on whatever domain
+ * it is served from without being rebuilt. Set VITE_API_URL only when the API
+ * lives on a different origin than the app.
+ *
+ * In development, vite.config.ts proxies /api to the local API server, so this
+ * relative path works there too.
+ */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3333/api/v1',
+  baseURL: import.meta.env.VITE_API_URL ?? '/api/v1',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

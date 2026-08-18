@@ -33,7 +33,12 @@ export default class InvitationsController {
     const key = Invitation.generateKey()
     const invitation = await Invitation.create({ key, email, createdBy: user.id })
 
-    const frontendUrl = env.get('FRONTEND_URL', 'http://localhost:5173')
+    /**
+     * Base URL the signup link is built from. FRONTEND_URL is only needed when
+     * the app is served from a different origin than the API; when both share a
+     * domain, APP_URL is already correct.
+     */
+    const frontendUrl = env.get('FRONTEND_URL') || env.get('APP_URL')
     await sendInvitationEmail(email, key, frontendUrl)
 
     return {
