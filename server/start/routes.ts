@@ -25,14 +25,37 @@ const BookmarksController = () => import('#controllers/bookmarks_controller')
 const PasswordResetsController = () => import('#controllers/password_resets_controller')
 const InvitationsController = () => import('#controllers/invitations_controller')
 const AdminController = () => import('#controllers/admin_controller')
-
-router.get('/', () => ({ hello: 'world' }))
-
-// Temporary Inertia smoke test (Phase 2) — remove once real pages exist.
-router.get('/ping-ui', ({ inertia }) => inertia.render('ping_ui', {}))
+const AuthPagesController = () => import('#controllers/auth_pages_controller')
 
 // Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
 router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
+
+/*
+|--------------------------------------------------------------------------
+| Web (Inertia) routes — session guard, CSRF enforced
+|--------------------------------------------------------------------------
+*/
+router.get('/', ({ response }) => response.redirect('/boards'))
+
+// Page views are not throttled — reloading the sign-in page must never lock
+// someone out.
+router.get('/login', [AuthPagesController, 'showLogin']).as('login')
+router.get('/signup', [AuthPagesController, 'showSignup']).as('signup')
+
+router
+  .group(() => {
+    router.post('/login', [AuthPagesController, 'login'])
+    router.post('/signup', [AuthPagesController, 'signup'])
+    router.post('/forgot-password', [AuthPagesController, 'forgotPassword'])
+    router.post('/reset-password', [AuthPagesController, 'resetPassword'])
+  })
+  // Same limiter the token API uses, to slow credential stuffing and
+  // brute-forcing of the 6-digit reset code.
+  .use(authThrottle)
+
+router
+  .post('/logout', [AuthPagesController, 'logout'])
+  .use(middleware.auth({ guards: ['web'] }))
 
 router
   .group(() => {

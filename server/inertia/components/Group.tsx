@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import Card from './Card'
-import InlineForm from './ui/InlineForm'
+import InlineForm from '~/components/ui/InlineForm'
 import type { CardMutations, MoveTarget } from './Card'
 import type { GroupData, GroupMutations } from './Column'
 

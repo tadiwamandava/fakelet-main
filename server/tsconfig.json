@@ -4,6 +4,25 @@
     "rootDir": "./",
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "outDir": "./build"
+    "outDir": "./build",
+    /**
+     * One program spans Node and browser code (see paths below), and NodeNext
+     * resolution would force explicit file extensions on the React imports.
+     * "Preserve" emits imports exactly as written, so the server's existing
+     * .js-suffixed and #subpath imports are unaffected.
+     */
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    /**
+     * The generated .adonisjs/server/pages.d.ts imports the Inertia page
+     * components to infer their prop types, which pulls inertia/** into this
+     * program. Under NodeNext resolution relative imports would then need
+     * explicit file extensions, so browser code imports through the "~/" alias
+     * instead — non-relative specifiers resolve via paths without extensions.
+     * Kept in sync with resolve.alias in vite.config.ts.
+     */
+    "paths": {
+      "~/*": ["./inertia/*"]
+    }
   }
 }

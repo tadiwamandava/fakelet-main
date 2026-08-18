@@ -23,7 +23,11 @@ const sessionConfig = defineConfig({
    * Define how long to keep the session data alive without
    * any activity.
    */
-  age: '2h',
+  /**
+   * Admins building a board shouldn't be logged out mid-session. The token API
+   * issues 30-day tokens, so a 2h cookie was a noticeable regression.
+   */
+  age: '7d',
 
   /**
    * Configuration for session cookie and the

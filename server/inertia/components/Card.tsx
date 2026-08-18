@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import CardEditor from './CardEditor'
-import { resolveImageUrl } from '../utils/imageUrl'
+import { resolveImageUrl } from '~/utils/imageUrl'
 
 export interface CardData {
   id: number

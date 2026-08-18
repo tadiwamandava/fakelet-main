@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
-import type { CardData, CardCreateInput, CardUpdateInput } from '../components/Card'
-import type { ColumnData, ColumnMutations, GroupData, GroupMutations } from '../components/Column'
+import type { CardData, CardCreateInput, CardUpdateInput } from '~/components/Card'
+import type { ColumnData, ColumnMutations, GroupData, GroupMutations } from '~/components/Column'
 import type { Board, BoardSummary } from './useBoard'
 
 interface ColumnCreateInput {

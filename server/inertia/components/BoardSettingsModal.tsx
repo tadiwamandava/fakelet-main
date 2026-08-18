@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import { ImagePlus, Link2 } from 'lucide-react'
-import Modal from './ui/Modal'
-import { useUpdateBoardMeta, useUploadBoardImage } from '../hooks/useBoardMutations'
-import { resolveImageUrl } from '../utils/imageUrl'
-import type { Board } from '../hooks/useBoard'
+import Modal from '~/components/ui/Modal'
+import { useUpdateBoardMeta, useUploadBoardImage } from '~/hooks/useBoardMutations'
+import { resolveImageUrl } from '~/utils/imageUrl'
+import type { Board } from '~/hooks/useBoard'
 
 interface BoardSettingsModalProps {
   open: boolean

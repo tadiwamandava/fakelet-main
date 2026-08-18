@@ -3,7 +3,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 import Group from './Group'
 import Card from './Card'
-import InlineForm from './ui/InlineForm'
+import InlineForm from '~/components/ui/InlineForm'
 import type { CardData, CardMutations, MoveTarget } from './Card'
 
 export interface GroupData {

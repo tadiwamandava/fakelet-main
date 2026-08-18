@@ -3,7 +3,7 @@ import '../css/app.css'
 import { createRoot } from 'react-dom/client'
 import { createInertiaApp } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
-import Tooltips from '../components/ui/Tooltips'
+import Tooltips from '~/components/ui/Tooltips'
 
 const APP_NAME = 'K20 Hive'
 

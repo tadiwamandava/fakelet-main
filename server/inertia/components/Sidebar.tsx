@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, Pencil, Plus, Trash2, X } from 'lucide-react'
-import { useAuth } from '../store/authStore'
-import { resolveImageUrl } from '../utils/imageUrl'
-import { useUpdateBoard } from '../hooks/useBoardMutations'
-import HiveBanner from './ui/HiveBanner'
-import logo from '../assets/k20center-logo-full.svg'
-import type { LocalBookmark } from '../hooks/useBookmarks'
+import { useAuth } from '~/lib/auth'
+import { resolveImageUrl } from '~/utils/imageUrl'
+import { useUpdateBoard } from '~/hooks/useBoardMutations'
+import HiveBanner from '~/components/ui/HiveBanner'
+import logo from '~/assets/k20center-logo-full.svg'
+import type { LocalBookmark } from '~/hooks/useBookmarks'
 
 export interface BoardData {
   id: number

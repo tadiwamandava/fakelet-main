@@ -1,43 +1,28 @@
 import User from '#models/user'
-import Invitation from '#models/invitation'
 import { signupValidator } from '#validators/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import UserTransformer from '#transformers/user_transformer'
-import { DateTime } from 'luxon'
+import { findUsableInvitation, redeemInvitation } from '#services/invitation_service'
 
 export default class NewAccountController {
   async store({ request, serialize, response }: HttpContext) {
     const { password } = await request.validateUsing(signupValidator)
 
-    const invitationKey = (request.input('invitationKey') as string | undefined)?.trim()
-    if (!invitationKey) {
+    const invitationKey = request.input('invitationKey') as string | undefined
+    if (!invitationKey?.trim()) {
       return response.badRequest({
         errors: [{ message: 'An invitation key is required to create an account.' }],
       })
     }
 
-    const invitation = await Invitation.query()
-      .where('key', invitationKey)
-      .whereNull('used_at')
-      .first()
-
+    const invitation = await findUsableInvitation(invitationKey)
     if (!invitation) {
       return response.badRequest({
         errors: [{ message: 'Invalid or already-used invitation key.' }],
       })
     }
-    if (!invitation.email) {
-      return response.badRequest({
-        errors: [{ message: 'This invitation has no associated email.' }],
-      })
-    }
 
-    const user = await User.create({ email: invitation.email, password, isAdmin: true })
-
-    invitation.usedAt = DateTime.now()
-    invitation.usedBy = user.id
-    await invitation.save()
-
+    const user = await redeemInvitation(invitation, password)
     const token = await User.accessTokens.create(user)
 
     return serialize({
