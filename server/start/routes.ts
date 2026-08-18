@@ -27,6 +27,7 @@ const InvitationsController = () => import('#controllers/invitations_controller'
 const AdminController = () => import('#controllers/admin_controller')
 const AuthPagesController = () => import('#controllers/auth_pages_controller')
 const BoardPagesController = () => import('#controllers/board_pages_controller')
+const AdminPagesController = () => import('#controllers/admin_pages_controller')
 
 // Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
 router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
@@ -87,6 +88,12 @@ router
     router.put('/cards/:id', [BoardPagesController, 'updateCard'])
     router.delete('/cards/:id', [BoardPagesController, 'destroyCard'])
     router.post('/cards/:id/image', [BoardPagesController, 'uploadCardImage'])
+
+    router.get('/admin', [AdminPagesController, 'index']).as('web.admin.index')
+    router.post('/admin/invitations', [AdminPagesController, 'storeInvitation'])
+    router.delete('/admin/invitations/:id', [AdminPagesController, 'destroyInvitation'])
+    router.delete('/admin/users/:id', [AdminPagesController, 'destroyUser'])
+    router.patch('/admin/users/:id/admin', [AdminPagesController, 'toggleAdmin'])
   })
   .use(middleware.admin({ guards: ['web'] }))
 
