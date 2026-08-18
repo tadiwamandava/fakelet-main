@@ -1,33 +1,45 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import { randomBytes } from 'node:crypto'
 import User from '#models/user'
 import env from '#start/env'
 
 /**
- * Bootstraps a default admin account so the app can be signed into on a fresh
- * database. Idempotent: it only creates the account if that email doesn't exist
- * yet, so re-seeding never overwrites an existing password.
+ * Bootstraps the first admin account so a fresh database can be signed into.
  *
- * Set ADMIN_EMAIL and ADMIN_PASSWORD in the environment for a real deployment.
+ * Idempotent: the account is only created when that email is absent, so
+ * re-seeding never overwrites an existing password. That also means
+ * ADMIN_PASSWORD has no effect once the account exists — change the password
+ * through the app, not by re-running this.
  */
 export default class extends BaseSeeder {
   async run() {
     const email = env.get('ADMIN_EMAIL', 'admin@k20center.ou.edu')
-    const password = env.get('ADMIN_PASSWORD', 'changeme123')
+
+    /**
+     * Never fall back to a fixed password. A literal default in the source is
+     * public knowledge, so seeding a deployment without ADMIN_PASSWORD set
+     * would hand out an admin account with a known password. A random one is
+     * printed instead, which is useless to anyone who cannot read this output.
+     */
+    const generated = !env.get('ADMIN_PASSWORD')
+    const password = env.get('ADMIN_PASSWORD') ?? randomBytes(12).toString('base64url')
 
     const user = await User.firstOrCreate({ email }, { email, password, isAdmin: true })
 
-    if (user.$isLocal) {
-      // Just created — the password came from the fallback if env wasn't set.
-      if (!env.get('ADMIN_PASSWORD')) {
-        console.warn(
-          `[seed] Created admin "${email}" with the default password "changeme123". ` +
-            `Set ADMIN_PASSWORD (and ADMIN_EMAIL) and change it after first login.`
-        )
-      } else {
-        console.log(`[seed] Created admin "${email}".`)
-      }
-    } else {
+    if (!user.$isLocal) {
       console.log(`[seed] Admin "${email}" already exists — left unchanged.`)
+      return
+    }
+
+    if (generated) {
+      console.warn(
+        `\n[seed] Created admin "${email}" with a generated password:\n\n` +
+          `    ${password}\n\n` +
+          `  This is shown once and is not stored anywhere else. Sign in and change\n` +
+          `  it, or set ADMIN_PASSWORD before seeding to choose your own.\n`
+      )
+    } else {
+      console.log(`[seed] Created admin "${email}" using ADMIN_PASSWORD.`)
     }
   }
 }
