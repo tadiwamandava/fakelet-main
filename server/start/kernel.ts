@@ -26,7 +26,13 @@ server.use([
   () => import('#middleware/force_json_response_middleware'),
   () => import('#middleware/container_bindings_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
-  () => import('@adonisjs/static/static_middleware')
+  () => import('@adonisjs/static/static_middleware'),
+  /**
+   * Must be server-level: in development Vite serves the entrypoint and its
+   * HMR client from paths with no registered route, so a router-stack
+   * middleware would never run for them and the page would load blank.
+   */
+  () => import('@adonisjs/vite/vite_middleware'),
 ])
 
 /**
@@ -37,7 +43,6 @@ router.use([
   () => import('@adonisjs/core/bodyparser_middleware'),
   () => import('@adonisjs/session/session_middleware'),
   () => import('@adonisjs/shield/shield_middleware'),
-  () => import('@adonisjs/vite/vite_middleware'),
   () => import('@adonisjs/auth/initialize_auth_middleware'),
   /**
    * Order matters: silent_auth resolves the current user first, so the app's
