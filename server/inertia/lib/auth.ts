@@ -30,7 +30,7 @@ interface AuthState {
 export function useAuth(): AuthState
 export function useAuth<T>(selector: (state: AuthState) => T): T
 export function useAuth<T>(selector?: (state: AuthState) => T): AuthState | T {
-  const { auth } = usePage().props as { auth: AuthUser | null }
+  const { auth } = usePage().props as unknown as { auth: AuthUser | null }
 
   const state: AuthState = {
     user: auth,

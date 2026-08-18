@@ -1,19 +1,19 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import type { UseMutationResult } from '@tanstack/react-query'
+import type { Mutation } from '~/lib/mutations'
 import Group from './Group'
 import Card from './Card'
 import InlineForm from '~/components/ui/InlineForm'
 import type { CardData, CardMutations, MoveTarget } from './Card'
 
-export interface GroupData {
+export type GroupData = {
   id: number
   title: string
   position?: number
   cards: CardData[]
 }
 
-export interface ColumnData {
+export type ColumnData = {
   id: number
   title: string
   groups: GroupData[]
@@ -33,15 +33,15 @@ interface GroupCreateInput {
 }
 
 export interface ColumnMutations {
-  updateColumn: UseMutationResult<ColumnData, Error, ColumnUpdateInput>
-  deleteColumn: UseMutationResult<void, Error, number>
+  updateColumn: Mutation<ColumnUpdateInput>
+  deleteColumn: Mutation<number>
 }
 
 export interface GroupMutations {
-  createGroup: UseMutationResult<GroupData, Error, GroupCreateInput>
+  createGroup: Mutation<GroupCreateInput, { id: number }>
   // Inferred from the symmetric rename/delete UI — confirm shapes when you convert Group.tsx
-  updateGroup: UseMutationResult<GroupData, Error, { id: number; title: string }>
-  deleteGroup: UseMutationResult<void, Error, number>
+  updateGroup: Mutation<{ id: number; title: string }>
+  deleteGroup: Mutation<number>
 }
 
 interface ColumnProps {

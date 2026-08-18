@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Check, ImagePlus, Link2, Play } from 'lucide-react'
-import type { UseMutationResult } from '@tanstack/react-query'
+import type { Mutation } from '~/lib/mutations'
 import Modal from '~/components/ui/Modal'
 import { resolveImageUrl } from '~/utils/imageUrl'
 import type { CardData, CardUpdateInput, MoveTarget } from './Card'
@@ -19,7 +19,7 @@ interface CardEditorProps {
   card: CardData
   onSave: (data: CardUpdateInput) => void
   saving: boolean
-  uploadImage?: UseMutationResult<{ imageUrl: string }, Error, { cardId: number; file: File }>
+  uploadImage?: Mutation<{ cardId: number; file: File }, { imageUrl: string }>
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@inertiajs/react'
 import { Bookmark, BookOpen, ChevronDown, ChevronRight, LayoutDashboard, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import { resolveImageUrl } from '~/utils/imageUrl'
@@ -8,7 +8,7 @@ import HiveBanner from '~/components/ui/HiveBanner'
 import logo from '~/assets/k20center-logo-full.svg'
 import type { LocalBookmark } from '~/hooks/useBookmarks'
 
-export interface BoardData {
+export type BoardData = {
   id: number
   title: string
   description?: string | null
@@ -48,7 +48,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
       <div className="flex-1 overflow-y-auto p-4">
         {isAdmin && (
           <Link
-            to="/boards"
+            href="/boards"
             className="flex items-center gap-1.5 text-xs text-muted hover:text-brand mb-4"
           >
             <LayoutDashboard size={13} />
@@ -104,7 +104,7 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
                 boardBookmarks.map((b) => (
                   <Link
                     key={b.cardId}
-                    to={`/boards/${b.boardId}?highlight=${b.cardId}`}
+                    href={`/boards/${b.boardId}?highlight=${b.cardId}`}
                     onClick={onClose}
                     className="flex items-center gap-1.5 truncate rounded px-2 py-1.5 text-muted hover:bg-paper hover:text-brand transition-colors"
                   >

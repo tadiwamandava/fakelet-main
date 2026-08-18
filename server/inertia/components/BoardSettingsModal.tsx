@@ -3,7 +3,7 @@ import { ImagePlus, Link2 } from 'lucide-react'
 import Modal from '~/components/ui/Modal'
 import { useUpdateBoardMeta, useUploadBoardImage } from '~/hooks/useBoardMutations'
 import { resolveImageUrl } from '~/utils/imageUrl'
-import type { Board } from '~/hooks/useBoard'
+import type { BoardData as Board } from '~/components/Sidebar'
 
 interface BoardSettingsModalProps {
   open: boolean

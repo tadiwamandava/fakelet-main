@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
 import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Pencil, Trash2 } from 'lucide-react'
-import type { UseMutationResult } from '@tanstack/react-query'
+import type { Mutation } from '~/lib/mutations'
 import CardEditor from './CardEditor'
 import { resolveImageUrl } from '~/utils/imageUrl'
 
-export interface CardData {
+export type CardData = {
   id: number
   title: string
   description?: string | null
@@ -39,11 +39,13 @@ export interface CardCreateInput {
 }
 
 export interface CardMutations {
-  createCard: UseMutationResult<CardData, Error, CardCreateInput>
-  updateCard: UseMutationResult<CardData, Error, CardUpdateInput>
-  deleteCard: UseMutationResult<void, Error, number>
-  reorderCards: UseMutationResult<void, Error, number[]>
-  uploadImage: UseMutationResult<{ imageUrl: string }, Error, { cardId: number; file: File }>
+  // An Inertia write returns no body: creates flash back just the new id, and
+  // updates/deletes deliver nothing. The page re-renders from fresh props.
+  createCard: Mutation<CardCreateInput, { id: number }>
+  updateCard: Mutation<CardUpdateInput>
+  deleteCard: Mutation<number>
+  reorderCards: Mutation<number[]>
+  uploadImage: Mutation<{ cardId: number; file: File }, { imageUrl: string }>
 }
 
 interface CardProps {

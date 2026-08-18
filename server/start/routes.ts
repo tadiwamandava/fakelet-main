@@ -26,6 +26,7 @@ const PasswordResetsController = () => import('#controllers/password_resets_cont
 const InvitationsController = () => import('#controllers/invitations_controller')
 const AdminController = () => import('#controllers/admin_controller')
 const AuthPagesController = () => import('#controllers/auth_pages_controller')
+const BoardPagesController = () => import('#controllers/board_pages_controller')
 
 // Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
 router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
@@ -56,6 +57,35 @@ router
 router
   .post('/logout', [AuthPagesController, 'logout'])
   .use(middleware.auth({ guards: ['web'] }))
+
+/**
+ * A shared board link must open for a signed-out visitor, so this route has no
+ * auth middleware — exactly like GET /api/v1/boards/:id.
+ */
+// Named distinctly from the API's auto-generated "boards.show"
+router.get('/boards/:id', [BoardPagesController, 'show']).as('web.boards.show')
+
+// Board editing — admin only
+router
+  .group(() => {
+    router.put('/boards/:id', [BoardPagesController, 'updateBoard'])
+    router.post('/boards/:id/image', [BoardPagesController, 'uploadBoardImage'])
+
+    router.post('/columns', [BoardPagesController, 'storeColumn'])
+    router.put('/columns/:id', [BoardPagesController, 'updateColumn'])
+    router.delete('/columns/:id', [BoardPagesController, 'destroyColumn'])
+
+    router.post('/groups', [BoardPagesController, 'storeGroup'])
+    router.put('/groups/:id', [BoardPagesController, 'updateGroup'])
+    router.delete('/groups/:id', [BoardPagesController, 'destroyGroup'])
+
+    router.post('/cards', [BoardPagesController, 'storeCard'])
+    router.post('/cards/reorder', [BoardPagesController, 'reorderCards'])
+    router.put('/cards/:id', [BoardPagesController, 'updateCard'])
+    router.delete('/cards/:id', [BoardPagesController, 'destroyCard'])
+    router.post('/cards/:id/image', [BoardPagesController, 'uploadCardImage'])
+  })
+  .use(middleware.admin({ guards: ['web'] }))
 
 router
   .group(() => {

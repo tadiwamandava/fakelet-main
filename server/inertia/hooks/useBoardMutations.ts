@@ -1,8 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../api/client'
-import type { CardData, CardCreateInput, CardUpdateInput } from '~/components/Card'
-import type { ColumnData, ColumnMutations, GroupData, GroupMutations } from '~/components/Column'
-import type { Board, BoardSummary } from './useBoard'
+import { useVisitMutation } from '~/lib/mutations'
+import type { CardCreateInput, CardUpdateInput } from '~/components/Card'
+
+/**
+ * All board writes, expressed as Inertia visits.
+ *
+ * Every export keeps the name and `{ mutate, isPending }` shape it had under
+ * TanStack Query, so the components consuming them are unchanged. The
+ * invalidation that used to follow each write is gone: the server redirects
+ * back to the page and Inertia returns fresh props automatically.
+ */
 
 interface ColumnCreateInput {
   boardId: number
@@ -26,116 +32,103 @@ interface GroupUpdateInput {
   title: string
 }
 
-function useBoardMutation<TData, TVariables>(
-  fn: (vars: TVariables) => Promise<TData>,
-  boardId: number
-) {
-  const qc = useQueryClient()
-  return useMutation<TData, Error, TVariables>({
-    mutationFn: fn,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['board', boardId] }),
-  })
-}
-
-export function useCardMutations(boardId: number) {
+export function useCardMutations(_boardId: number) {
   return {
-    createCard: useBoardMutation<CardData, CardCreateInput>(
-      (data) => api.post<CardData>('/cards', data).then((r) => r.data),
-      boardId
-    ),
-    updateCard: useBoardMutation<CardData, CardUpdateInput>(
-      ({ id, ...data }) => api.put<CardData>(`/cards/${id}`, data).then((r) => r.data),
-      boardId
-    ),
-    deleteCard: useBoardMutation<void, number>(
-      (id) => api.delete(`/cards/${id}`).then(() => undefined),
-      boardId
-    ),
-    reorderCards: useBoardMutation<void, number[]>(
-      (ids) => api.post('/cards/reorder', { ids }).then(() => undefined),
-      boardId
-    ),
-    uploadImage: useUploadCardImage(boardId),
+    // Returns the new card's id via flash, so the editor can auto-open on it.
+    createCard: useVisitMutation<CardCreateInput, { id: number }>((data) => ({
+      method: 'post',
+      url: '/cards',
+      data,
+    })),
+    updateCard: useVisitMutation<CardUpdateInput>(({ id, ...data }) => ({
+      method: 'put',
+      url: `/cards/${id}`,
+      data,
+    })),
+    deleteCard: useVisitMutation<number>((id) => ({
+      method: 'delete',
+      url: `/cards/${id}`,
+    })),
+    reorderCards: useVisitMutation<number[]>((ids) => ({
+      method: 'post',
+      url: '/cards/reorder',
+      data: { ids },
+    })),
+    uploadImage: useUploadCardImage(_boardId),
   }
 }
 
-export function useColumnMutations(boardId: number): { createColumn: ReturnType<typeof useBoardMutation<ColumnData, ColumnCreateInput>>} & ColumnMutations {
+export function useColumnMutations(_boardId: number) {
   return {
-    createColumn: useBoardMutation<ColumnData, ColumnCreateInput>(
-      (data) => api.post<ColumnData>('/columns', data).then((r) => r.data),
-      boardId
-    ),
-    updateColumn: useBoardMutation<ColumnData, ColumnUpdateInput>(
-      ({ id, ...data }) => api.put<ColumnData>(`/columns/${id}`, data).then((r) => r.data),
-      boardId
-    ),
-    deleteColumn: useBoardMutation<void, number>(
-      (id) => api.delete(`/columns/${id}`).then(() => undefined),
-      boardId
-    ),
+    createColumn: useVisitMutation<ColumnCreateInput>((data) => ({
+      method: 'post',
+      url: '/columns',
+      data,
+    })),
+    updateColumn: useVisitMutation<ColumnUpdateInput>(({ id, ...data }) => ({
+      method: 'put',
+      url: `/columns/${id}`,
+      data,
+    })),
+    deleteColumn: useVisitMutation<number>((id) => ({
+      method: 'delete',
+      url: `/columns/${id}`,
+    })),
   }
 }
 
-export function useGroupMutations(boardId: number): GroupMutations & { createGroup: ReturnType<typeof useBoardMutation<GroupData, GroupCreateInput>> } {
+export function useGroupMutations(_boardId: number) {
   return {
-    createGroup: useBoardMutation<GroupData, GroupCreateInput>(
-      (data) => api.post<GroupData>('/groups', data).then((r) => r.data),
-      boardId
-    ),
-    updateGroup: useBoardMutation<GroupData, GroupUpdateInput>(
-      ({ id, ...data }) => api.put<GroupData>(`/groups/${id}`, data).then((r) => r.data),
-      boardId
-    ),
-    deleteGroup: useBoardMutation<void, number>(
-      (id) => api.delete(`/groups/${id}`).then(() => undefined),
-      boardId
-    ),
+    // Flashes the new group's id back, same as card creation.
+    createGroup: useVisitMutation<GroupCreateInput, { id: number }>((data) => ({
+      method: 'post',
+      url: '/groups',
+      data,
+    })),
+    updateGroup: useVisitMutation<GroupUpdateInput>(({ id, ...data }) => ({
+      method: 'put',
+      url: `/groups/${id}`,
+      data,
+    })),
+    deleteGroup: useVisitMutation<number>((id) => ({
+      method: 'delete',
+      url: `/groups/${id}`,
+    })),
   }
 }
 
 export function useUpdateBoard(boardId: number) {
-  const qc = useQueryClient()
-  return useMutation<Board, Error, string[]>({
-    mutationFn: (references) =>
-      api.put<Board>(`/boards/${boardId}`, { references }).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['board', boardId] }),
-  })
+  return useVisitMutation<string[]>((references) => ({
+    method: 'put',
+    url: `/boards/${boardId}`,
+    data: { references },
+  }))
 }
 
 // ── Board-level CRUD ─────────────────────────────────────────────────────────
 
-export function useCreateBoard() {
-  const qc = useQueryClient()
-  return useMutation<BoardSummary, Error, { title: string; description?: string; imageUrl?: string }>({
-    mutationFn: (data) => api.post<BoardSummary>('/boards', data).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
-  })
+interface BoardCreateInput {
+  title: string
+  description?: string
+  imageUrl?: string
+  /** Optional cover uploaded in the same request as the create. */
+  image?: File | null
 }
 
-// Upload a cover image to a board by id (used right after creating a board,
-// when the id isn't known until the create request resolves).
-export function useUploadImageToBoard() {
-  const qc = useQueryClient()
-  return useMutation<{ imageUrl: string }, Error, { boardId: number; file: File }>({
-    mutationFn: ({ boardId, file }) => {
-      const form = new FormData()
-      form.append('image', file)
-      return api
-        .post<{ imageUrl: string }>(`/boards/${boardId}/image`, form, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((r) => r.data)
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
-  })
+export function useCreateBoard() {
+  return useVisitMutation<BoardCreateInput, { id: number }>((data) => ({
+    method: 'post',
+    url: '/boards',
+    data,
+    forceFormData: !!data.image,
+  }))
 }
 
 export function useDeleteBoard() {
-  const qc = useQueryClient()
-  return useMutation<void, Error, number>({
-    mutationFn: (id) => api.delete(`/boards/${id}`).then(() => undefined),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['boards'] }),
-  })
+  return useVisitMutation<number>((id) => ({
+    method: 'delete',
+    url: `/boards/${id}`,
+  }))
 }
 
 interface BoardMetaInput {
@@ -145,47 +138,33 @@ interface BoardMetaInput {
 }
 
 export function useUpdateBoardMeta(boardId: number) {
-  const qc = useQueryClient()
-  return useMutation<Board, Error, BoardMetaInput>({
-    mutationFn: (data) => api.put<Board>(`/boards/${boardId}`, data).then((r) => r.data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['board', boardId] })
-      qc.invalidateQueries({ queryKey: ['boards'] })
-    },
-  })
+  return useVisitMutation<BoardMetaInput>((data) => ({
+    method: 'put',
+    url: `/boards/${boardId}`,
+    data,
+  }))
 }
 
-export function useUploadCardImage(boardId: number) {
-  const qc = useQueryClient()
-  return useMutation<{ imageUrl: string }, Error, { cardId: number; file: File }>({
-    mutationFn: ({ cardId, file }) => {
-      const form = new FormData()
-      form.append('image', file)
-      return api
-        .post<{ imageUrl: string }>(`/cards/${cardId}/image`, form, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((r) => r.data)
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['board', boardId] }),
-  })
+/**
+ * Image uploads flash back { imageUrl } so the editor can preview the stored
+ * file immediately.
+ */
+export function useUploadCardImage(_boardId: number) {
+  return useVisitMutation<{ cardId: number; file: File }, { imageUrl: string }>(
+    ({ cardId, file }) => ({
+      method: 'post',
+      url: `/cards/${cardId}/image`,
+      data: { image: file },
+      forceFormData: true,
+    })
+  )
 }
 
 export function useUploadBoardImage(boardId: number) {
-  const qc = useQueryClient()
-  return useMutation<{ imageUrl: string }, Error, File>({
-    mutationFn: (file) => {
-      const form = new FormData()
-      form.append('image', file)
-      return api
-        .post<{ imageUrl: string }>(`/boards/${boardId}/image`, form, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((r) => r.data)
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['board', boardId] })
-      qc.invalidateQueries({ queryKey: ['boards'] })
-    },
-  })
+  return useVisitMutation<File, { imageUrl: string }>((file) => ({
+    method: 'post',
+    url: `/boards/${boardId}/image`,
+    data: { image: file },
+    forceFormData: true,
+  }))
 }
