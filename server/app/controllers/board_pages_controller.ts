@@ -36,6 +36,60 @@ async function storeImage(request: HttpContext['request']) {
  */
 export default class BoardPagesController {
   /**
+   * GET /boards — admin only. Viewers reach a specific board through a shared
+   * link and never browse the full list.
+   */
+  async index({ inertia }: HttpContext) {
+    const boards = await Board.query().orderBy('id')
+
+    return inertia.render('boards/index', {
+      boards: boards.map((board) => ({
+        id: board.id,
+        title: board.title,
+        description: board.description,
+        imageUrl: board.imageUrl,
+      })),
+    })
+  }
+
+  /**
+   * POST /boards
+   *
+   * Accepts the cover in the same request as the rest of the form, either as an
+   * uploaded file or a URL. The SPA had to create the board first and upload
+   * afterwards because it needed the new id; a redirect makes that unnecessary.
+   */
+  async storeBoard({ request, auth, response, session }: HttpContext) {
+    const { title, description, imageUrl } = request.only(['title', 'description', 'imageUrl'])
+
+    if (!title?.trim()) {
+      session.flash('inputErrorsBag', { title: 'Title is required.' })
+      return response.redirect().back()
+    }
+
+    const uploaded = await storeImage(request)
+
+    const board = await Board.create({
+      title: title.trim(),
+      description: description?.trim() || null,
+      imageUrl: uploaded ?? (imageUrl?.trim() || null),
+      createdBy: auth.user?.id ?? null,
+    })
+
+    session.flash('created', { id: board.id })
+    return response.redirect().back()
+  }
+
+  /**
+   * DELETE /boards/:id
+   */
+  async destroyBoard({ params, response }: HttpContext) {
+    const board = await Board.findOrFail(params.id)
+    await board.delete()
+    return response.redirect().back()
+  }
+
+  /**
    * GET /boards/:id — public. A shared link must open for a signed-out visitor,
    * so this route carries no auth middleware; silent_auth still resolves an
    * admin when one is signed in, and the shared `auth` prop decides whether the

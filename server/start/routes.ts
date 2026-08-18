@@ -65,9 +65,12 @@ router
 // Named distinctly from the API's auto-generated "boards.show"
 router.get('/boards/:id', [BoardPagesController, 'show']).as('web.boards.show')
 
-// Board editing — admin only
+// Board list and editing — admin only
 router
   .group(() => {
+    router.get('/boards', [BoardPagesController, 'index']).as('web.boards.index')
+    router.post('/boards', [BoardPagesController, 'storeBoard'])
+    router.delete('/boards/:id', [BoardPagesController, 'destroyBoard'])
     router.put('/boards/:id', [BoardPagesController, 'updateBoard'])
     router.post('/boards/:id/image', [BoardPagesController, 'uploadBoardImage'])
 
