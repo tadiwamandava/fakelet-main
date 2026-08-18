@@ -16,6 +16,12 @@
     <meta name="apple-mobile-web-app-title" content="Hive" />
 
     @inertiaHead()
+    {{--
+      Injects React Fast Refresh's preamble in development. Without it the
+      React plugin throws "can't detect preamble" and nothing mounts, leaving a
+      blank page. No-op in production.
+    --}}
+    @viteReactRefresh()
     @vite(['inertia/app/app.tsx'])
   </head>
   <body>
