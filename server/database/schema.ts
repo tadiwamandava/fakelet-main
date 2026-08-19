@@ -55,6 +55,29 @@ export class BoardSchema extends BaseModel {
   declare updatedBy: number | null
 }
 
+export class CardAttachmentSchema extends BaseModel {
+  static $columns = ['cardId', 'createdAt', 'createdBy', 'fileName', 'fileUrl', 'id', 'mimeType', 'position', 'sizeBytes'] as const
+  $columns = CardAttachmentSchema.$columns
+  @column()
+  declare cardId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare createdBy: number | null
+  @column()
+  declare fileName: string
+  @column()
+  declare fileUrl: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare mimeType: string | null
+  @column()
+  declare position: number | null
+  @column()
+  declare sizeBytes: number | null
+}
+
 export class CardSchema extends BaseModel {
   static $columns = ['columnId', 'createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
   $columns = CardSchema.$columns

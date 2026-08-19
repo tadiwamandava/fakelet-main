@@ -88,6 +88,8 @@ router
     router.put('/cards/:id', [BoardPagesController, 'updateCard'])
     router.delete('/cards/:id', [BoardPagesController, 'destroyCard'])
     router.post('/cards/:id/image', [BoardPagesController, 'uploadCardImage'])
+    router.post('/cards/:id/attachments', [BoardPagesController, 'storeCardAttachment'])
+    router.delete('/cards/attachments/:id', [BoardPagesController, 'destroyCardAttachment'])
 
     router.get('/admin', [AdminPagesController, 'index']).as('web.admin.index')
     router.post('/admin/invitations', [AdminPagesController, 'storeInvitation'])

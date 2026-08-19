@@ -18,10 +18,18 @@ export function findBoardForDisplay(boardId: number | string) {
           groupQuery
             .orderBy('position')
             .preload('cards', (cardQuery) =>
-              cardQuery.where('is_deleted', false).orderBy('position')
+              cardQuery
+                .where('is_deleted', false)
+                .orderBy('position')
+                .preload('attachments', (a) => a.orderBy('position'))
             )
         )
-        .preload('cards', (cardQuery) => cardQuery.where('is_deleted', false).orderBy('position'))
+        .preload('cards', (cardQuery) =>
+          cardQuery
+            .where('is_deleted', false)
+            .orderBy('position')
+            .preload('attachments', (a) => a.orderBy('position'))
+        )
     )
     .firstOrFail()
 }

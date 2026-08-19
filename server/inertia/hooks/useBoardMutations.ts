@@ -55,7 +55,26 @@ export function useCardMutations(_boardId: number) {
       data: { ids },
     })),
     uploadImage: useUploadCardImage(_boardId),
+    uploadAttachment: useUploadCardAttachment(),
+    deleteAttachment: useDeleteCardAttachment(),
   }
+}
+
+/** Attaches a document (pdf/doc/slides/sheet) to a card. */
+export function useUploadCardAttachment() {
+  return useVisitMutation<{ cardId: number; file: File }, { id: number }>(({ cardId, file }) => ({
+    method: 'post',
+    url: `/cards/${cardId}/attachments`,
+    data: { file },
+    forceFormData: true,
+  }))
+}
+
+export function useDeleteCardAttachment() {
+  return useVisitMutation<number>((id) => ({
+    method: 'delete',
+    url: `/cards/attachments/${id}`,
+  }))
 }
 
 export function useColumnMutations(_boardId: number) {

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { Check, ImagePlus, Link2, Play } from 'lucide-react'
+import { Check, ImagePlus, Link2, Paperclip, Play, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
 import Modal from '~/components/ui/Modal'
 import { resolveImageUrl } from '~/utils/imageUrl'
@@ -20,6 +20,8 @@ interface CardEditorProps {
   onSave: (data: CardUpdateInput) => void
   saving: boolean
   uploadImage?: Mutation<{ cardId: number; file: File }, { imageUrl: string }>
+  uploadAttachment?: Mutation<{ cardId: number; file: File }, { id: number }>
+  deleteAttachment?: Mutation<number>
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
 }
@@ -37,7 +39,7 @@ function initialMediaMode(card: CardData): MediaMode {
   return 'none'
 }
 
-export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage, moveTargets, currentMoveKey }: CardEditorProps) {
+export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage, uploadAttachment, deleteAttachment, moveTargets, currentMoveKey }: CardEditorProps) {
   const [form, setForm] = useState<FormState>({})
   const [mediaMode, setMediaMode] = useState<MediaMode>('none')
   const [imageUrl, setImageUrl] = useState('')
@@ -46,6 +48,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   const [moveKey, setMoveKey] = useState<string | undefined>(undefined)
   const [justUploaded, setJustUploaded] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const attachmentRef = useRef<HTMLInputElement>(null)
 
   function handleOpen() {
     setForm({
@@ -81,6 +84,14 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
       { cardId: card.id, file },
       { onSuccess: (data) => { setImageUrl(data.imageUrl); setJustUploaded(true) } }
     )
+    e.target.value = ''
+  }
+
+  function handleAttachmentChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !uploadAttachment) return
+    // Uploads immediately against the saved card, like the image upload does.
+    uploadAttachment.mutate({ cardId: card.id, file })
     e.target.value = ''
   }
 
@@ -153,6 +164,57 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Attachments — documents readers can download */}
+        {uploadAttachment && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-2">
+              Attachments
+            </label>
+
+            {card.attachments && card.attachments.length > 0 && (
+              <ul className="flex flex-col gap-1 mb-2">
+                {card.attachments.map((file) => (
+                  <li
+                    key={file.id}
+                    className="flex items-center gap-2 bg-paper border border-line rounded-lg px-3 py-2"
+                  >
+                    <Paperclip size={13} className="text-muted shrink-0" />
+                    <span className="text-sm text-ink truncate flex-1">{file.fileName}</span>
+                    <button
+                      onClick={() => deleteAttachment?.mutate(file.id)}
+                      disabled={deleteAttachment?.isPending}
+                      aria-label={`Remove ${file.fileName}`}
+                      title="Remove attachment"
+                      className="text-muted hover:text-brand transition-colors shrink-0 disabled:opacity-40"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <input
+              ref={attachmentRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv"
+              onChange={handleAttachmentChange}
+              className="hidden"
+            />
+            <button
+              onClick={() => attachmentRef.current?.click()}
+              disabled={uploadAttachment.isPending}
+              className="flex items-center gap-2 text-sm border border-dashed border-line rounded-lg px-4 py-3 w-full text-muted hover:border-brand hover:text-brand disabled:opacity-40"
+            >
+              <Paperclip size={15} />
+              {uploadAttachment.isPending ? 'Uploading…' : 'Attach a file'}
+            </button>
+            <p className="text-xs text-muted mt-1">
+              PDF, Word, PowerPoint, Excel, text or CSV — up to 25MB.
+            </p>
           </div>
         )}
 

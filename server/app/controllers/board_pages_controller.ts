@@ -4,8 +4,10 @@ import Board from '#models/board'
 import Column from '#models/column'
 import Group from '#models/group'
 import Card from '#models/card'
+import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
+import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
 
 const MAX_COLUMNS = 8
 
@@ -280,6 +282,71 @@ export default class BoardPagesController {
     await board.save()
 
     session.flash('created', { imageUrl })
+    return response.redirect().back()
+  }
+
+  // ── Card attachments ───────────────────────────────────────────────────────
+
+  /**
+   * POST /cards/:id/attachments
+   *
+   * Documents attached to a card. The stored filename is prefixed with a
+   * timestamp to avoid collisions, while the original name is kept separately
+   * for display and download.
+   */
+  async storeCardAttachment({ params, request, auth, response, session }: HttpContext) {
+    const card = await Card.findOrFail(params.id)
+
+    const file = request.file('file', {
+      size: ATTACHMENT_MAX_SIZE,
+      extnames: [...ATTACHMENT_EXTNAMES],
+    })
+
+    if (!file) {
+      session.flash('inputErrorsBag', { file: 'Please choose a file to attach.' })
+      return response.redirect().back()
+    }
+    if (!file.isValid) {
+      session.flash('inputErrorsBag', {
+        file:
+          file.errors[0]?.message ??
+          `Allowed types: ${ATTACHMENT_EXTNAMES.join(', ')} (max ${ATTACHMENT_MAX_SIZE}).`,
+      })
+      return response.redirect().back()
+    }
+
+    const originalName = file.clientName ?? 'attachment'
+    const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const storedName = `${Date.now()}-${safeName}`
+
+    mkdirSync(UPLOADS_DIR, { recursive: true })
+    await file.move(UPLOADS_DIR, { name: storedName, overwrite: true })
+
+    const count = await CardAttachment.query().where('card_id', card.id).count('* as total')
+
+    const attachment = await CardAttachment.create({
+      cardId: card.id,
+      fileUrl: `/uploads/${storedName}`,
+      fileName: originalName,
+      mimeType: mimeTypeFor(`.${file.extname ?? ''}`),
+      sizeBytes: file.size ?? null,
+      position: Number(count[0].$extras.total),
+      createdBy: auth.user?.id ?? null,
+    })
+
+    session.flash('created', { id: attachment.id })
+    return response.redirect().back()
+  }
+
+  /**
+   * DELETE /cards/attachments/:id
+   *
+   * Removes the database row. The file itself is left on disk: another card
+   * could reference the same upload, and orphaned files are harmless.
+   */
+  async destroyCardAttachment({ params, response }: HttpContext) {
+    const attachment = await CardAttachment.findOrFail(params.id)
+    await attachment.delete()
     return response.redirect().back()
   }
 }

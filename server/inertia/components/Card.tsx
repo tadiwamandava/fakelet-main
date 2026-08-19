@@ -1,8 +1,15 @@
 import { useRef, useState } from 'react'
-import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Pencil, Trash2 } from 'lucide-react'
+import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Paperclip, Pencil, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
 import CardEditor from './CardEditor'
 import { resolveImageUrl } from '~/utils/imageUrl'
+
+export type CardAttachment = {
+  id: number
+  fileUrl: string
+  fileName: string
+  sizeBytes?: number | null
+}
 
 export type CardData = {
   id: number
@@ -12,6 +19,7 @@ export type CardData = {
   youtubeUrl?: string | null
   linkUrl?: string | null
   linkTitle?: string | null
+  attachments?: CardAttachment[]
 }
 
 // Payload CardEditor sends back on save
@@ -46,6 +54,8 @@ export interface CardMutations {
   deleteCard: Mutation<number>
   reorderCards: Mutation<number[]>
   uploadImage: Mutation<{ cardId: number; file: File }, { imageUrl: string }>
+  uploadAttachment: Mutation<{ cardId: number; file: File }, { id: number }>
+  deleteAttachment: Mutation<number>
 }
 
 interface CardProps {
@@ -60,6 +70,12 @@ interface CardProps {
   onMoveDown?: () => void
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // Only allow safe link schemes — blocks javascript:/data: URL injection
@@ -187,6 +203,27 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
           </div>
         )}
 
+        {card.attachments && card.attachments.length > 0 && (
+          <ul className="mb-2 flex flex-col gap-1">
+            {card.attachments.map((file) => (
+              <li key={file.id}>
+                <a
+                  href={file.fileUrl}
+                  download={file.fileName}
+                  className="inline-flex items-center gap-1.5 text-xs text-blue font-medium hover:underline max-w-full"
+                  title={`Download ${file.fileName}`}
+                >
+                  <Paperclip size={12} className="shrink-0" />
+                  <span className="truncate">{file.fileName}</span>
+                  {file.sizeBytes ? (
+                    <span className="text-muted shrink-0">({formatBytes(file.sizeBytes)})</span>
+                  ) : null}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <div className="flex items-center justify-between">
           {safeHref(card.linkUrl) ? (
             <a
@@ -225,6 +262,8 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
             })
           }}
           uploadImage={cardM.uploadImage}
+          uploadAttachment={cardM.uploadAttachment}
+          deleteAttachment={cardM.deleteAttachment}
           moveTargets={moveTargets}
           currentMoveKey={currentMoveKey}
         />

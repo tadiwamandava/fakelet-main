@@ -3,15 +3,8 @@ import { existsSync, mkdirSync, createReadStream } from 'node:fs'
 import type { HttpContext } from '@adonisjs/core/http'
 import Board from '#models/board'
 import { UPLOADS_DIR } from '#helpers/uploads'
+import { isInlineType, mimeTypeFor } from '#helpers/attachments'
 import { findBoardForDisplay } from '#services/board_service'
-
-const MIME: Record<string, string> = {
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-}
 
 export default class BoardsController {
   async index({ auth, response }: HttpContext) {
@@ -112,9 +105,20 @@ export default class BoardsController {
 
     if (!existsSync(filePath)) return response.notFound({ error: 'Not found' })
 
-    const mime = MIME[extname(filename).toLowerCase()] ?? 'application/octet-stream'
-    response.header('Content-Type', mime)
+    const extension = extname(filename).toLowerCase()
+    response.header('Content-Type', mimeTypeFor(extension))
     response.header('Cache-Control', 'public, max-age=31536000')
+
+    /**
+     * Uploads are served from the app's own origin, so anything that is not an
+     * image is sent as a download rather than rendered. Combined with nosniff
+     * (set by shield), that stops an uploaded file being interpreted as markup
+     * in this origin.
+     */
+    if (!isInlineType(extension)) {
+      response.header('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`)
+    }
+
     return response.stream(createReadStream(filePath))
   }
 }
