@@ -1,7 +1,11 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { randomBytes } from 'node:crypto'
+import app from '@adonisjs/core/services/app'
 import User from '#models/user'
 import env from '#start/env'
+
+/** Predictable password for local development only. */
+const DEV_PASSWORD = 'itsjustatest'
 
 /**
  * Bootstraps the first admin account so a fresh database can be signed into.
@@ -14,15 +18,16 @@ import env from '#start/env'
 export default class extends BaseSeeder {
   async run() {
     const email = env.get('ADMIN_EMAIL', 'admin@k20center.ou.edu')
+    const configured = env.get('ADMIN_PASSWORD')
 
     /**
-     * Never fall back to a fixed password. A literal default in the source is
-     * public knowledge, so seeding a deployment without ADMIN_PASSWORD set
-     * would hand out an admin account with a known password. A random one is
-     * printed instead, which is useless to anyone who cannot read this output.
+     * Outside development there is no fixed fallback: a literal password in the
+     * source is public knowledge, so seeding a real deployment without
+     * ADMIN_PASSWORD would hand out an admin account anyone could sign into.
+     * A random one is printed instead, which is useless to anyone who cannot
+     * read the output.
      */
-    const generated = !env.get('ADMIN_PASSWORD')
-    const password = env.get('ADMIN_PASSWORD') ?? randomBytes(12).toString('base64url')
+    const password = configured ?? (app.inProduction ? randomBytes(12).toString('base64url') : DEV_PASSWORD)
 
     const user = await User.firstOrCreate({ email }, { email, password, isAdmin: true })
 
@@ -31,7 +36,9 @@ export default class extends BaseSeeder {
       return
     }
 
-    if (generated) {
+    if (configured) {
+      console.log(`[seed] Created admin "${email}" using ADMIN_PASSWORD.`)
+    } else if (app.inProduction) {
       console.warn(
         `\n[seed] Created admin "${email}" with a generated password:\n\n` +
           `    ${password}\n\n` +
@@ -39,7 +46,7 @@ export default class extends BaseSeeder {
           `  it, or set ADMIN_PASSWORD before seeding to choose your own.\n`
       )
     } else {
-      console.log(`[seed] Created admin "${email}" using ADMIN_PASSWORD.`)
+      console.log(`[seed] Created admin "${email}" with the dev password "${DEV_PASSWORD}".`)
     }
   }
 }
