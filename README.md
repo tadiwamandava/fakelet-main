@@ -1,134 +1,110 @@
 # Hive
 
-**K20's Hub for Integrated V(something) Education** — a learning platform where
-educators curate boards of resources (links, images, videos, and notes) organized
-into columns and groups, then share them with students through a simple link.
-
-Inspired by tools like Wakelet, Hive is built for K‑12 classrooms: educators sign
-in to build and manage boards, while students open a shared board link and browse
-it read‑only; no account required.
-
+**K20's Hub for Integrated Visual Education** — educators curate boards of
+resources (links, images, videos, documents) organised into columns and groups,
+then share them with students through a link. Students open a shared board and
+browse it read-only; no account required.
 
 ## Features
 
-- Boards -> Columns -> Groups -> Cards — a flexible hierarchy for organizing content. Groups are optional, so cards can also live directly on a column.
-- Rich cards — title, description, a link, and either an uploaded image or a YouTube embed. Cards can be reordered and moved between groups.
-- Invitation‑only admin access — the public can only view shared boards. New admins join via a single‑use invitation key emailed from the admin dashboard.
-- Admin dashboard — manage invitations and users (promote/demote admins)
-- Public sharing — every board has a shareable link (`/boards/:id`) that anyone can open read‑only. Editing controls appear only for signed‑in admins.
-- Cover images — boards and cards support image upload or an image URL, with live previews.
-- Bookmarks & references — students can bookmark cards (stored locally) and jump straight to them; admins can attach a reference list to each board.
-- Search — filter cards within a board by title or description.
-
+- **Boards → Columns → Groups → Cards.** Groups are optional, so cards can sit directly on a column.
+- **Rich cards** — title, description, link, an image or YouTube embed, and downloadable file attachments (PDF, Word, PowerPoint, Excel, text, CSV). Cards reorder and move between groups.
+- **Images added by URL are downloaded** and stored locally, so a board does not break when the source link disappears.
+- **Public sharing** — every board has a link (`/boards/:id`) anyone can open read-only. Editing controls appear only for signed-in admins.
+- **Invitation-only admin access** — new admins join via a single-use key emailed from the admin dashboard.
+- **Admin dashboard** — manage invitations and users.
+- **Bookmarks, references and search** within a board.
 
 ## Stack
 
-Backend - AdonisJS 6 (TypeScript), Lucid ORM, PostgreSQL, access‑token auth, Nodemailer (SMTP) 
-Frontend - React 19, Vite, TypeScript, Tailwind CSS v4, TanStack Query, Zustand, React Router, axios, lucide‑react
+One deployable: an **AdonisJS 7** app that server-renders **React 19** pages via
+**Inertia.js**. TypeScript throughout, Lucid ORM on PostgreSQL, Vite + Tailwind
+CSS v4 for assets, Nodemailer for transactional mail.
 
+A token-based JSON API remains at `/api/v1` for future integrations.
 
 ## Project structure
 
 ```
-.
-├── server/        # AdonisJS API (auth, boards, cards, invitations, admin)
-│   ├── app/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── services/        # mail_service, etc.
-│   │   └── transformers/
-│   ├── database/
-│   │   ├── migrations/
-│   │   ├── seeders/         # admin user + demo board
-│   │   └── schema.ts        # auto-generated model schema
-│   └── start/routes.ts      # all API routes (prefixed /api/v1)
-├── client/        # React + Vite single-page app
-│   └── src/
-│       ├── pages/           # BoardList, Board, Login, Signup, Admin
-│       ├── components/
-│       ├── hooks/           # useBoard, useBoardMutations, useBookmarks, …
-│       └── store/           # Zustand auth store
-└── netlify.toml   # frontend build + SPA redirect
+server/                     # the whole application
+├── app/
+│   ├── controllers/        # *_pages_controller = Inertia pages; the rest = /api/v1
+│   ├── models/  services/  middleware/  helpers/
+├── inertia/                # React frontend
+│   ├── pages/              # auth, boards, admin, errors
+│   ├── components/  hooks/  lib/
+├── database/               # migrations, seeders, generated schema.ts
+├── resources/views/        # Edge layout that boots the React app
+└── start/routes.ts         # web (session) + /api/v1 (token) routes
+
+client/                     # legacy SPA, superseded by server/inertia
 ```
 
 ## Getting started
 
-### Prerequisites
-
-- Node.js 20+
-- A PostgreSQL database
-
-### 1. Backend (`server/`)
+Requires Node.js 20+ and PostgreSQL.
 
 ```bash
 cd server
 npm install
-cp .env.example .env        
-node ace migration:run      # create the database tables
-node ace db:seed            # create a default admin (+ demo board in dev)
-npm run dev                 # starts the API on http://localhost:3333
+cp .env.example .env        # then fill in APP_KEY, DB_*, APP_URL
+node ace migration:run
+node ace db:seed            # first admin + a demo board
+npm run dev                 # http://localhost:3333
 ```
 
-### 2. Frontend (`client/`)
+In development the seeded admin is `admin@k20center.ou.edu` / `itsjustatest`.
 
-```bash
-cd client
-npm install
-# point the SPA at your API (defaults to http://localhost:3333/api/v1)
-echo "VITE_API_URL=http://localhost:3333/api/v1" > .env.local
-npm run dev                 # starts the app on http://localhost:5173
-```
+## Environment
 
-Open http://localhost:5173 and sign in with the seeded admin account.
-
-## Environment variables
-
-### Server (`server/.env`)
-
-| Variable | Required | Description |
-|---|---|---|
-| `APP_KEY` | yes | App encryption key (`node ace generate:key`) |
-| `APP_URL` | yes | Public URL of the API |
-| `HOST`, `PORT` | yes | Bind host/port (default `0.0.0.0` / `3333`) |
-| `NODE_ENV` | yes | `development` \| `production` \| `test` |
-| `DB_CONNECTION` | yes | `pg` |
-| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` | yes | PostgreSQL connection |
-| `CORS_ORIGIN` | prod | Allowed frontend origin (e.g. your Netlify URL) |
-| `FRONTEND_URL` | prod | Base URL used to build signup links in invitation emails |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` | optional | Transactional email. If omitted, codes/links print to the server console for local testing. |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | optional | Credentials for the seeded default admin |
-
-### Client (`client/.env.local`)
-
-| Variable | Description |
+| Variable | Notes |
 |---|---|
-| `VITE_API_URL` | Base URL of the API, including `/api/v1` |
+| `APP_KEY` | Generate with `node ace generate:key`. Changing it invalidates sessions and tokens. |
+| `APP_URL` | Public URL. Also used for invitation links. |
+| `HOST`, `PORT`, `NODE_ENV`, `LOG_LEVEL` | Standard. |
+| `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` | PostgreSQL. |
+| `SESSION_DRIVER` | `cookie`. |
+| `UPLOADS_DIR` | **Must be outside the build directory** — `node ace build` recreates it, deleting uploads. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` | Optional. Omit `SMTP_HOST` to print invitation links and reset codes to the console. Credentials are only sent when set, so an unauthenticated relay works. `SMTP_FROM` defaults to `no-reply@<APP_URL host>`. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Optional; only used when the seeder creates the first admin. |
+| `CORS_ORIGIN`, `FRONTEND_URL` | Only needed if the frontend is ever served from a different origin. |
 
 ## Database
 
 ```bash
-node ace migration:run           # apply pending migrations
-node ace migration:rollback      # undo the last batch
-node ace db:seed                 # run all seeders
-node ace db:seed --files admin_user_seeder   # run one seeder
+node ace migration:run                                    # apply migrations
+node ace migration:fresh                                  # drop and rebuild
+node ace db:seed --files database/seeders/admin_user_seeder.ts
 ```
 
-Seeders live in `server/database/seeders/`:
+`admin_user_seeder` is idempotent: it never changes an existing account's
+password, so `ADMIN_PASSWORD` has no effect once the admin exists. Outside
+development it generates a random password rather than using a fixed one.
+`demo_board_seeder` is development/test only.
 
-- `admin_user_seeder` — idempotently bootstraps an admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` (falls back to a default with a warning). Runs in every environment.
-- `demo_board_seeder` — sample board with columns, groups, and cards. Development/test only.
+## Security model
 
+Two deliberately separate surfaces (see `app/helpers/api_surface.ts`):
 
-## Authentication model
+| | Guard | CSRF |
+|---|---|---|
+| `/api/v1/*` | token only | exempt |
+| everything else | session only | enforced |
 
-- Admins sign in with email + password and can create/edit boards, cards, invitations, and users.
-- New admins are added by invitation only: an existing admin sends a single‑use key by email, and the recipient sets a password at `/signup?key=…`.
-- Users never sign in. They open a shared board link (`/boards/:id`) and view it read‑only. The board list and admin dashboard are admin‑only.
+They must not overlap: a CSRF-exempt route that accepted cookie auth would be a
+CSRF hole. Uploads are served with `Content-Disposition: attachment` unless they
+are images, and remote image fetches refuse private and link-local addresses.
 
+## Deployment
+
+```bash
+npm ci && npm run build
+cd build && node bin/server.js     # start:prod runs migrations first
+```
+
+One process serves the app, the API and uploads. Point `UPLOADS_DIR` at
+persistent storage and put a TLS-terminating reverse proxy in front.
 
 ## Repository
 
-The project is hosted on the K20 Center GitLab and mirrored to GitHub:
-
-- GitLab: `https://delta.k20center.ou.edu/interactive-learning/web/wakelet`
-- GitHub: `https://github.com/tadiwamandava/fakelet-main`
+Mirrored to the K20 Center GitLab and GitHub; one `git push` updates both.
