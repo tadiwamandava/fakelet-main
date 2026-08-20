@@ -6,6 +6,7 @@ import Group from '#models/group'
 import Card from '#models/card'
 import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
+import { mirrorRemoteImage } from '#services/remote_file_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
 import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
 
@@ -26,6 +27,27 @@ async function storeImage(request: HttpContext['request']) {
   await image.move(UPLOADS_DIR, { name: filename, overwrite: true })
 
   return `/uploads/${filename}`
+}
+
+/**
+ * Resolves whatever the form supplied into a stored image path.
+ *
+ * A pasted URL is downloaded and kept locally so the board does not break when
+ * the original link rots. If that fetch is refused or fails the URL is stored
+ * as-is, so adding an image never hard-fails on an unreachable host.
+ */
+async function resolveImageInput(
+  request: HttpContext['request'],
+  imageUrl?: string | null
+): Promise<string | null> {
+  const uploaded = await storeImage(request)
+  if (uploaded) return uploaded
+
+  const url = imageUrl?.trim()
+  if (!url) return null
+  if (url.startsWith('/uploads/')) return url
+
+  return (await mirrorRemoteImage(url)) ?? url
 }
 
 /**
@@ -69,12 +91,10 @@ export default class BoardPagesController {
       return response.redirect().back()
     }
 
-    const uploaded = await storeImage(request)
-
     const board = await Board.create({
       title: title.trim(),
       description: description?.trim() || null,
-      imageUrl: uploaded ?? (imageUrl?.trim() || null),
+      imageUrl: await resolveImageInput(request, imageUrl),
       createdBy: auth.user?.id ?? null,
     })
 
@@ -191,11 +211,21 @@ export default class BoardPagesController {
 
   async updateCard({ params, request, auth, response }: HttpContext) {
     const card = await Card.findOrFail(params.id)
+
+    /**
+     * A pasted image URL is mirrored locally so the card keeps working after
+     * the source link disappears. Already-local paths are left alone.
+     */
+    const submittedImage = request.input('imageUrl')
+    const resolvedImage =
+      typeof submittedImage === 'string' && submittedImage && !submittedImage.startsWith('/uploads/')
+        ? ((await mirrorRemoteImage(submittedImage)) ?? submittedImage)
+        : submittedImage
+
     card.merge({
       ...request.only([
         'title',
         'description',
-        'imageUrl',
         'linkUrl',
         'linkTitle',
         'youtubeUrl',
@@ -203,6 +233,7 @@ export default class BoardPagesController {
         'groupId',
         'columnId',
       ]),
+      ...(submittedImage !== undefined ? { imageUrl: resolvedImage } : {}),
       updatedBy: auth.user?.id ?? null,
     })
     await card.save()
@@ -257,7 +288,9 @@ export default class BoardPagesController {
     ])
 
     if (typeof title === 'string' && title.trim()) board.title = title.trim()
-    if (typeof imageUrl === 'string') board.imageUrl = imageUrl || null
+    if (typeof imageUrl === 'string') {
+      board.imageUrl = imageUrl ? await resolveImageInput(request, imageUrl) : null
+    }
     if (typeof description === 'string') board.description = description.trim() || null
     if (Array.isArray(references)) {
       board.references = (references as unknown[]).filter(
