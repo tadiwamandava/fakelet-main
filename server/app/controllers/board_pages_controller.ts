@@ -1,16 +1,13 @@
 import { mkdirSync } from 'node:fs'
 import type { HttpContext } from '@adonisjs/core/http'
 import Board from '#models/board'
-import Column from '#models/column'
-import Group from '#models/group'
 import Card from '#models/card'
 import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
+import * as writes from '#services/board_writes'
 import { mirrorRemoteImage } from '#services/remote_file_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
 import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
-
-const MAX_COLUMNS = 8
 
 /**
  * Stores an uploaded image and returns its public path.
@@ -48,6 +45,36 @@ async function resolveImageInput(
   if (url.startsWith('/uploads/')) return url
 
   return (await mirrorRemoteImage(url)) ?? url
+}
+
+/**
+ * Runs a board write, turning a lost race into something the editor can read.
+ *
+ * Two admins on one board work from snapshots that go stale without warning,
+ * so a save can land on a card someone else just deleted or just edited. None
+ * of that is exceptional — it is ordinary co-editing — so it comes back as a
+ * flash message on the board the user is already looking at, rather than a
+ * stack trace or an error page that loses their place. The redirect also hands
+ * back fresh props, so the stale snapshot that caused the conflict is replaced
+ * in the same round trip.
+ */
+async function guarded(
+  ctx: HttpContext,
+  run: () => Promise<unknown>
+): Promise<{ ok: true; result: unknown } | { ok: false }> {
+  try {
+    return { ok: true, result: await run() }
+  } catch (error) {
+    if (
+      error instanceof writes.MissingTargetError ||
+      error instanceof writes.StaleWriteError ||
+      error instanceof writes.WriteRejectedError
+    ) {
+      ctx.session.flash('conflict', error.message)
+      return { ok: false }
+    }
+    throw error
+  }
 }
 
 /**
@@ -133,84 +160,94 @@ export default class BoardPagesController {
 
   // ── Columns ────────────────────────────────────────────────────────────────
 
-  async storeColumn({ request, auth, response, session }: HttpContext) {
-    const data = request.only(['boardId', 'title', 'position'])
+  /**
+   * The client's `position` is ignored here and everywhere below: it is derived
+   * from a snapshot that another editor may already have invalidated, and two
+   * users adding to the same container would both claim the same slot. The
+   * database picks the next free one instead.
+   */
+  async storeColumn(ctx: HttpContext) {
+    const { request, auth, response, session } = ctx
+    const { boardId, title } = request.only(['boardId', 'title', 'position'])
 
-    const count = await Column.query().where('board_id', data.boardId).count('* as total')
-    if (Number(count[0].$extras.total) >= MAX_COLUMNS) {
-      session.flash('inputErrorsBag', {
-        title: `A board can only have a maximum of ${MAX_COLUMNS} columns.`,
-      })
-      return response.redirect().back()
-    }
-
-    const column = await Column.create({ ...data, createdBy: auth.user?.id ?? null })
-    session.flash('created', { id: column.id })
+    const outcome = await guarded(ctx, () =>
+      writes.createColumn(Number(boardId), { title }, auth.user?.id ?? null)
+    )
+    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
     return response.redirect().back()
   }
 
-  async updateColumn({ params, request, auth, response }: HttpContext) {
-    const column = await Column.findOrFail(params.id)
-    column.merge({ ...request.only(['title', 'position']), updatedBy: auth.user?.id ?? null })
-    await column.save()
+  async updateColumn(ctx: HttpContext) {
+    const { params, request, auth, response } = ctx
+    await guarded(ctx, () =>
+      writes.renameColumn(params.id, request.input('title'), auth.user?.id ?? null)
+    )
     return response.redirect().back()
   }
 
-  async destroyColumn({ params, response }: HttpContext) {
-    const column = await Column.findOrFail(params.id)
-    await column.delete()
+  async destroyColumn(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => writes.deleteColumn(params.id, auth.user?.id ?? null))
     return response.redirect().back()
   }
 
   // ── Groups ─────────────────────────────────────────────────────────────────
 
-  async storeGroup({ request, auth, response, session }: HttpContext) {
-    const group = await Group.create({
-      ...request.only(['columnId', 'title', 'position']),
-      createdBy: auth.user?.id ?? null,
-    })
-    session.flash('created', { id: group.id })
+  async storeGroup(ctx: HttpContext) {
+    const { request, auth, response, session } = ctx
+    const { columnId, title } = request.only(['columnId', 'title', 'position'])
+
+    const outcome = await guarded(ctx, () =>
+      writes.createGroup(Number(columnId), { title }, auth.user?.id ?? null)
+    )
+    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
     return response.redirect().back()
   }
 
-  async updateGroup({ params, request, auth, response }: HttpContext) {
-    const group = await Group.findOrFail(params.id)
-    group.merge({ ...request.only(['title', 'position']), updatedBy: auth.user?.id ?? null })
-    await group.save()
+  async updateGroup(ctx: HttpContext) {
+    const { params, request, auth, response } = ctx
+    await guarded(ctx, () =>
+      writes.renameGroup(params.id, request.input('title'), auth.user?.id ?? null)
+    )
     return response.redirect().back()
   }
 
-  async destroyGroup({ params, response }: HttpContext) {
-    const group = await Group.findOrFail(params.id)
-    await group.delete()
+  async destroyGroup(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => writes.deleteGroup(params.id, auth.user?.id ?? null))
     return response.redirect().back()
   }
 
   // ── Cards ──────────────────────────────────────────────────────────────────
 
-  async storeCard({ request, auth, response, session }: HttpContext) {
-    const card = await Card.create({
-      ...request.only([
-        'groupId',
-        'columnId',
-        'title',
-        'description',
-        'imageUrl',
-        'linkUrl',
-        'linkTitle',
-        'youtubeUrl',
-        'position',
-      ]),
-      createdBy: auth.user?.id ?? null,
-    })
+  async storeCard(ctx: HttpContext) {
+    const { request, auth, response, session } = ctx
+    const attrs = request.only([
+      'groupId',
+      'columnId',
+      'title',
+      'description',
+      'imageUrl',
+      'linkUrl',
+      'linkTitle',
+      'youtubeUrl',
+    ])
+
+    const outcome = await guarded(ctx, () => writes.createCard(attrs, auth.user?.id ?? null))
 
     // The board page opens the editor on the card it just created.
-    session.flash('created', { id: card.id })
+    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
     return response.redirect().back()
   }
 
-  async updateCard({ params, request, auth, response }: HttpContext) {
-    const card = await Card.findOrFail(params.id)
+  /**
+   * The editor sends the version it opened the card at. If another admin saved
+   * in the meantime the write is refused rather than applied on top of theirs,
+   * and the redirect brings back their copy — the alternative is that whoever
+   * clicks Save last silently erases the other's edit.
+   */
+  async updateCard(ctx: HttpContext) {
+    const { params, request, auth, response } = ctx
 
     /**
      * A pasted image URL is mirrored locally so the card keeps working after
@@ -222,43 +259,32 @@ export default class BoardPagesController {
         ? ((await mirrorRemoteImage(submittedImage)) ?? submittedImage)
         : submittedImage
 
-    card.merge({
-      ...request.only([
-        'title',
-        'description',
-        'linkUrl',
-        'linkTitle',
-        'youtubeUrl',
-        'position',
-        'groupId',
-        'columnId',
-      ]),
+    const attrs = {
+      ...request.only(['title', 'description', 'linkUrl', 'linkTitle', 'youtubeUrl']),
       ...(submittedImage !== undefined ? { imageUrl: resolvedImage } : {}),
-      updatedBy: auth.user?.id ?? null,
-    })
-    await card.save()
-    return response.redirect().back()
-  }
-
-  async destroyCard({ params, auth, response }: HttpContext) {
-    const card = await Card.findOrFail(params.id)
-    card.isDeleted = true
-    card.updatedBy = auth.user?.id ?? null
-    await card.save()
-    return response.redirect().back()
-  }
-
-  async reorderCards({ request, auth, response }: HttpContext) {
-    const ids = request.input('ids') as unknown
-    if (Array.isArray(ids)) {
-      await Promise.all(
-        ids
-          .filter((id) => typeof id === 'number')
-          .map((id, index) =>
-            Card.query().where('id', id).update({ position: index, updatedBy: auth.user?.id ?? null })
-          )
-      )
+      ...(request.input('groupId') !== undefined ? { groupId: request.input('groupId') } : {}),
+      ...(request.input('columnId') !== undefined ? { columnId: request.input('columnId') } : {}),
     }
+
+    const expected = Number(request.input('version'))
+    await guarded(ctx, () =>
+      writes.updateCard(params.id, attrs, auth.user?.id ?? null, expected || null)
+    )
+    return response.redirect().back()
+  }
+
+  async destroyCard(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => writes.softDeleteCard(params.id, auth.user?.id ?? null))
+    return response.redirect().back()
+  }
+
+  async reorderCards(ctx: HttpContext) {
+    const { request, auth, response } = ctx
+    const ids = request.input('ids')
+    const clean = Array.isArray(ids) ? ids.filter((id): id is number => Number.isInteger(id)) : []
+
+    if (clean.length) await guarded(ctx, () => writes.reorderCards(clean, auth.user?.id ?? null))
     return response.redirect().back()
   }
 

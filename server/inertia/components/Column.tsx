@@ -26,10 +26,10 @@ interface ColumnUpdateInput {
   title: string
 }
 
+/** Positions are assigned by the server, so creates never send one. */
 interface GroupCreateInput {
   columnId: number
   title: string
-  position: number
 }
 
 export interface ColumnMutations {
@@ -78,7 +78,7 @@ export default function Column({
 
   function addCard() {
     cardM.createCard.mutate(
-      { columnId: column.id, title: 'New card', position: ungrouped.length },
+      { columnId: column.id, title: 'New card' },
       { onSuccess: (card) => setNewCardId(card.id) }
     )
   }
@@ -189,7 +189,7 @@ export default function Column({
               loading={groupM.createGroup.isPending}
               onSave={(title: string) =>
                 groupM.createGroup.mutate(
-                  { columnId: column.id, title, position: column.groups.length },
+                  { columnId: column.id, title },
                   { onSuccess: () => setAddingGroup(false) }
                 )
               }

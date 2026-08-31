@@ -13,6 +13,12 @@ export type CardAttachment = {
 
 export type CardData = {
   id: number
+  /**
+   * Bumped by the server on every save. The editor sends back the value it
+   * opened with so a save that lands on top of someone else's is refused
+   * instead of silently overwriting it.
+   */
+  version?: number | null
   title: string
   description?: string | null
   imageUrl?: string | null
@@ -43,7 +49,6 @@ export interface CardCreateInput {
   groupId?: number
   columnId?: number
   title: string
-  position: number
 }
 
 export interface CardMutations {
@@ -101,9 +106,11 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   const [descExpanded, setDescExpanded] = useState(false)
   // Track whether a freshly-added card was ever saved, so cancelling it discards it
   const savedRef = useRef(false)
+  const [conflict, setConflict] = useState<string | null>(null)
 
   function handleClose() {
     setEditing(false)
+    setConflict(null)
     // A just-added card dismissed without saving is abandoned — remove it
     // rather than leaving a blank "New card" behind.
     if (autoEdit && !savedRef.current) {
@@ -256,9 +263,18 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
           onClose={handleClose}
           card={card}
           saving={cardM.updateCard.isPending}
+          conflict={conflict}
           onSave={(data: CardUpdateInput) => {
+            setConflict(null)
             cardM.updateCard.mutate(data, {
               onSuccess: () => { savedRef.current = true; setEditing(false) },
+              /**
+               * Someone else saved this card first. The editor stays open with
+               * everything still typed in it, and the card prop underneath has
+               * already been refreshed to their version — so saving again now
+               * applies this user's text on top, deliberately.
+               */
+              onConflict: (message) => setConflict(message),
             })
           }}
           uploadImage={cardM.uploadImage}

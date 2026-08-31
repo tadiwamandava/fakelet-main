@@ -1,39 +1,26 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Column from '#models/column'
+import * as writes from '#services/board_writes'
 
+/**
+ * Columns over the token API. The write service is shared with the board UI so
+ * both surfaces enforce the same column cap, assign positions the same way, and
+ * archive cards on delete rather than letting the cascade destroy them.
+ */
 export default class ColumnsController {
-  //POST /api/columns
-  async store({ request, response, auth }: HttpContext) {
-    const data = request.only(['boardId', 'title', 'position'])
-
-    //Enfore the max 8 columns for a board
-    const count = await Column.query().where('board_id', data.boardId).count('* as total')
-
-    if (Number(count[0].$extras.total) >= 8) {
-      return response.badRequest({
-        error: { message: 'A board can only have a maximum of 8 columns' },
-      })
-    }
-    const column = await Column.create({ ...data, createdBy: auth.user?.id ?? null })
-    return column
+  //POST /api/columns — `position` in the body is ignored; the server assigns it
+  async store({ request, auth }: HttpContext) {
+    const { boardId, title } = request.only(['boardId', 'title', 'position'])
+    return writes.createColumn(Number(boardId), { title }, auth.user?.id ?? null)
   }
 
   //PUT /api/columns/:id
   async update({ params, request, auth }: HttpContext) {
-    const column = await Column.findOrFail(params.id)
-    column.merge({
-      ...request.only(['title', 'position']),
-      updatedBy: auth.user?.id ?? null,
-    })
-
-    await column.save()
-    return column
+    return writes.renameColumn(params.id, request.input('title'), auth.user?.id ?? null)
   }
 
-  //DELETE /api/columns/:id -real delete; Cascade deletes groups and cards
-  async destroy({ params }: HttpContext) {
-    const column = await Column.findOrFail(params.id)
-    await column.delete()
+  //DELETE /api/columns/:id — removes the column; its cards are soft-deleted
+  async destroy({ params, auth }: HttpContext) {
+    await writes.deleteColumn(params.id, auth.user?.id ?? null)
     return { deleted: true }
   }
 }

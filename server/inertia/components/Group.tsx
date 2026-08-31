@@ -30,7 +30,7 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
 
   function addCard() {
     cardM.createCard.mutate(
-      { groupId: group.id, title: 'New card', position: group.cards.length },
+      { groupId: group.id, title: 'New card' },
       { onSuccess: (card) => setNewCardId(card.id) }
     )
   }

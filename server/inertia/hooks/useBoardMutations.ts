@@ -10,10 +10,10 @@ import type { CardCreateInput, CardUpdateInput } from '~/components/Card'
  * back to the page and Inertia returns fresh props automatically.
  */
 
+/** Positions are assigned by the server, so creates never send one. */
 interface ColumnCreateInput {
   boardId: number
   title: string
-  position: number
 }
 
 interface ColumnUpdateInput {
@@ -24,7 +24,6 @@ interface ColumnUpdateInput {
 interface GroupCreateInput {
   columnId: number
   title: string
-  position: number
 }
 
 interface GroupUpdateInput {

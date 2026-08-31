@@ -1,5 +1,33 @@
-import { ReactNode, useEffect, useId, useRef } from 'react'
+import { ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { X } from 'lucide-react'
+
+/**
+ * How many dialogs are currently open.
+ *
+ * A dialog covers the page behind it, so anything that announces itself up
+ * there — a banner, a toast — is both invisible and, for a screen reader, a
+ * second copy of what the dialog is already saying. Tracking the count in a
+ * module-level store lets those components step aside; it follows the same
+ * shape as the bookmark cache rather than introducing a context for one flag.
+ */
+let openCount = 0
+const listeners = new Set<() => void>()
+
+function setOpenCount(next: number) {
+  openCount = next
+  listeners.forEach((fn) => fn())
+}
+
+/** True while any Modal is on screen. */
+export function useAnyModalOpen(): boolean {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const fn = () => tick((n) => n + 1)
+    listeners.add(fn)
+    return () => { listeners.delete(fn) }
+  }, [])
+  return openCount > 0
+}
 
 interface ModalProps {
   open: boolean
@@ -59,10 +87,12 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
     document.addEventListener('keydown', onKeyDown)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    setOpenCount(openCount + 1)
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = prevOverflow
+      setOpenCount(Math.max(0, openCount - 1))
       previouslyFocused.current?.focus?.()
     }
   }, [open])

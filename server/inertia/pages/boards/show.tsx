@@ -10,6 +10,7 @@ import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2
 import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
+import ConflictBanner from '~/components/ui/ConflictBanner'
 
 type BoardData = {
   id: number
@@ -149,7 +150,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
     const title = newColumnTitle.trim()
     if (!title) return
     columnM.createColumn.mutate(
-      { boardId: boardId, title, position: board!.columns.length },
+      { boardId: boardId, title },
       { onSuccess: () => { setAddingColumn(false); setNewColumnTitle('') } }
     )
   }
@@ -173,6 +174,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 flex flex-col outline-none">
+        <ConflictBanner />
         <div className="shrink-0 bg-white border-b border-line px-3 sm:px-5 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={() => setSidebarOpen(true)}

@@ -6,6 +6,11 @@ type Method = 'post' | 'put' | 'delete'
 interface MutateOptions<TResult> {
   onSuccess?: (result: TResult) => void
   onError?: (errors: Record<string, string>) => void
+  /**
+   * The write was refused because another editor got there first. Distinct
+   * from onError, which means the submission itself was invalid.
+   */
+  onConflict?: (message: string) => void
 }
 
 /**
@@ -55,6 +60,17 @@ export function useVisitMutation<TVars, TResult = unknown>(
       preserveScroll: true,
       forceFormData,
       onSuccess: (page: any) => {
+        /**
+         * A refused write still redirects, so Inertia reports success — the
+         * only signal is the flash. Routing it away from onSuccess is what
+         * stops an editor closing (and discarding what the user typed) on a
+         * save that never actually landed.
+         */
+        const conflict = page?.flash?.conflict
+        if (conflict) {
+          options?.onConflict?.(conflict as string)
+          return
+        }
         options?.onSuccess?.(page?.flash?.created as TResult)
       },
       onError: (errors: Record<string, string>) => {

@@ -24,6 +24,8 @@ interface CardEditorProps {
   deleteAttachment?: Mutation<number>
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
+  /** Set when the last save lost a race with another editor. */
+  conflict?: string | null
 }
 
 const FIELDS: FieldDef[] = [
@@ -39,7 +41,7 @@ function initialMediaMode(card: CardData): MediaMode {
   return 'none'
 }
 
-export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage, uploadAttachment, deleteAttachment, moveTargets, currentMoveKey }: CardEditorProps) {
+export default function CardEditor({ open, onClose, card, onSave, saving, uploadImage, uploadAttachment, deleteAttachment, moveTargets, currentMoveKey, conflict }: CardEditorProps) {
   const [form, setForm] = useState<FormState>({})
   const [mediaMode, setMediaMode] = useState<MediaMode>('none')
   const [imageUrl, setImageUrl] = useState('')
@@ -103,6 +105,8 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
 
     onSave({
       id: card.id,
+      // The version the editor was opened at — the server's staleness check.
+      version: card.version,
       ...form,
       imageUrl: mediaMode === 'image' ? (imageUrl || null) : null,
       youtubeUrl: mediaMode === 'youtube' ? (youtubeUrl || null) : null,
@@ -125,6 +129,20 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   return (
     <Modal open={open} onClose={onClose} title="Edit card">
       <div className="flex flex-col gap-3">
+        {/*
+          The save was refused, so nothing below has been written. The card
+          underneath now shows the other person's version; saving again puts
+          this text on top of it.
+        */}
+        {conflict && (
+          <div
+            role="alert"
+            className="rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-xs text-brand"
+          >
+            <span className="font-semibold">Not saved. </span>
+            {conflict} Your changes are still here — press Save again to keep them.
+          </div>
+        )}
         {FIELDS.map((field) => (
           <div key={field.key}>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">
