@@ -52,28 +52,36 @@ export default function BoardShow({ board, highlight }: ShowProps) {
   const highlightId = highlight
   const activeHighlight = useRef<HTMLElement | null>(null)
 
-  // Build card title map for bookmark toggle
-  const cardTitleMap = useMemo(() => {
-    const map = new Map<number, string>()
+  /**
+   * Every card on the board, by id, with the title and the column (or column
+   * and group) it sits in. Bookmarks are keyed by card id, so this is what
+   * keeps their stored titles current and lets the sidebar tell apart two
+   * bookmarks that happen to share a title.
+   */
+  const cardIndex = useMemo(() => {
+    const map = new Map<number, { title: string; location: string }>()
     for (const col of board?.columns ?? []) {
       for (const card of col.cards ?? []) {
-        map.set(card.id, card.title)
+        map.set(card.id, { title: card.title || 'Untitled', location: col.title })
       }
       for (const group of col.groups ?? []) {
         for (const card of group.cards ?? []) {
-          map.set(card.id, card.title)
+          map.set(card.id, {
+            title: card.title || 'Untitled',
+            location: `${col.title} \u203a ${group.title}`,
+          })
         }
       }
     }
     return map
   }, [board])
 
-  // Prune bookmarks pointing at cards that no longer exist (e.g. deleted cards).
-  // Runs whenever the board (re)loads, including after a delete refetch.
+  // Prune bookmarks whose card is gone and refresh the titles of the rest.
+  // Runs whenever the board (re)loads, so a rename shows up on the next visit.
   useEffect(() => {
     if (!board) return
-    syncBookmarks(board.id, Array.from(cardTitleMap.keys()))
-  }, [board, cardTitleMap, syncBookmarks])
+    syncBookmarks(board.id, cardIndex)
+  }, [board, cardIndex, syncBookmarks])
 
   // Scroll to and highlight the target card
   useEffect(() => {
@@ -159,6 +167,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
       <Sidebar
         board={board}
         bookmarks={bookmarks}
+        cardIndex={cardIndex}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -320,7 +329,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
               column={col}
               bookmarks={bookmarkIds}
               onToggleBookmark={(cardId) => {
-                const title = cardTitleMap.get(cardId) ?? 'Untitled'
+                const title = cardIndex.get(cardId)?.title ?? 'Untitled'
                 toggleBookmark(cardId, title, boardId)
               }}
               editMode={editMode && isAdmin}

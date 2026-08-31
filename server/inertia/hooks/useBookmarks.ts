@@ -45,11 +45,34 @@ export function useToggleBookmark() {
   }, [])
 }
 
-// Drop bookmarks for a board whose cards no longer exist (e.g. deleted cards)
+/**
+ * Reconciles one board's bookmarks against the cards it currently holds.
+ *
+ * A bookmark stores a copy of the card's title so the sidebar can render it
+ * without the card, but that copy goes stale the moment the card is renamed.
+ * Passing the board's live cards does both jobs in one pass: bookmarks whose
+ * card is gone are dropped, and the ones that remain have their title
+ * refreshed. Bookmarks on other boards are left alone — this only ever sees
+ * the board currently open.
+ */
 export function useSyncBookmarks() {
-  return useCallback((boardId: number, validCardIds: number[]) => {
-    const valid = new Set(validCardIds)
-    const next = cache.filter((b) => b.boardId !== boardId || valid.has(b.cardId))
-    if (next.length !== cache.length) persist(next)
+  return useCallback((boardId: number, cards: ReadonlyMap<number, { title: string }>) => {
+    let changed = false
+
+    const next = cache.flatMap<LocalBookmark>((b) => {
+      if (b.boardId !== boardId) return [b]
+
+      const card = cards.get(b.cardId)
+      if (!card) {
+        changed = true
+        return []
+      }
+      if (card.title === b.title) return [b]
+
+      changed = true
+      return [{ ...b, title: card.title }]
+    })
+
+    if (changed) persist(next)
   }, [])
 }

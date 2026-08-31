@@ -19,14 +19,27 @@ export type BoardData = {
 interface SidebarProps {
   board: BoardData
   bookmarks: LocalBookmark[]
+  /** Cards on this board, by id — used to disambiguate same-titled bookmarks. */
+  cardIndex?: ReadonlyMap<number, { location: string }>
   open: boolean
   onClose: () => void
 }
 
-export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProps) {
+export default function Sidebar({ board, bookmarks, cardIndex, open, onClose }: SidebarProps) {
   const isAdmin = useAuth((s) => s.isAdmin)
   const boardBookmarks = bookmarks.filter((b) => b.boardId === board.id)
   const [bookmarksOpen, setBookmarksOpen] = useState(true)
+
+  /**
+   * Bookmarks are keyed by card id, so two cards may legitimately carry the
+   * same title. Those entries would be indistinguishable in the list, so they
+   * get their column shown alongside; unique titles stay uncluttered.
+   */
+  const repeatedTitles = new Set(
+    boardBookmarks
+      .map((b) => b.title)
+      .filter((title, i, all) => all.indexOf(title) !== i)
+  )
 
   return (
     <aside
@@ -101,17 +114,29 @@ export default function Sidebar({ board, bookmarks, open, onClose }: SidebarProp
               {boardBookmarks.length === 0 ? (
                 <p className="text-muted">Nothing bookmarked yet.</p>
               ) : (
-                boardBookmarks.map((b) => (
-                  <Link
-                    key={b.cardId}
-                    href={`/boards/${b.boardId}?highlight=${b.cardId}`}
-                    onClick={onClose}
-                    className="flex items-center gap-1.5 truncate rounded px-2 py-1.5 text-muted hover:bg-paper hover:text-brand transition-colors"
-                  >
-                    <Bookmark size={10} className="shrink-0 text-muted" />
-                    <span className="truncate">{b.title}</span>
-                  </Link>
-                ))
+                boardBookmarks.map((b) => {
+                  const where = repeatedTitles.has(b.title)
+                    ? cardIndex?.get(b.cardId)?.location
+                    : undefined
+
+                  return (
+                    <Link
+                      key={b.cardId}
+                      href={`/boards/${b.boardId}?highlight=${b.cardId}`}
+                      onClick={onClose}
+                      title={where ? `${b.title} \u2014 ${where}` : b.title}
+                      className="flex items-center gap-1.5 truncate rounded px-2 py-1.5 text-muted hover:bg-paper hover:text-brand transition-colors"
+                    >
+                      <Bookmark size={10} className="shrink-0 text-muted" />
+                      <span className="truncate">{b.title}</span>
+                      {where && (
+                        <span className="shrink-0 max-w-[45%] truncate text-[10px] text-muted/70">
+                          {where}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })
               )}
             </div>
           )}
