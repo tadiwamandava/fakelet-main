@@ -56,6 +56,43 @@ type CardParent =
   | { kind: 'group'; groupId: number; columnId: null }
   | { kind: 'column'; groupId: null; columnId: number }
 
+// ── Which board does this belong to? ─────────────────────────────────────────
+
+/**
+ * Nothing below a board carries a board id of its own, so telling the board's
+ * viewers that something changed means walking back up the chain.
+ *
+ * Callers must resolve this BEFORE a destructive write — once the row is gone
+ * there is nothing left to walk. Each returns null when the row no longer
+ * exists, which the broadcaster treats as "nobody to notify".
+ */
+export async function boardIdForColumn(id: number | string): Promise<number | null> {
+  const row = await db.from('columns').where('id', id).select('board_id').first()
+  return row?.board_id ?? null
+}
+
+export async function boardIdForGroup(id: number | string): Promise<number | null> {
+  const row = await db
+    .from('groups')
+    .join('columns', 'columns.id', 'groups.column_id')
+    .where('groups.id', id)
+    .select('columns.board_id as board_id')
+    .first()
+  return row?.board_id ?? null
+}
+
+/** A card reaches its board through its group, or directly through its column. */
+export async function boardIdForCard(id: number | string): Promise<number | null> {
+  const row = await db
+    .from('cards')
+    .leftJoin('groups', 'groups.id', 'cards.group_id')
+    .leftJoin('columns', 'columns.id', db.raw('coalesce(cards.column_id, groups.column_id)'))
+    .where('cards.id', id)
+    .select('columns.board_id as board_id')
+    .first()
+  return row?.board_id ?? null
+}
+
 /** The two foreign keys a parent implies, without the discriminant. */
 function parentKeys(parent: CardParent) {
   return { groupId: parent.groupId, columnId: parent.columnId }

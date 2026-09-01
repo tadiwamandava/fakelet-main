@@ -59,6 +59,7 @@ export default defineConfig({
     () => import('@adonisjs/core/providers/edge_provider'),
     () => import('@adonisjs/vite/vite_provider'),
     () => import('@adonisjs/inertia/inertia_provider'),
+    () => import('@adonisjs/transmit/transmit_provider')
   ],
 
   /*
@@ -75,6 +76,7 @@ export default defineConfig({
     () => import('#start/validator'),
     () => import('#start/limiter'),
     () => import('#start/view'),
+    () => import('#start/transmit'),
   ],
 
   /*

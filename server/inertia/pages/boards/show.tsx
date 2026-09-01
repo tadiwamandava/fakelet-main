@@ -11,6 +11,7 @@ import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
 import ConflictBanner from '~/components/ui/ConflictBanner'
+import { useBoardChannel } from '~/lib/realtime'
 
 type BoardData = {
   id: number
@@ -52,6 +53,12 @@ export default function BoardShow({ board, highlight }: ShowProps) {
 
   const highlightId = highlight
   const activeHighlight = useRef<HTMLElement | null>(null)
+
+  /**
+   * Refresh the board when another admin changes it. Admins only — a student
+   * on a shared link is not authorised on the channel.
+   */
+  useBoardChannel(boardId, isAdmin)
 
   /**
    * Every card on the board, by id, with the title and the column (or column

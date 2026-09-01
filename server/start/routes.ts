@@ -14,6 +14,7 @@
 
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
+import transmit from '@adonisjs/transmit/services/main'
 import { controllers } from '#generated/controllers'
 import { authThrottle } from '#start/limiter'
 
@@ -31,6 +32,17 @@ const AdminPagesController = () => import('#controllers/admin_pages_controller')
 
 // Serve uploaded files (outside /api/v1 so img src="/uploads/..." works)
 router.get('/uploads/:filename', [BoardsController, 'serveUpload'])
+
+/**
+ * Live board updates: GET __transmit/events (the SSE stream) plus the subscribe
+ * and unsubscribe endpoints. Who may listen is decided in #start/transmit.
+ *
+ * These sit outside /api/v1, so CSRF applies to the two POST routes and the
+ * client sends X-XSRF-TOKEN with them. That is correct and must stay: the
+ * exemption list in config/shield.ts is only for token-authenticated routes,
+ * and subscribing authorises off the session cookie. See #helpers/api_surface.
+ */
+transmit.registerRoutes()
 
 /*
 |--------------------------------------------------------------------------

@@ -66,7 +66,7 @@
   },
   "dependencies": {
     "@adonisjs/auth": "^10.1.0",
-    "@adonisjs/core": "^7.3.3",
+    "@adonisjs/core": "^7.5.0",
     "@adonisjs/cors": "^3.0.0",
     "@adonisjs/inertia": "^5.0.0",
     "@adonisjs/limiter": "^3.0.1",
@@ -74,6 +74,8 @@
     "@adonisjs/session": "^8.1.0",
     "@adonisjs/shield": "^9.0.0",
     "@adonisjs/static": "^2.0.1",
+    "@adonisjs/transmit": "^3.0.2",
+    "@adonisjs/transmit-client": "^1.1.0",
     "@adonisjs/vite": "^6.0.0",
     "@inertiajs/react": "^3.6.1",
     "@japa/api-client": "^3.2.1",

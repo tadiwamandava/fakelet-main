@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { router } from '@inertiajs/react'
+import { clientUid } from '~/lib/realtime'
 
 type Method = 'post' | 'put' | 'delete'
 
@@ -59,6 +60,12 @@ export function useVisitMutation<TVars, TResult = unknown>(
       preserveState: true,
       preserveScroll: true,
       forceFormData,
+      /**
+       * Identifies this tab so the server can leave it out of the change
+       * broadcast — the redirect below already returns fresh props, so being
+       * told about your own write would only cost a redundant reload.
+       */
+      headers: { 'X-Hive-Client': clientUid() },
       onSuccess: (page: any) => {
         /**
          * A refused write still redirects, so Inertia reports success — the

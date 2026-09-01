@@ -5,6 +5,7 @@ import Card from '#models/card'
 import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
 import * as writes from '#services/board_writes'
+import { broadcastBoardChanged } from '#services/board_broadcast'
 import { mirrorRemoteImage } from '#services/remote_file_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
 import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
@@ -173,21 +174,28 @@ export default class BoardPagesController {
     const outcome = await guarded(ctx, () =>
       writes.createColumn(Number(boardId), { title }, auth.user?.id ?? null)
     )
-    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
+    if (outcome.ok) {
+      session.flash('created', { id: (outcome.result as { id: number }).id })
+      broadcastBoardChanged(ctx, Number(boardId))
+    }
     return response.redirect().back()
   }
 
   async updateColumn(ctx: HttpContext) {
     const { params, request, auth, response } = ctx
-    await guarded(ctx, () =>
+    const outcome = await guarded(ctx, () =>
       writes.renameColumn(params.id, request.input('title'), auth.user?.id ?? null)
     )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForColumn(params.id))
     return response.redirect().back()
   }
 
   async destroyColumn(ctx: HttpContext) {
     const { params, auth, response } = ctx
-    await guarded(ctx, () => writes.deleteColumn(params.id, auth.user?.id ?? null))
+    // Resolved first: after the delete there is no row left to walk up from.
+    const boardId = await writes.boardIdForColumn(params.id)
+    const outcome = await guarded(ctx, () => writes.deleteColumn(params.id, auth.user?.id ?? null))
+    if (outcome.ok) broadcastBoardChanged(ctx, boardId)
     return response.redirect().back()
   }
 
@@ -200,21 +208,27 @@ export default class BoardPagesController {
     const outcome = await guarded(ctx, () =>
       writes.createGroup(Number(columnId), { title }, auth.user?.id ?? null)
     )
-    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
+    if (outcome.ok) {
+      session.flash('created', { id: (outcome.result as { id: number }).id })
+      broadcastBoardChanged(ctx, await writes.boardIdForColumn(Number(columnId)))
+    }
     return response.redirect().back()
   }
 
   async updateGroup(ctx: HttpContext) {
     const { params, request, auth, response } = ctx
-    await guarded(ctx, () =>
+    const outcome = await guarded(ctx, () =>
       writes.renameGroup(params.id, request.input('title'), auth.user?.id ?? null)
     )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForGroup(params.id))
     return response.redirect().back()
   }
 
   async destroyGroup(ctx: HttpContext) {
     const { params, auth, response } = ctx
-    await guarded(ctx, () => writes.deleteGroup(params.id, auth.user?.id ?? null))
+    const boardId = await writes.boardIdForGroup(params.id)
+    const outcome = await guarded(ctx, () => writes.deleteGroup(params.id, auth.user?.id ?? null))
+    if (outcome.ok) broadcastBoardChanged(ctx, boardId)
     return response.redirect().back()
   }
 
@@ -236,7 +250,11 @@ export default class BoardPagesController {
     const outcome = await guarded(ctx, () => writes.createCard(attrs, auth.user?.id ?? null))
 
     // The board page opens the editor on the card it just created.
-    if (outcome.ok) session.flash('created', { id: (outcome.result as { id: number }).id })
+    if (outcome.ok) {
+      const card = outcome.result as { id: number }
+      session.flash('created', { id: card.id })
+      broadcastBoardChanged(ctx, await writes.boardIdForCard(card.id))
+    }
     return response.redirect().back()
   }
 
@@ -255,7 +273,9 @@ export default class BoardPagesController {
      */
     const submittedImage = request.input('imageUrl')
     const resolvedImage =
-      typeof submittedImage === 'string' && submittedImage && !submittedImage.startsWith('/uploads/')
+      typeof submittedImage === 'string' &&
+      submittedImage &&
+      !submittedImage.startsWith('/uploads/')
         ? ((await mirrorRemoteImage(submittedImage)) ?? submittedImage)
         : submittedImage
 
@@ -267,15 +287,20 @@ export default class BoardPagesController {
     }
 
     const expected = Number(request.input('version'))
-    await guarded(ctx, () =>
+    const outcome = await guarded(ctx, () =>
       writes.updateCard(params.id, attrs, auth.user?.id ?? null, expected || null)
     )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForCard(params.id))
     return response.redirect().back()
   }
 
   async destroyCard(ctx: HttpContext) {
     const { params, auth, response } = ctx
-    await guarded(ctx, () => writes.softDeleteCard(params.id, auth.user?.id ?? null))
+    // A card delete is soft, so the row survives and can still be walked up.
+    const outcome = await guarded(ctx, () =>
+      writes.softDeleteCard(params.id, auth.user?.id ?? null)
+    )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForCard(params.id))
     return response.redirect().back()
   }
 
@@ -283,12 +308,15 @@ export default class BoardPagesController {
     const { request, auth, response } = ctx
     const ids = request.input('ids')
     const clean = Array.isArray(ids) ? ids.filter((id): id is number => Number.isInteger(id)) : []
+    if (!clean.length) return response.redirect().back()
 
-    if (clean.length) await guarded(ctx, () => writes.reorderCards(clean, auth.user?.id ?? null))
+    const outcome = await guarded(ctx, () => writes.reorderCards(clean, auth.user?.id ?? null))
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForCard(clean[0]))
     return response.redirect().back()
   }
 
-  async uploadCardImage({ params, request, response, session }: HttpContext) {
+  async uploadCardImage(ctx: HttpContext) {
+    const { params, request, response, session } = ctx
     await Card.findOrFail(params.id)
 
     const imageUrl = await storeImage(request)
@@ -299,12 +327,14 @@ export default class BoardPagesController {
 
     // The card editor previews the stored file straight away.
     session.flash('created', { imageUrl })
+    broadcastBoardChanged(ctx, await writes.boardIdForCard(params.id))
     return response.redirect().back()
   }
 
   // ── Board metadata ─────────────────────────────────────────────────────────
 
-  async updateBoard({ params, request, response }: HttpContext) {
+  async updateBoard(ctx: HttpContext) {
+    const { params, request, response } = ctx
     const board = await Board.findOrFail(params.id)
     const { title, imageUrl, description, references } = request.only([
       'title',
@@ -325,10 +355,12 @@ export default class BoardPagesController {
     }
 
     await board.save()
+    broadcastBoardChanged(ctx, board.id)
     return response.redirect().back()
   }
 
-  async uploadBoardImage({ params, request, response, session }: HttpContext) {
+  async uploadBoardImage(ctx: HttpContext) {
+    const { params, request, response, session } = ctx
     const board = await Board.findOrFail(params.id)
 
     const imageUrl = await storeImage(request)
@@ -341,6 +373,7 @@ export default class BoardPagesController {
     await board.save()
 
     session.flash('created', { imageUrl })
+    broadcastBoardChanged(ctx, board.id)
     return response.redirect().back()
   }
 
@@ -353,7 +386,8 @@ export default class BoardPagesController {
    * timestamp to avoid collisions, while the original name is kept separately
    * for display and download.
    */
-  async storeCardAttachment({ params, request, auth, response, session }: HttpContext) {
+  async storeCardAttachment(ctx: HttpContext) {
+    const { params, request, auth, response, session } = ctx
     const card = await Card.findOrFail(params.id)
 
     const file = request.file('file', {
@@ -394,6 +428,7 @@ export default class BoardPagesController {
     })
 
     session.flash('created', { id: attachment.id })
+    broadcastBoardChanged(ctx, await writes.boardIdForCard(card.id))
     return response.redirect().back()
   }
 
@@ -403,9 +438,13 @@ export default class BoardPagesController {
    * Removes the database row. The file itself is left on disk: another card
    * could reference the same upload, and orphaned files are harmless.
    */
-  async destroyCardAttachment({ params, response }: HttpContext) {
+  async destroyCardAttachment(ctx: HttpContext) {
+    const { params, response } = ctx
     const attachment = await CardAttachment.findOrFail(params.id)
+    // Resolved before the delete: the row is the only link back to the board.
+    const boardId = await writes.boardIdForCard(attachment.cardId)
     await attachment.delete()
+    broadcastBoardChanged(ctx, boardId)
     return response.redirect().back()
   }
 }
