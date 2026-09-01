@@ -95,6 +95,45 @@ They must not overlap: a CSRF-exempt route that accepted cookie auth would be a
 CSRF hole. Uploads are served with `Content-Disposition: attachment` unless they
 are images, and remote image fetches refuse private and link-local addresses.
 
+## Concurrent editing
+
+Several admins can hold the same board open, so every write that could race
+another goes through `app/services/board_writes.ts`, shared by the pages and
+`/api/v1`:
+
+- **Positions are assigned by the database**, never sent by the client — two
+  people adding at once would otherwise claim the same slot, and tied rows come
+  back in an arbitrary order, which reads as things moving or vanishing.
+- **Card edits carry the version they were loaded at** and are refused if the
+  row has moved on, instead of overwriting the other person's save.
+- **Parents are checked inside the writing transaction**, so a group deleted a
+  moment ago fails cleanly rather than raising a foreign-key error or leaving a
+  card attached to nothing.
+- **Deletes do not destroy other people's work.** Removing a group moves its
+  cards up into the column; removing a column archives them.
+
+A refused write comes back as a message on the board, and the card editor stays
+open with what you typed still in it.
+
+## Live board updates
+
+Admins viewing a board are told over Server-Sent Events when another admin
+changes it, and the board refreshes itself — so a column someone else deleted
+does not linger on your screen. The server broadcasts only "board N changed";
+the client re-fetches through the page it is already on. Students on a shared
+link are not subscribed: they read boards without an account, and one open
+connection per student per board buys them nothing.
+
+Two constraints come with it:
+
+- **The reverse proxy must not buffer or compress `text/event-stream`.** On
+  nginx, for the `__transmit` location: `proxy_buffering off; gzip off;
+  proxy_http_version 1.1; proxy_read_timeout 1h;`.
+- **One process only.** `config/transmit.ts` broadcasts in-process. Under PM2
+  cluster mode or behind more than one instance, an admin connected to one
+  instance never hears about a write served by another — silently. Adding
+  instances means adding a Redis transport in the same change.
+
 ## Deployment
 
 ```bash
@@ -103,7 +142,8 @@ cd build && node bin/server.js     # start:prod runs migrations first
 ```
 
 One process serves the app, the API and uploads. Point `UPLOADS_DIR` at
-persistent storage and put a TLS-terminating reverse proxy in front.
+persistent storage and put a TLS-terminating reverse proxy in front (see the
+SSE constraints above).
 
 ## Repository
 
