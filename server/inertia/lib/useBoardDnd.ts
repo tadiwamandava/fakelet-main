@@ -296,16 +296,20 @@ export function useBoardDnd({
   /** What is following the pointer, looked up in the rendered board. */
   const overlay = useMemo(() => {
     if (!active) return null
-    const label =
-      active.kind === 'column'
-        ? view.find((c) => c.id === active.id)?.title
-        : active.kind === 'group'
-          ? view.flatMap((c) => c.groups).find((g) => g.id === active.id)?.title
-          : view
-              .flatMap((c) => [...(c.cards ?? []), ...c.groups.flatMap((g) => g.cards)])
-              .find((c) => c.id === active.id)?.title
-    if (!label) return null
-    return { label, kind: active.kind }
+    if (active.kind === 'column') {
+      const title = view.find((c) => c.id === active.id)?.title
+      return title ? { label: title, kind: active.kind } : null
+    }
+    if (active.kind === 'group') {
+      const title = view.flatMap((c) => c.groups).find((g) => g.id === active.id)?.title
+      return title ? { label: title, kind: active.kind } : null
+    }
+
+    // A card may have no title at all, so the overlay needs something to show.
+    const card = view
+      .flatMap((c) => [...(c.cards ?? []), ...c.groups.flatMap((g) => g.cards)])
+      .find((c) => c.id === active.id)
+    return card ? { label: card.title || 'Untitled card', kind: active.kind } : null
   }, [active, view])
 
   /**
@@ -353,7 +357,7 @@ function describe(raw: unknown, columns: ColumnData[]): string {
   const card = columns
     .flatMap((c) => [...(c.cards ?? []), ...c.groups.flatMap((g) => g.cards)])
     .find((c) => c.id === parsed.id)
-  return card?.title ?? 'a card'
+  return card?.title || 'an untitled card'
 }
 
 export { columnCards, groupCards }

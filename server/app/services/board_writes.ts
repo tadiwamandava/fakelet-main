@@ -93,6 +93,19 @@ export async function boardIdForCard(id: number | string): Promise<number | null
   return row?.board_id ?? null
 }
 
+/**
+ * A card's title, which is optional.
+ *
+ * An image, a video or a link can be the whole point of a card, so a card may
+ * legitimately have no title. Absent and blank are stored the same way — as an
+ * empty string — rather than as NULL: nothing in the app needs to tell "never
+ * given" from "deliberately cleared", and keeping the column NOT NULL saves
+ * every reader from a null check it would otherwise have to repeat.
+ */
+function cardTitle(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 /** The two foreign keys a parent implies, without the discriminant. */
 function parentKeys(parent: CardParent) {
   return { groupId: parent.groupId, columnId: parent.columnId }
@@ -160,7 +173,14 @@ export function createCard(attrs: Record<string, any>, userId: number | null) {
     const { position: _ignored, groupId: _g, columnId: _c, version: _v, ...rest } = attrs
 
     return Card.create(
-      { ...rest, ...parentKeys(parent), position, version: 1, createdBy: userId },
+      {
+        ...rest,
+        title: cardTitle(attrs.title),
+        ...parentKeys(parent),
+        position,
+        version: 1,
+        createdBy: userId,
+      },
       { client: trx }
     )
   })
@@ -199,6 +219,7 @@ export function updateCard(
     }
 
     const { version: _v, position: _p, groupId, columnId, ...rest } = attrs
+    if ('title' in rest) rest.title = cardTitle(rest.title)
 
     /**
      * A move is only applied when the form actually asked for one. The editor

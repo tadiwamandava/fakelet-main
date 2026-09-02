@@ -29,7 +29,7 @@ interface CardEditorProps {
 }
 
 const FIELDS: FieldDef[] = [
-  { key: 'title', label: 'Title' },
+  { key: 'title', label: 'Title (optional)' },
   { key: 'description', label: 'Description', textarea: true },
   { key: 'linkUrl', label: 'Link URL' },
   { key: 'linkTitle', label: 'Link label' },
@@ -127,6 +127,23 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
       imageUrl !== (card.imageUrl || '') ||
       youtubeUrl !== (card.youtubeUrl || '') ||
       (moveKey ?? '') !== (currentMoveKey ?? ''))
+
+  /**
+   * A card needs some content, but not specifically a title.
+   *
+   * Titles are optional — an image, a video or a link can be the whole point
+   * of a card — so Save is gated on the card carrying anything at all rather
+   * than on the title alone. Without that it would happily save a card with
+   * nothing in it, which renders as an empty box nobody can identify or find.
+   */
+  const hasContent = !!(
+    form.title?.trim() ||
+    form.description?.trim() ||
+    form.linkUrl?.trim() ||
+    (mediaMode === 'image' && imageUrl.trim()) ||
+    (mediaMode === 'youtube' && youtubeUrl.trim()) ||
+    card.attachments?.length
+  )
 
   function handleSave() {
     const target =
@@ -360,7 +377,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !form.title?.trim()}
+            disabled={saving || !hasContent}
             className="text-sm bg-brand text-white px-4 py-2 rounded-lg disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}

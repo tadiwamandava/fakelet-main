@@ -156,7 +156,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
       {card.imageUrl && (
         <img
           src={resolveImageUrl(card.imageUrl)}
-          alt={card.title}
+          alt={card.title || 'Card image'}
           loading="lazy"
           decoding="async"
           className="w-full h-auto border-b border-line"
@@ -192,7 +192,7 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
               {...sortable.attributes}
               {...sortable.listeners}
               disabled={!draggable}
-              aria-label={`Reorder ${card.title}`}
+              aria-label={`Reorder ${card.title || 'untitled card'}`}
               title="Drag to reorder, or press space and use the arrow keys"
               className="text-muted hover:text-ink transition-colors disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none -ml-1 p-1"
             >
@@ -219,7 +219,8 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
           </div>
         )}
 
-        <p className="font-semibold text-sm text-ink mb-1">{card.title}</p>
+        {/* Titles are optional — an image or link card may not have one. */}
+        {card.title && <p className="font-semibold text-sm text-ink mb-1">{card.title}</p>}
 
         {card.description && (
           <div className="mb-2">
