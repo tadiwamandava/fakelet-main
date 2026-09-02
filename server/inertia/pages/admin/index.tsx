@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, Check, Copy, KeyRound, Mail, ScrollText, Shield, ShieldMinus, ShieldOff, ShieldPlus, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Check, Copy, KeyRound, LogOut, Mail, ScrollText, Shield, ShieldMinus, ShieldOff, ShieldPlus, Trash2, Users } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import Modal from '~/components/ui/Modal'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -274,6 +274,18 @@ function UsersTab({
   const [deleting, setDeleting] = useState(false)
 
   const [togglingMaster, setTogglingMaster] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+
+  const signOut = {
+    isPending: signingOut,
+    mutate: (id: number) =>
+      router.post(`/admin/users/${id}/sign-out`, {}, {
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => setSigningOut(true),
+        onFinish: () => setSigningOut(false),
+      }),
+  }
 
   const toggleAdmin = {
     isPending: togglingAdmin,
@@ -370,6 +382,23 @@ function UsersTab({
                       className="p-1.5 text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
                     >
                       {u.isAdmin ? <ShieldOff size={15} /> : <Shield size={15} />}
+                    </button>
+                    {/*
+                      Allowed on your own account: signing yourself out
+                      everywhere after losing a device is the case this is for,
+                      and it grants nothing.
+                    */}
+                    <button
+                      onClick={() =>
+                        window.confirm(
+                          `Sign ${u.email} out of every browser session and revoke their API tokens?`
+                        ) && signOut.mutate(u.id)
+                      }
+                      disabled={signOut.isPending}
+                      title="Sign out everywhere"
+                      className="p-1.5 text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                    >
+                      <LogOut size={15} />
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(u.id)}

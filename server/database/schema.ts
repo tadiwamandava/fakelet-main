@@ -230,7 +230,7 @@ export class UserBookmarkSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isAdmin', 'isMasterAdmin', 'password', 'updatedAt', 'username'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isAdmin', 'isMasterAdmin', 'password', 'sessionsValidFrom', 'updatedAt', 'username'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -246,6 +246,8 @@ export class UserSchema extends BaseModel {
   declare isMasterAdmin: boolean
   @column({ serializeAs: null })
   declare password: string
+  @column.dateTime()
+  declare sessionsValidFrom: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()

@@ -36,6 +36,21 @@ export default class AdminController {
     })
   }
 
+  async signOutUser({ params, auth, response }: HttpContext) {
+    return refused(response, async () => {
+      const user = await admin.forceSignOut(auth.getUserOrFail().id, Number(params.id))
+      return response.ok(user.serialize())
+    })
+  }
+
+  async setUserPassword({ params, request, auth, response }: HttpContext) {
+    return refused(response, async () => {
+      const password = String(request.input('password') ?? '')
+      const user = await admin.setPassword(auth.getUserOrFail().id, Number(params.id), password)
+      return response.ok(user.serialize())
+    })
+  }
+
   async revokeInvitation({ params, auth, response }: HttpContext) {
     return refused(response, () =>
       admin

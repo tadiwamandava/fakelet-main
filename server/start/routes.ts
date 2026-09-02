@@ -127,6 +127,8 @@ router
     router.delete('/admin/users/:id', [AdminPagesController, 'destroyUser'])
     router.patch('/admin/users/:id/admin', [AdminPagesController, 'toggleAdmin'])
     router.patch('/admin/users/:id/master', [AdminPagesController, 'toggleMaster'])
+    router.post('/admin/users/:id/sign-out', [AdminPagesController, 'signOutUser'])
+    router.post('/admin/users/:id/password', [AdminPagesController, 'setUserPassword'])
   })
   .use(middleware.admin({ guards: ['web'], master: true }))
 
@@ -174,6 +176,8 @@ router
         router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
         router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
         router.patch('/admin/users/:id/master', [AdminController, 'toggleMaster'])
+        router.post('/admin/users/:id/sign-out', [AdminController, 'signOutUser'])
+        router.post('/admin/users/:id/password', [AdminController, 'setUserPassword'])
       })
       .use(middleware.admin({ guards: ['api'], master: true }))
 

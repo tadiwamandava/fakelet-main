@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import { isApiRequest } from '#helpers/api_surface'
+import { sessionIsStale } from '#helpers/web_session'
 
 /**
  * Silently checks whether the user is logged in, without ever rejecting the
@@ -14,7 +15,19 @@ import { isApiRequest } from '#helpers/api_surface'
  */
 export default class SilentAuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    await ctx.auth.use(isApiRequest(ctx) ? 'api' : 'web').check()
+    const guard = isApiRequest(ctx) ? 'api' : 'web'
+    await ctx.auth.use(guard).check()
+
+    /**
+     * A master can end someone's browser sessions, and this is where that takes
+     * effect. It has to run here rather than in the admin middleware, or a
+     * signed-out session would still be treated as signed in everywhere else —
+     * including on the public board page, which has no auth middleware at all.
+     */
+    if (guard === 'web') {
+      const user = ctx.auth.use('web').user
+      if (user && sessionIsStale(ctx, user)) await ctx.auth.use('web').logout()
+    }
 
     return next()
   }

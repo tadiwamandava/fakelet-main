@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import User from '#models/user'
@@ -189,6 +190,79 @@ export function revokeInvitation(actorId: number, id: number | string) {
       `Revoked the invitation for ${email ?? 'an unknown address'}`
     )
     return invitation
+  })
+}
+
+/**
+ * Ends every session and API token the account holds.
+ *
+ * Two mechanisms, because the surfaces store credentials differently: tokens
+ * are rows and are deleted outright, while browser sessions live in a cookie
+ * and are ended by moving the account's validity mark forward — see
+ * #helpers/web_session.
+ *
+ * Allowed on your own account: signing yourself out everywhere after losing a
+ * device is exactly the case this exists for. It grants nothing and revokes no
+ * access, so the self-guard that protects the access flags does not apply.
+ */
+export function forceSignOut(actorId: number, targetId: number) {
+  return db.transaction(async (trx) => {
+    const user = await User.query({ client: trx }).where('id', targetId).forUpdate().first()
+    if (!user) throw new AdminWriteError('That account no longer exists.')
+
+    user.useTransaction(trx).merge({ sessionsValidFrom: DateTime.now() })
+    await user.save()
+
+    // Counted before deleting, so the log can say how much was actually revoked.
+    const [{ count }] = await trx
+      .from('auth_access_tokens')
+      .where('tokenable_id', user.id)
+      .count('* as count')
+    const tokens = Number(count)
+    await trx.from('auth_access_tokens').where('tokenable_id', user.id).delete()
+
+    await record(
+      trx,
+      await actorFor(trx, actorId),
+      'user.signed_out',
+      user,
+      `Signed ${user.email} out everywhere (${tokens} API token${tokens === 1 ? '' : 's'} revoked)`
+    )
+    return user
+  })
+}
+
+/**
+ * Sets a new password on someone's account.
+ *
+ * Signs them out at the same time, deliberately: a password is usually reset
+ * because the old one is not trusted any more, and leaving live sessions and
+ * tokens behind would defeat the point of changing it.
+ *
+ * The model composes withAuthFinder, so assigning a plain string here is hashed
+ * on save exactly as it is at signup.
+ */
+export function setPassword(actorId: number, targetId: number, password: string) {
+  return db.transaction(async (trx) => {
+    if (password.length < 8) {
+      throw new AdminWriteError('Choose a password of at least 8 characters.')
+    }
+
+    const user = await User.query({ client: trx }).where('id', targetId).forUpdate().first()
+    if (!user) throw new AdminWriteError('That account no longer exists.')
+
+    user.useTransaction(trx).merge({ password, sessionsValidFrom: DateTime.now() })
+    await user.save()
+    await trx.from('auth_access_tokens').where('tokenable_id', user.id).delete()
+
+    await record(
+      trx,
+      await actorFor(trx, actorId),
+      'user.password_set',
+      user,
+      `Set a new password for ${user.email} and signed them out`
+    )
+    return user
   })
 }
 

@@ -4,6 +4,7 @@ import { loginValidator, resetPasswordValidator, signupValidator } from '#valida
 import { forgotPasswordValidator } from '#validators/user'
 import { findUsableInvitation, redeemInvitation } from '#services/invitation_service'
 import { consumePasswordReset, requestPasswordReset } from '#services/password_reset_service'
+import { stampSession } from '#helpers/web_session'
 
 const DEFAULT_REDIRECT = '/boards'
 
@@ -37,7 +38,8 @@ export default class AuthPagesController {
   /**
    * POST /login
    */
-  async login({ request, auth, response, session }: HttpContext) {
+  async login(ctx: HttpContext) {
+    const { request, auth, response, session } = ctx
     const { email, password } = await request.validateUsing(loginValidator)
 
     const redirectTo = safeRedirect(request.input('redirect'))
@@ -45,6 +47,8 @@ export default class AuthPagesController {
     try {
       const user = await User.verifyCredentials(email, password)
       await auth.use('web').login(user)
+      // Records when this session began, so it can be invalidated later.
+      stampSession(ctx)
     } catch {
       session.flashAll()
       session.flash('inputErrorsBag', { email: 'Those credentials do not match our records.' })
@@ -74,7 +78,8 @@ export default class AuthPagesController {
   /**
    * POST /signup
    */
-  async signup({ request, auth, response, session }: HttpContext) {
+  async signup(ctx: HttpContext) {
+    const { request, auth, response, session } = ctx
     const { password } = await request.validateUsing(signupValidator)
 
     const invitation = await findUsableInvitation(request.input('invitationKey'))
@@ -85,6 +90,7 @@ export default class AuthPagesController {
 
     const user = await redeemInvitation(invitation, password)
     await auth.use('web').login(user)
+    stampSession(ctx)
 
     return response.redirect(DEFAULT_REDIRECT)
   }

@@ -143,6 +143,32 @@ export default class AdminPagesController {
   }
 
   /**
+   * POST /admin/users/:id/sign-out — master only.
+   */
+  async signOutUser(ctx: HttpContext) {
+    const { params, auth, response, session } = ctx
+    const ok = await guarded(ctx, () =>
+      admin.forceSignOut(auth.getUserOrFail().id, Number(params.id))
+    )
+    if (ok) session.flash('notice', 'Signed that account out of every session and API token.')
+    return response.redirect().back()
+  }
+
+  /**
+   * POST /admin/users/:id/password — master only.
+   */
+  async setUserPassword(ctx: HttpContext) {
+    const { params, request, auth, response, session } = ctx
+    const password = String(request.input('password') ?? '')
+
+    const ok = await guarded(ctx, () =>
+      admin.setPassword(auth.getUserOrFail().id, Number(params.id), password)
+    )
+    if (ok) session.flash('notice', 'Password set. That account has been signed out everywhere.')
+    return response.redirect().back()
+  }
+
+  /**
    * PATCH /admin/users/:id/master — master only.
    */
   async toggleMaster(ctx: HttpContext) {
