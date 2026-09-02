@@ -42,7 +42,12 @@ export function useAuth<T>(selector?: (state: AuthState) => T): AuthState | T {
     user: auth,
     isAdmin: !!auth?.isAdmin,
     ready: true,
-    logout: () => router.post('/logout'),
+    /**
+     * Tells the server where the sign-out happened, so signing out on a shared
+     * board leaves you on it as a student sees it. The server decides whether
+     * that page is actually public — anywhere else still lands on /login.
+     */
+    logout: () => router.post('/logout', { redirect: window.location.pathname }),
   }
 
   return selector ? selector(state) : state

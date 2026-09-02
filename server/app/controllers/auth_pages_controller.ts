@@ -21,6 +21,23 @@ function safeRedirect(target: unknown): string {
   return target
 }
 
+/**
+ * Where to land after signing out.
+ *
+ * A shared board is the one page that works without an account, so signing out
+ * while looking at one drops you into exactly what a student sees rather than
+ * bouncing you to a sign-in form — which is the quickest way to check how a
+ * board reads before sending the link out.
+ *
+ * Anywhere else needs an account to render at all, so it still goes to /login:
+ * landing on a page that would immediately redirect would just look broken.
+ * The pattern deliberately matches only /boards/<id>, not the board list and
+ * not /boards/<id>/archive, both of which are admin-only.
+ */
+function publicLanding(target: unknown): string {
+  return typeof target === 'string' && /^\/boards\/\d+$/.test(target) ? target : '/login'
+}
+
 export default class AuthPagesController {
   /**
    * GET /login
@@ -127,8 +144,9 @@ export default class AuthPagesController {
   /**
    * POST /logout
    */
-  async logout({ auth, response }: HttpContext) {
+  async logout({ request, auth, response }: HttpContext) {
+    const landing = publicLanding(request.input('redirect'))
     await auth.use('web').logout()
-    return response.redirect('/login')
+    return response.redirect(landing)
   }
 }
