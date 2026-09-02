@@ -6,7 +6,7 @@ import type { ColumnData } from '~/components/Column'
 import Sidebar from '~/components/Sidebar'
 import Modal from '~/components/ui/Modal'
 import BoardSettingsModal from '~/components/BoardSettingsModal'
-import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Share2, Trash2 } from 'lucide-react'
+import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Recycle, Search, Share2 } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -236,7 +236,12 @@ export default function BoardShow({ board, highlight }: ShowProps) {
             <span className="hidden sm:inline">{linkCopied ? 'Copied' : 'Share'}</span>
           </button>
 
-          {/* Restoring what someone else deleted is a master's call. */}
+          {/*
+            Restoring what someone else deleted is a master's call.
+            Deliberately not a trash can: that icon means "delete this" on every
+            card, column and group, and would read as another delete button
+            rather than the place deleted things go.
+          */}
           {isMasterAdmin && (
             <Link
               href={`/boards/${boardId}/archive`}
@@ -244,7 +249,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
               title="Recycle bin"
               className="text-muted hover:text-ink bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm border border-line rounded-lg p-2 hover:bg-white/85 transition-colors"
             >
-              <Trash2 size={14} />
+              <Recycle size={16} />
             </Link>
           )}
 
