@@ -88,10 +88,13 @@ router
     router.post('/boards/:id/image', [BoardPagesController, 'uploadBoardImage'])
 
     router.post('/columns', [BoardPagesController, 'storeColumn'])
+    // Before /columns/:id so "reorder" is not read as an id.
+    router.post('/columns/reorder', [BoardPagesController, 'reorderColumns'])
     router.put('/columns/:id', [BoardPagesController, 'updateColumn'])
     router.delete('/columns/:id', [BoardPagesController, 'destroyColumn'])
 
     router.post('/groups', [BoardPagesController, 'storeGroup'])
+    router.post('/groups/reorder', [BoardPagesController, 'reorderGroups'])
     router.put('/groups/:id', [BoardPagesController, 'updateGroup'])
     router.delete('/groups/:id', [BoardPagesController, 'destroyGroup'])
 

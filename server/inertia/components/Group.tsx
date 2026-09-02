@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
+import { useDndContext, useDroppable } from '@dnd-kit/core'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { ChevronDown, ChevronRight, GripVertical, Pencil, Trash2 } from 'lucide-react'
 import Card from './Card'
 import InlineForm from '~/components/ui/InlineForm'
 import type { CardMutations, MoveTarget } from './Card'
 import type { GroupData, GroupMutations } from './Column'
+import { acceptsDrag, cardId, groupCards, groupId as groupSortId, parseId } from '~/lib/boardDnd'
 
 interface GroupProps {
   group: GroupData
@@ -14,12 +18,29 @@ interface GroupProps {
   groupM: GroupMutations
   moveTargets?: MoveTarget[]
   highlightId?: number | null
+  draggable?: boolean
 }
 
-export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM, moveTargets, highlightId }: GroupProps) {
+export default function Group({ group, bookmarks, onToggleBookmark, editMode, cardM, groupM, moveTargets, highlightId, draggable = false }: GroupProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [newCardId, setNewCardId] = useState<number | null>(null)
+
+  /**
+   * A group plays two parts in a drag: it is an item among its column's groups,
+   * and a container cards can be dropped into. Those need separate ids, or
+   * dropping a card onto a group would be indistinguishable from moving the
+   * group itself.
+   */
+  const activeKind = parseId(useDndContext().active?.id as string)?.kind
+  const sortable = useSortable({
+    id: groupSortId(group.id),
+    disabled: { draggable: !draggable, droppable: !acceptsDrag(activeKind, 'group') },
+  })
+  const dropzone = useDroppable({
+    id: groupCards(group.id),
+    disabled: !acceptsDrag(activeKind, 'cards-in-group'),
+  })
 
   // Expand automatically when a bookmarked card in this group is being targeted
   useEffect(() => {
@@ -35,17 +56,26 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
     )
   }
 
-  function moveCard(index: number, dir: -1 | 1) {
-    const target = index + dir
-    if (target < 0 || target >= group.cards.length) return
-    const ids = group.cards.map((c) => c.id)
-    ;[ids[index], ids[target]] = [ids[target], ids[index]]
-    cardM.reorderCards.mutate(ids)
-  }
-
   return (
-    <div className="mb-4">
+    <div
+      ref={sortable.setNodeRef}
+      style={{ transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }}
+      className={`mb-4 ${sortable.isDragging ? 'opacity-40' : ''}`}
+    >
       <div className="flex items-center gap-1 mb-2 pb-1 border-b border-line">
+        {editMode && (
+          <button
+            ref={sortable.setActivatorNodeRef}
+            {...sortable.attributes}
+            {...sortable.listeners}
+            disabled={!draggable}
+            aria-label={`Reorder group ${group.title}`}
+            title="Drag to reorder, or press space and use the arrow keys"
+            className="text-muted hover:text-ink disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none -ml-1 p-0.5"
+          >
+            <GripVertical size={12} />
+          </button>
+        )}
         {editingTitle ? (
           <InlineForm
             initialValue={group.title}
@@ -96,8 +126,17 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
       </div>
 
       {!collapsed && (
-        <div className="flex flex-col gap-2">
-          {group.cards.map((card, i) => (
+        <div
+          ref={dropzone.setNodeRef}
+          className={`flex flex-col gap-2 rounded-lg transition-colors ${
+            dropzone.isOver ? 'bg-brand/5 outline-2 outline-dashed outline-brand/30' : ''
+          }`}
+        >
+          <SortableContext
+            items={group.cards.map((c) => cardId(c.id))}
+            strategy={verticalListSortingStrategy}
+          >
+          {group.cards.map((card) => (
             <Card
               key={card.id}
               card={card}
@@ -107,12 +146,12 @@ export default function Group({ group, bookmarks, onToggleBookmark, editMode, ca
               cardM={cardM}
               autoEdit={card.id === newCardId}
               onAutoEditDone={() => setNewCardId(null)}
-              onMoveUp={i > 0 ? () => moveCard(i, -1) : undefined}
-              onMoveDown={i < group.cards.length - 1 ? () => moveCard(i, 1) : undefined}
               moveTargets={moveTargets}
               currentMoveKey={`group-${group.id}`}
+              draggable={draggable}
             />
           ))}
+          </SortableContext>
 
           {group.cards.length === 0 && !editMode && (
             <p className="text-xs text-muted text-center py-3 border border-dashed border-line rounded">

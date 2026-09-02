@@ -48,11 +48,14 @@ export function useCardMutations(_boardId: number) {
       method: 'delete',
       url: `/cards/${id}`,
     })),
-    reorderCards: useVisitMutation<number[]>((ids) => ({
-      method: 'post',
-      url: '/cards/reorder',
-      data: { ids },
-    })),
+    /**
+     * One container's full contents after a drop. Sending the parent alongside
+     * the order means a drag into another group or column is the same request
+     * as a reorder in place.
+     */
+    reorderCards: useVisitMutation<{ groupId?: number; columnId?: number; ids: number[] }>(
+      (data) => ({ method: 'post', url: '/cards/reorder', data })
+    ),
     uploadImage: useUploadCardImage(_boardId),
     uploadAttachment: useUploadCardAttachment(),
     deleteAttachment: useDeleteCardAttachment(),
@@ -92,6 +95,11 @@ export function useColumnMutations(_boardId: number) {
       method: 'delete',
       url: `/columns/${id}`,
     })),
+    reorderColumns: useVisitMutation<{ boardId: number; ids: number[] }>((data) => ({
+      method: 'post',
+      url: '/columns/reorder',
+      data,
+    })),
   }
 }
 
@@ -111,6 +119,11 @@ export function useGroupMutations(_boardId: number) {
     deleteGroup: useVisitMutation<number>((id) => ({
       method: 'delete',
       url: `/groups/${id}`,
+    })),
+    reorderGroups: useVisitMutation<{ columnId: number; ids: number[] }>((data) => ({
+      method: 'post',
+      url: '/groups/reorder',
+      data,
     })),
   }
 }

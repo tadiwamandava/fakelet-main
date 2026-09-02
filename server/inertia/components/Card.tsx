@@ -1,7 +1,11 @@
 import { useRef, useState } from 'react'
-import { Bookmark, ChevronDown, ChevronUp, ExternalLink, Paperclip, Pencil, Trash2 } from 'lucide-react'
+import { useDndContext } from '@dnd-kit/core'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { Bookmark, ExternalLink, GripVertical, Paperclip, Pencil, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
 import CardEditor from './CardEditor'
+import { acceptsDrag, cardId, parseId } from '~/lib/boardDnd'
 import { resolveImageUrl } from '~/utils/imageUrl'
 
 export type CardAttachment = {
@@ -57,7 +61,6 @@ export interface CardMutations {
   createCard: Mutation<CardCreateInput, { id: number }>
   updateCard: Mutation<CardUpdateInput>
   deleteCard: Mutation<number>
-  reorderCards: Mutation<number[]>
   uploadImage: Mutation<{ cardId: number; file: File }, { imageUrl: string }>
   uploadAttachment: Mutation<{ cardId: number; file: File }, { id: number }>
   deleteAttachment: Mutation<number>
@@ -71,10 +74,10 @@ interface CardProps {
   cardM?: CardMutations
   autoEdit?: boolean
   onAutoEditDone?: () => void
-  onMoveUp?: () => void
-  onMoveDown?: () => void
   moveTargets?: MoveTarget[]
   currentMoveKey?: string
+  /** Whether this card can currently be picked up (edit mode, no active search). */
+  draggable?: boolean
 }
 
 function formatBytes(bytes: number): string {
@@ -100,8 +103,18 @@ function getYouTubeId(url?: string | null): string | null {
   return match ? match[1] : null
 }
 
-export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone, onMoveUp, onMoveDown, moveTargets, currentMoveKey }: CardProps) {
+export default function Card({ card, bookmarked, onToggleBookmark, editMode = false, cardM, autoEdit = false, onAutoEditDone, moveTargets, currentMoveKey, draggable = false }: CardProps) {
   const ytId = getYouTubeId(card.youtubeUrl)
+  /**
+   * Disabled outside edit mode, and while a search is filtering the board —
+   * dropping into a filtered list would compute a position against cards that
+   * are hidden rather than the real contents of the container.
+   */
+  const activeKind = parseId(useDndContext().active?.id as string)?.kind
+  const sortable = useSortable({
+    id: cardId(card.id),
+    disabled: { draggable: !draggable, droppable: !acceptsDrag(activeKind, 'card') },
+  })
   const [editing, setEditing] = useState(autoEdit)
   const [descExpanded, setDescExpanded] = useState(false)
   // Track whether a freshly-added card was ever saved, so cancelling it discards it
@@ -120,7 +133,16 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   }
 
   return (
-    <div id={`card-${card.id}`} className="bg-white border border-line rounded-lg overflow-hidden transition-shadow hover:shadow-sm">
+    <div
+      id={`card-${card.id}`}
+      ref={sortable.setNodeRef}
+      style={{ transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }}
+      className={[
+        'bg-white border border-line rounded-lg overflow-hidden transition-shadow hover:shadow-sm',
+        // The original stays in place as a gap; the DragOverlay shows the card.
+        sortable.isDragging ? 'opacity-40' : '',
+      ].join(' ')}
+    >
       {/* Image (if the card has one) */}
       {card.imageUrl && (
         <img
@@ -151,26 +173,22 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
         {/* Reorder / edit / delete — only in edit mode */}
         {editMode && (
           <div className="flex items-center justify-between mb-1">
-            <div className="flex gap-0.5">
-              <button
-                onClick={onMoveUp}
-                disabled={!onMoveUp}
-                aria-label="Move card up"
-                title="Move card up"
-                className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronUp size={15} />
-              </button>
-              <button
-                onClick={onMoveDown}
-                disabled={!onMoveDown}
-                aria-label="Move card down"
-                title="Move card down"
-                className="text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronDown size={15} />
-              </button>
-            </div>
+            {/*
+              Dragging starts here and nowhere else, so a touch anywhere else on
+              the card still scrolls the column. dnd-kit's keyboard sensor binds
+              to the same handle: focus it, press space, then use the arrow keys.
+            */}
+            <button
+              ref={sortable.setActivatorNodeRef}
+              {...sortable.attributes}
+              {...sortable.listeners}
+              disabled={!draggable}
+              aria-label={`Reorder ${card.title}`}
+              title="Drag to reorder, or press space and use the arrow keys"
+              className="text-muted hover:text-ink transition-colors disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none -ml-1 p-1"
+            >
+              <GripVertical size={15} />
+            </button>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(true)}

@@ -1,10 +1,21 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { useDndContext, useDroppable } from '@dnd-kit/core'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical, Pencil, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
 import Group from './Group'
 import Card from './Card'
 import InlineForm from '~/components/ui/InlineForm'
 import type { CardData, CardMutations, MoveTarget } from './Card'
+import {
+  acceptsDrag,
+  cardId,
+  columnCards,
+  columnId as columnSortId,
+  groupId as groupSortId,
+  parseId,
+} from '~/lib/boardDnd'
 
 export type GroupData = {
   id: number
@@ -53,15 +64,30 @@ interface ColumnProps {
   groupM: GroupMutations
   columnM: ColumnMutations
   highlightId?: number | null
+  draggable?: boolean
 }
 
 export default function Column({
   column, bookmarks, onToggleBookmark,
-  editMode, cardM, groupM, columnM, highlightId,
+  editMode, cardM, groupM, columnM, highlightId, draggable = false,
 }: ColumnProps) {
   const [addingGroup, setAddingGroup] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [newCardId, setNewCardId] = useState<number | null>(null)
+
+  /**
+   * Like a group, a column is both a sortable item on the board and a container
+   * — here for its ungrouped cards — so it carries two ids.
+   */
+  const activeKind = parseId(useDndContext().active?.id as string)?.kind
+  const sortable = useSortable({
+    id: columnSortId(column.id),
+    disabled: { draggable: !draggable, droppable: !acceptsDrag(activeKind, 'column') },
+  })
+  const dropzone = useDroppable({
+    id: columnCards(column.id),
+    disabled: !acceptsDrag(activeKind, 'cards-in-column'),
+  })
 
   const ungrouped = column.cards ?? []
 
@@ -83,16 +109,15 @@ export default function Column({
     )
   }
 
-  function moveCard(index: number, dir: -1 | 1) {
-    const target = index + dir
-    if (target < 0 || target >= ungrouped.length) return
-    const ids = ungrouped.map((c) => c.id)
-    ;[ids[index], ids[target]] = [ids[target], ids[index]]
-    cardM.reorderCards.mutate(ids)
-  }
-
   return (
-    <div className="w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col max-h-full">
+    <div
+      ref={sortable.setNodeRef}
+      style={{ transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }}
+      className={[
+        'w-[280px] sm:w-72 shrink-0 bg-white border border-line rounded-xl flex flex-col max-h-full',
+        sortable.isDragging ? 'opacity-40' : '',
+      ].join(' ')}
+    >
       <div className="px-4 py-3 border-b border-line shrink-0">
         {editingTitle ? (
           <InlineForm
@@ -106,6 +131,19 @@ export default function Column({
           />
         ) : (
           <div className="flex items-center gap-2">
+            {editMode && (
+              <button
+                ref={sortable.setActivatorNodeRef}
+                {...sortable.attributes}
+                {...sortable.listeners}
+                disabled={!draggable}
+                aria-label={`Reorder column ${column.title}`}
+                title="Drag to reorder, or press space and use the arrow keys"
+                className="text-muted hover:text-ink disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none -ml-1 p-0.5"
+              >
+                <GripVertical size={14} />
+              </button>
+            )}
             <h2 className="font-serif font-semibold text-ink flex-1">{column.title}</h2>
             {editMode && (
               <div className="flex items-center gap-1">
@@ -138,8 +176,17 @@ export default function Column({
       <div className="flex-1 overflow-y-auto p-3">
         {/* Ungrouped cards — no sub-group required */}
         {(ungrouped.length > 0 || editMode) && (
-          <div className="flex flex-col gap-2 mb-4">
-            {ungrouped.map((card, i) => (
+          <div
+            ref={dropzone.setNodeRef}
+            className={`flex flex-col gap-2 mb-4 rounded-lg transition-colors ${
+              dropzone.isOver ? 'bg-brand/5 outline-2 outline-dashed outline-brand/30' : ''
+            }`}
+          >
+            <SortableContext
+              items={ungrouped.map((c) => cardId(c.id))}
+              strategy={verticalListSortingStrategy}
+            >
+            {ungrouped.map((card) => (
               <Card
                 key={card.id}
                 card={card}
@@ -149,12 +196,12 @@ export default function Column({
                 cardM={cardM}
                 autoEdit={card.id === newCardId}
                 onAutoEditDone={() => setNewCardId(null)}
-                onMoveUp={i > 0 ? () => moveCard(i, -1) : undefined}
-                onMoveDown={i < ungrouped.length - 1 ? () => moveCard(i, 1) : undefined}
                 moveTargets={moveTargets}
                 currentMoveKey={`column-${column.id}`}
+                draggable={draggable}
               />
             ))}
+            </SortableContext>
 
             {editMode && (
               <button
@@ -168,19 +215,25 @@ export default function Column({
           </div>
         )}
 
-        {column.groups.map((group) => (
-          <Group
-            key={group.id}
-            group={group}
-            bookmarks={bookmarks}
-            onToggleBookmark={onToggleBookmark}
-            editMode={editMode}
-            cardM={cardM}
-            groupM={groupM}
-            moveTargets={moveTargets}
-            highlightId={highlightId}
-          />
-        ))}
+        <SortableContext
+          items={column.groups.map((g) => groupSortId(g.id))}
+          strategy={verticalListSortingStrategy}
+        >
+          {column.groups.map((group) => (
+            <Group
+              key={group.id}
+              group={group}
+              bookmarks={bookmarks}
+              onToggleBookmark={onToggleBookmark}
+              editMode={editMode}
+              cardM={cardM}
+              groupM={groupM}
+              moveTargets={moveTargets}
+              highlightId={highlightId}
+              draggable={draggable}
+            />
+          ))}
+        </SortableContext>
 
         {editMode && (
           addingGroup ? (

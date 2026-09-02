@@ -18,6 +18,27 @@ import { Transmit } from '@adonisjs/transmit-client'
 
 let transmit: Transmit | null = null
 
+/**
+ * While an admin is dragging, incoming refreshes are held back.
+ *
+ * A live refresh mid-drag would swap the board out from under the pointer —
+ * items would jump and the drop would land somewhere the user never aimed at.
+ * Anything that arrives during a drag is applied once it ends.
+ */
+let paused = false
+let missedWhilePaused: (() => void) | null = null
+
+export function pauseLiveUpdates() {
+  paused = true
+}
+
+export function resumeLiveUpdates() {
+  paused = false
+  const pending = missedWhilePaused
+  missedWhilePaused = null
+  pending?.()
+}
+
 /** Shield's CSRF token, which the subscribe POST has to carry. */
 function xsrfToken(): string {
   const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/)
@@ -84,6 +105,10 @@ export function useBoardChannel(boardId: number, enabled: boolean) {
     }
 
     function schedule() {
+      if (paused) {
+        missedWhilePaused = schedule
+        return
+      }
       if (document.hidden) {
         missedWhileHidden = true
         return

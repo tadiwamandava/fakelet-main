@@ -12,6 +12,10 @@ import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks
 import HiveBanner from '~/components/ui/HiveBanner'
 import ConflictBanner from '~/components/ui/ConflictBanner'
 import { useBoardChannel } from '~/lib/realtime'
+import { useBoardDnd } from '~/lib/useBoardDnd'
+import { DndContext, DragOverlay } from '@dnd-kit/core'
+import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import { columnId as columnSortId } from '~/lib/boardDnd'
 
 type BoardData = {
   id: number
@@ -152,6 +156,20 @@ export default function BoardShow({ board, highlight }: ShowProps) {
         }))
         .filter((col) => col.groups.length > 0 || col.cards.length > 0)
     : board.columns
+
+  /**
+   * Drag-and-drop, over the filtered view.
+   *
+   * Turned off while a search is narrowing the board: the visible cards are
+   * then a subset, so a drop would compute its position against a list that is
+   * missing rows and quietly reshuffle the ones that are hidden.
+   */
+  const dnd = useBoardDnd({
+    boardId,
+    columns,
+    enabled: editMode && isAdmin && !q,
+    mutations: { ...cardM, ...columnM, ...groupM },
+  })
 
   function submitColumn() {
     const title = newColumnTitle.trim()
@@ -332,7 +350,20 @@ export default function BoardShow({ board, highlight }: ShowProps) {
         </div>
 
         <div scroll-region="" className="flex-1 overflow-x-auto overflow-y-hidden flex gap-3 sm:gap-4 p-3 sm:p-5 items-start">
-          {columns.map((col) => (
+          <DndContext
+            sensors={dnd.sensors}
+            collisionDetection={dnd.collisionDetection}
+            onDragStart={dnd.onDragStart}
+            onDragOver={dnd.onDragOver}
+            onDragEnd={dnd.onDragEnd}
+            onDragCancel={dnd.onDragCancel}
+            accessibility={{ announcements: dnd.announcements }}
+          >
+          <SortableContext
+            items={dnd.columns.map((c) => columnSortId(c.id))}
+            strategy={horizontalListSortingStrategy}
+          >
+          {dnd.columns.map((col) => (
             <Column
               key={col.id}
               column={col}
@@ -346,9 +377,23 @@ export default function BoardShow({ board, highlight }: ShowProps) {
               groupM={groupM}
               columnM={columnM}
               highlightId={highlightId}
+              draggable={dnd.enabled}
             />
           ))}
-          {columns.length === 0 && (
+          </SortableContext>
+          {/*
+            The picked-up item follows the pointer here, while the original
+            stays dimmed in place to show the gap it came from.
+          */}
+          <DragOverlay dropAnimation={null}>
+            {dnd.overlay && (
+              <div className="rounded-lg border border-brand/40 bg-white px-3 py-2 shadow-lg text-sm text-ink max-w-[280px] truncate cursor-grabbing">
+                {dnd.overlay.label}
+              </div>
+            )}
+          </DragOverlay>
+          </DndContext>
+          {dnd.columns.length === 0 && (
             <div className="relative isolate overflow-hidden m-auto flex items-center justify-center rounded-2xl px-16 py-20">
               <HiveBanner minimal opacity={0.5} />
               <p className="relative z-10 text-muted text-sm">

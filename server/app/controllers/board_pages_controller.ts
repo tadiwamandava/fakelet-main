@@ -59,6 +59,11 @@ async function resolveImageInput(
  * back fresh props, so the stale snapshot that caused the conflict is replaced
  * in the same round trip.
  */
+/** Ids as they arrive from a drag: anything that is not a real id is dropped. */
+function idList(input: unknown): number[] {
+  return Array.isArray(input) ? input.map(Number).filter((id) => Number.isInteger(id) && id > 0) : []
+}
+
 async function guarded(
   ctx: HttpContext,
   run: () => Promise<unknown>
@@ -304,14 +309,50 @@ export default class BoardPagesController {
     return response.redirect().back()
   }
 
+  /**
+   * Drag-and-drop lands here. The body describes one container's full contents
+   * after the drop — `ids` in order, under `groupId` or `columnId` — so
+   * reordering in place and dragging a card in from elsewhere are the same
+   * request, and the server does not have to infer which happened.
+   */
   async reorderCards(ctx: HttpContext) {
     const { request, auth, response } = ctx
-    const ids = request.input('ids')
-    const clean = Array.isArray(ids) ? ids.filter((id): id is number => Number.isInteger(id)) : []
-    if (!clean.length) return response.redirect().back()
+    const { groupId, columnId } = request.only(['groupId', 'columnId'])
+    const ids = idList(request.input('ids'))
 
-    const outcome = await guarded(ctx, () => writes.reorderCards(clean, auth.user?.id ?? null))
-    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForCard(clean[0]))
+    const outcome = await guarded(ctx, () =>
+      writes.reorderCards({ groupId, columnId }, ids, auth.user?.id ?? null)
+    )
+    if (outcome.ok) {
+      const boardId = groupId
+        ? await writes.boardIdForGroup(Number(groupId))
+        : await writes.boardIdForColumn(Number(columnId))
+      broadcastBoardChanged(ctx, boardId)
+    }
+    return response.redirect().back()
+  }
+
+  /** POST /columns/reorder — the board's columns, left to right. */
+  async reorderColumns(ctx: HttpContext) {
+    const { request, auth, response } = ctx
+    const boardId = Number(request.input('boardId'))
+
+    const outcome = await guarded(ctx, () =>
+      writes.reorderColumns(boardId, idList(request.input('ids')), auth.user?.id ?? null)
+    )
+    if (outcome.ok) broadcastBoardChanged(ctx, boardId)
+    return response.redirect().back()
+  }
+
+  /** POST /groups/reorder — one column's groups; a group may arrive from another. */
+  async reorderGroups(ctx: HttpContext) {
+    const { request, auth, response } = ctx
+    const columnId = Number(request.input('columnId'))
+
+    const outcome = await guarded(ctx, () =>
+      writes.reorderGroups(columnId, idList(request.input('ids')), auth.user?.id ?? null)
+    )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForColumn(columnId))
     return response.redirect().back()
   }
 

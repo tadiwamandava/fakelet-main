@@ -8,7 +8,8 @@ browse it read-only; no account required.
 ## Features
 
 - **Boards → Columns → Groups → Cards.** Groups are optional, so cards can sit directly on a column.
-- **Rich cards** — title, description, link, an image or YouTube embed, and downloadable file attachments (PDF, Word, PowerPoint, Excel, text, CSV). Cards reorder and move between groups.
+- **Rich cards** — title, description, link, an image or YouTube embed, and downloadable file attachments (PDF, Word, PowerPoint, Excel, text, CSV).
+- **Drag and drop** — columns, groups and cards are rearranged by their grip handle in edit mode, and cards and groups can be dragged between containers. Dragging starts only from the handle, so scrolling on a touchscreen is unaffected; the same handle works from the keyboard (focus it, press space, move with the arrow keys).
 - **Images added by URL are downloaded** and stored locally, so a board does not break when the source link disappears.
 - **Public sharing** — every board has a link (`/boards/:id`) anyone can open read-only. Editing controls appear only for signed-in admins.
 - **Invitation-only admin access** — new admins join via a single-use key emailed from the admin dashboard.

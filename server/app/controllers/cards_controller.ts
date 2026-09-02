@@ -78,7 +78,12 @@ export default class CardsController {
       return response.badRequest({ error: 'ids must be an array of card ids' })
     }
 
-    await writes.reorderCards(ids, user.id)
+    /**
+     * `ids` is the container's contents in order; `groupId` or `columnId` says
+     * which container. Cards not already there are moved in.
+     */
+    const { groupId, columnId } = request.only(['groupId', 'columnId'])
+    await writes.reorderCards({ groupId, columnId }, ids, user.id)
     return { ok: true }
   }
 }
