@@ -13,7 +13,9 @@ browse it read-only; no account required.
 - **Images added by URL are downloaded** and stored locally, so a board does not break when the source link disappears.
 - **Public sharing** — every board has a link (`/boards/:id`) anyone can open read-only. Editing controls appear only for signed-in admins.
 - **Invitation-only admin access** — new admins join via a single-use key emailed from the admin dashboard.
-- **Admin dashboard** — manage invitations and users.
+- **Two admin tiers.** Ordinary admins curate boards and may invite people. **Master admins** own access control: granting and revoking admin, handing out master, deleting accounts, and revoking invitations. Ordinary admins can grow the admin list but never shrink it.
+- **Master-only tools** — an activity log of every access change, signing an account out of every session and API token, setting someone's password, and a per-board recycle bin for restoring deleted cards.
+- **Admin dashboard** — manage invitations, users and activity.
 - **Bookmarks, references and search** within a board.
 
 ## Stack
