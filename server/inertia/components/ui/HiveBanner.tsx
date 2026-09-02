@@ -57,25 +57,36 @@ function noise(a: number, b: number): number {
 }
 
 /**
- * A honeycomb spreading out from the centre of a 1000×1000 field.
+ * A honeycomb spreading out from the centre of a fixed square field.
  *
  * Tightly packed and strong in the middle, thinning and fading as it goes out,
  * so a panel sitting over the centre looks like it is covering more of the same
- * pattern rather than sitting on a decoration that stops at its edge. Cells are
- * dropped increasingly often with distance, which both makes the dissolve look
- * natural and keeps the node count reasonable.
+ * pattern rather than sitting on a decoration that stops at its edge.
+ *
+ * The field is a fixed pixel size drawn at 1:1 rather than stretched to cover
+ * the page, for two reasons: it stays a halo hugging the panel instead of
+ * wallpaper, and every screen gets the same cell size — scaling to cover made
+ * the comb noticeably finer on a phone than on a desktop.
  */
-const CENTRE = 500
-const REACH = 660
+/**
+ * Field size in CSS pixels, drawn 1:1 and centred on the panel.
+ *
+ * The panel is 384px wide, so a 660 field puts roughly an inch and a bit of
+ * comb around it. Tighter than this and the visible ring drops below a couple
+ * of hexagons deep, which reads as scattered shapes rather than a honeycomb.
+ */
+const FIELD = 660
+const CENTRE = FIELD / 2
+const REACH = CENTRE
 
 function radialHexes(): Hex[] {
-  const r = 25
+  const r = 26
   const stepX = r * 1.5
   const stepY = r * Math.sqrt(3)
   const hexes: Hex[] = []
 
-  for (let col = -18; col <= 18; col++) {
-    for (let row = -16; row <= 16; row++) {
+  for (let col = -10; col <= 10; col++) {
+    for (let row = -9; row <= 9; row++) {
       const cx = CENTRE + col * stepX
       // Flat-top hexagons interlock by offsetting every other column half a step.
       const cy = CENTRE + row * stepY + (Math.abs(col) % 2 === 1 ? stepY / 2 : 0)
@@ -86,20 +97,22 @@ function radialHexes(): Hex[] {
       const t = distance / REACH
 
       /**
-       * Solid comb through the middle, breaking up only past a third of the
-       * way out. Dissolving from the very centre would read as an even scatter
-       * rather than something radiating outwards.
+       * The panel covers everything inside roughly 0.6 of the reach, so both
+       * the thinning and the fade have to hold off until past that — decaying
+       * from the centre would spend the whole effect where nothing can see it
+       * and leave the visible ring almost blank.
        */
-      const density = t < 0.34 ? 1 : 1 - ((t - 0.34) / 0.66) * 0.92
+      const outer = t < 0.55 ? 0 : (t - 0.55) / 0.45
+
+      const density = 1 - outer * 0.85
       if (noise(col, row) > density) continue
 
       hexes.push({
         cx,
         cy,
-        r: r * (1 - t * 0.25),
+        r: r * (1 - t * 0.18),
         kind: noise(row * 7, col * 13) > 0.8 ? 'fill' : 'outline',
-        // Squared falloff, so the edge is clearly weaker than the middle.
-        o: (1 - t) ** 2.2,
+        o: (1 - outer) ** 1.4,
       })
     }
   }
@@ -158,22 +171,36 @@ export default function HiveBanner({
    * has to clear the outermost ring rather than carry the effect.
    */
   const fade = radial
-    ? 'radial-gradient(circle at 50% 50%, #000 0%, #000 55%, transparent 88%)'
+    ? 'radial-gradient(circle at 50% 50%, #000 0%, #000 74%, transparent 100%)'
     : 'linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%)'
 
   const source = radial ? RADIAL_HEXES : HEXES
   const hexes = minimal ? source.filter((h) => h.kind === 'outline') : source
 
+  /**
+   * The band stretches to fill its container; the radial field is a fixed size
+   * centred on it, so it stays a halo around the panel rather than growing to
+   * wallpaper the page on a large screen.
+   */
+  const box = radial
+    ? 'pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2'
+    : 'pointer-events-none absolute inset-0 -z-10'
+
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 -z-10 ${className}`}
-      style={{ opacity, WebkitMaskImage: fade, maskImage: fade }}
+      className={`${box} ${className}`}
+      style={{
+        opacity,
+        WebkitMaskImage: fade,
+        maskImage: fade,
+        ...(radial ? { width: FIELD, height: FIELD } : {}),
+      }}
     >
       <svg
         width="100%"
         height="100%"
-        viewBox={radial ? '0 0 1000 1000' : '0 0 1200 90'}
+        viewBox={radial ? `0 0 ${FIELD} ${FIELD}` : '0 0 1200 90'}
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
       >
