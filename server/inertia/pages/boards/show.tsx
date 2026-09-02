@@ -6,7 +6,7 @@ import type { ColumnData } from '~/components/Column'
 import Sidebar from '~/components/Sidebar'
 import Modal from '~/components/ui/Modal'
 import BoardSettingsModal from '~/components/BoardSettingsModal'
-import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2, Trash2 } from 'lucide-react'
+import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -195,6 +195,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
         board={board}
         bookmarks={bookmarks}
         cardIndex={cardIndex}
+        onEditBoard={() => setSettingsOpen(true)}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -234,17 +235,6 @@ export default function BoardShow({ board, highlight }: ShowProps) {
             {linkCopied ? <Check size={14} /> : <Share2 size={14} />}
             <span className="hidden sm:inline">{linkCopied ? 'Copied' : 'Share'}</span>
           </button>
-
-          {isAdmin && (
-            <button
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Board settings"
-              title="Board settings"
-              className="text-muted hover:text-ink bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm border border-line rounded-lg p-2 hover:bg-white/85 transition-colors"
-            >
-              <Settings size={14} />
-            </button>
-          )}
 
           {/* Restoring what someone else deleted is a master's call. */}
           {isMasterAdmin && (

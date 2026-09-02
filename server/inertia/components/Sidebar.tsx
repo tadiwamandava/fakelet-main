@@ -21,11 +21,20 @@ interface SidebarProps {
   bookmarks: LocalBookmark[]
   /** Cards on this board, by id — used to disambiguate same-titled bookmarks. */
   cardIndex?: ReadonlyMap<number, { location: string }>
+  /** Opens board settings. Shown to admins as a pencil beside the title. */
+  onEditBoard?: () => void
   open: boolean
   onClose: () => void
 }
 
-export default function Sidebar({ board, bookmarks, cardIndex, open, onClose }: SidebarProps) {
+export default function Sidebar({
+  board,
+  bookmarks,
+  cardIndex,
+  onEditBoard,
+  open,
+  onClose,
+}: SidebarProps) {
   const isAdmin = useAuth((s) => s.isAdmin)
   const boardBookmarks = bookmarks.filter((b) => b.boardId === board.id)
   const [bookmarksOpen, setBookmarksOpen] = useState(true)
@@ -85,9 +94,26 @@ export default function Sidebar({ board, bookmarks, cardIndex, open, onClose }: 
           />
         )}
 
-        <h1 className="font-serif text-bold text-lg text-ink leading-snug mb-1">
-          {board.title}
-        </h1>
+        {/*
+          Editing the board sits next to the thing it edits, matching how
+          references are edited further down, rather than as a gear in the
+          toolbar with no indication of what it applies to.
+        */}
+        <div className="flex items-start gap-1.5 mb-1">
+          <h1 className="font-serif text-bold text-lg text-ink leading-snug flex-1 min-w-0">
+            {board.title}
+          </h1>
+          {isAdmin && onEditBoard && (
+            <button
+              onClick={onEditBoard}
+              aria-label="Edit board"
+              title="Edit board"
+              className="text-muted hover:text-ink transition-colors shrink-0 p-0.5 mt-1"
+            >
+              <Pencil size={13} />
+            </button>
+          )}
+        </div>
 
         {board.description && (
           <p className="text-xs text-muted leading-relaxed mb-6">{board.description}</p>
