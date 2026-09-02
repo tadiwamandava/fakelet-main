@@ -36,9 +36,11 @@ export default class AdminController {
     })
   }
 
-  async revokeInvitation({ params, response }: HttpContext) {
+  async revokeInvitation({ params, auth, response }: HttpContext) {
     return refused(response, () =>
-      admin.revokeInvitation(params.id).then(() => response.noContent())
+      admin
+        .revokeInvitation(auth.getUserOrFail().id, params.id)
+        .then(() => response.noContent())
     )
   }
 }

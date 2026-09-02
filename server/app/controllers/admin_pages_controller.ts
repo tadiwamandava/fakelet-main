@@ -36,11 +36,31 @@ export default class AdminPagesController {
   /**
    * GET /admin
    */
-  async index({ inertia }: HttpContext) {
+  async index({ inertia, auth }: HttpContext) {
+    /**
+     * The log is only fetched for masters — it is the one thing on this page
+     * an ordinary admin has no business reading, and skipping the query keeps
+     * it off the wire rather than merely hidden in the UI.
+     */
+    const viewer = auth.getUserOrFail()
+
     return inertia.render('admin/index', {
       invitations: await this.listInvitations(),
       users: await this.listUsers(),
+      auditLog: viewer.isMasterAdmin ? await this.listAuditLog() : [],
     })
+  }
+
+  private async listAuditLog() {
+    const entries = await admin.listAuditLog()
+
+    return entries.map((e) => ({
+      id: e.id,
+      action: e.action,
+      summary: e.summary,
+      actorEmail: e.actorEmail,
+      createdAt: e.createdAt?.toISO() ?? null,
+    }))
   }
 
   private async listInvitations() {
@@ -99,8 +119,8 @@ export default class AdminPagesController {
    * DELETE /admin/invitations/:id — master only.
    */
   async destroyInvitation(ctx: HttpContext) {
-    const { params, response } = ctx
-    await guarded(ctx, () => admin.revokeInvitation(params.id))
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => admin.revokeInvitation(auth.getUserOrFail().id, params.id))
     return response.redirect().back()
   }
 

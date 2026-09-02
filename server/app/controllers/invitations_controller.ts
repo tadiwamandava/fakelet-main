@@ -59,9 +59,9 @@ export default class InvitationsController {
    * Goes through the shared service so the rule is written once; the route
    * carries the master check.
    */
-  async destroy({ params, response }: HttpContext) {
+  async destroy({ params, auth, response }: HttpContext) {
     try {
-      await revokeInvitation(params.id)
+      await revokeInvitation(auth.getUserOrFail().id, params.id)
       return response.noContent()
     } catch (error) {
       if (error instanceof AdminWriteError) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldMinus, ShieldOff, ShieldPlus, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Check, Copy, KeyRound, Mail, ScrollText, Shield, ShieldMinus, ShieldOff, ShieldPlus, Trash2, Users } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import Modal from '~/components/ui/Modal'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -24,20 +24,37 @@ type AdminUser = {
   createdAt: string | null
 }
 
-type Tab = 'invitations' | 'users'
+type AuditEntry = {
+  id: number
+  action: string
+  summary: string
+  actorEmail: string | null
+  createdAt: string | null
+}
+
+type Tab = 'invitations' | 'users' | 'activity'
+
+const TAB_LABELS: Record<Tab, string> = {
+  invitations: 'Invitations',
+  users: 'Users',
+  activity: 'Activity',
+}
 
 type AdminProps = {
   invitations: Invitation[]
   users: AdminUser[]
+  /** Empty for ordinary admins — the server does not send it to them. */
+  auditLog: AuditEntry[]
 }
 
-export default function AdminIndex({ invitations, users }: AdminProps) {
+export default function AdminIndex({ invitations, users, auditLog }: AdminProps) {
   const { user } = useAuth()
+  const isMaster = !!user?.isMasterAdmin
   const [tab, setTab] = useState<Tab>('invitations')
 
   return (
     <div className="min-h-dvh bg-paper flex flex-col">
-      <Head title={`${tab === 'invitations' ? 'Invitations' : 'Users'} · Admin`} />
+      <Head title={`${TAB_LABELS[tab]} · Admin`} />
       <header className="relative isolate overflow-hidden bg-white border-b border-line px-4 sm:px-8 py-3 flex items-center gap-4 shrink-0">
         <HiveBanner />
         <div className="flex items-center gap-3 flex-1">
@@ -68,9 +85,13 @@ export default function AdminIndex({ invitations, users }: AdminProps) {
       <main id="main-content" tabIndex={-1} className="flex-1 p-6 sm:p-8 max-w-3xl mx-auto w-full outline-none">
         <div className="flex gap-1 bg-white border border-line rounded-lg p-1 mb-6 w-fit">
           {([
-            { key: 'invitations', label: 'Invitations', icon: KeyRound },
-            { key: 'users', label: 'Users', icon: Users },
-          ] as const).map(({ key, label, icon: Icon }) => (
+            { key: 'invitations', label: 'Invitations', icon: KeyRound, master: false },
+            { key: 'users', label: 'Users', icon: Users, master: false },
+            // Who changed whose access is the master's business alone.
+            { key: 'activity', label: 'Activity', icon: ScrollText, master: true },
+          ] as const)
+            .filter(({ master }) => !master || isMaster)
+            .map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -86,8 +107,9 @@ export default function AdminIndex({ invitations, users }: AdminProps) {
 
         {tab === 'invitations' && <InvitationsTab invitations={invitations} />}
         {tab === 'users' && (
-          <UsersTab users={users} currentUserId={user?.id ?? 0} isMaster={!!user?.isMasterAdmin} />
+          <UsersTab users={users} currentUserId={user?.id ?? 0} isMaster={isMaster} />
         )}
+        {tab === 'activity' && isMaster && <ActivityTab entries={auditLog} />}
       </main>
     </div>
   )
@@ -390,5 +412,31 @@ function UsersTab({
         </div>
       </Modal>
     </div>
+  )
+}
+
+/**
+ * Who changed whose access, newest first.
+ *
+ * Read-only and deliberately plain: the value is in being able to answer "who
+ * removed this person" months later, not in filtering or charts.
+ */
+function ActivityTab({ entries }: { entries: AuditEntry[] }) {
+  if (entries.length === 0) {
+    return <p className="text-xs text-muted">No access changes recorded yet.</p>
+  }
+
+  return (
+    <ol className="flex flex-col gap-2">
+      {entries.map((e) => (
+        <li key={e.id} className="bg-white border border-line rounded-xl px-4 py-3">
+          <p className="text-sm text-ink">{e.summary}</p>
+          <p className="text-xs text-muted mt-0.5">
+            {e.actorEmail ?? 'A deleted account'}
+            {e.createdAt ? ` · ${new Date(e.createdAt).toLocaleString()}` : ''}
+          </p>
+        </li>
+      ))}
+    </ol>
   )
 }

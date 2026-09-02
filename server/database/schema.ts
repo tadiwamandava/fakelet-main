@@ -7,6 +7,27 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AdminAuditLogSchema extends BaseModel {
+  static $columns = ['action', 'actorEmail', 'actorId', 'createdAt', 'id', 'summary', 'targetEmail', 'targetUserId'] as const
+  $columns = AdminAuditLogSchema.$columns
+  @column()
+  declare action: string
+  @column()
+  declare actorEmail: string | null
+  @column()
+  declare actorId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare summary: string
+  @column()
+  declare targetEmail: string | null
+  @column()
+  declare targetUserId: number | null
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
   $columns = AuthAccessTokenSchema.$columns

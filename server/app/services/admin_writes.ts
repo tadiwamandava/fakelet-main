@@ -1,6 +1,8 @@
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import User from '#models/user'
 import Invitation from '#models/invitation'
+import AdminAuditLog from '#models/admin_audit_log'
 
 /**
  * Every write that changes who can do what.
@@ -47,6 +49,42 @@ async function assertNotLastMaster(trx: any, userId: number, what: string) {
   return target
 }
 
+/**
+ * Records an access-control action.
+ *
+ * Written inside the caller's transaction, so the log and the change it
+ * describes land together or not at all — a log that could disagree with
+ * reality would be worse than no log. The actor's and target's emails are
+ * copied in rather than looked up later, because deleting an account is one of
+ * the things recorded here.
+ */
+async function record(
+  trx: TransactionClientContract,
+  actor: User,
+  action: string,
+  target: User | null,
+  summary: string
+) {
+  await AdminAuditLog.create(
+    {
+      actorId: actor.id,
+      actorEmail: actor.email,
+      action,
+      targetUserId: target?.id ?? null,
+      targetEmail: target?.email ?? null,
+      summary,
+    },
+    { client: trx }
+  )
+}
+
+/** The acting user, loaded in-transaction so the log records who really did it. */
+async function actorFor(trx: TransactionClientContract, actorId: number) {
+  const actor = await User.query({ client: trx }).where('id', actorId).first()
+  if (!actor) throw new AdminWriteError('Your account no longer exists.')
+  return actor
+}
+
 /** Nobody may change their own access — the usual way people lock themselves out. */
 function assertNotSelf(actorId: number, targetId: number, what: string) {
   if (actorId === targetId) throw new AdminWriteError(`You cannot ${what} your own account.`)
@@ -70,8 +108,17 @@ export function toggleAdmin(actorId: number, targetId: number) {
       throw new AdminWriteError('Remove master access first, then change admin access.')
     }
 
-    user.useTransaction(trx).merge({ isAdmin: !user.isAdmin })
+    const granting = !user.isAdmin
+    user.useTransaction(trx).merge({ isAdmin: granting })
     await user.save()
+
+    await record(
+      trx,
+      await actorFor(trx, actorId),
+      granting ? 'admin.granted' : 'admin.revoked',
+      user,
+      `${granting ? 'Granted' : 'Revoked'} admin access for ${user.email}`
+    )
     return user
   })
 }
@@ -95,6 +142,14 @@ export function toggleMaster(actorId: number, targetId: number) {
       isAdmin: becomingMaster ? true : user.isAdmin,
     })
     await user.save()
+
+    await record(
+      trx,
+      await actorFor(trx, actorId),
+      becomingMaster ? 'master.granted' : 'master.revoked',
+      user,
+      `${becomingMaster ? 'Granted' : 'Revoked'} master admin for ${user.email}`
+    )
     return user
   })
 }
@@ -104,13 +159,18 @@ export function deleteUser(actorId: number, targetId: number) {
     assertNotSelf(actorId, targetId, 'delete')
 
     const user = await assertNotLastMaster(trx, targetId, 'deleted')
+    const actor = await actorFor(trx, actorId)
+    const email = user.email
+
     await user.useTransaction(trx).delete()
+    // The row is gone, so the log keeps the only remaining record of who it was.
+    await record(trx, actor, 'user.deleted', null, `Deleted the account ${email}`)
     return user
   })
 }
 
 /** Cancels an invitation that has not been redeemed. */
-export function revokeInvitation(id: number | string) {
+export function revokeInvitation(actorId: number, id: number | string) {
   return db.transaction(async (trx) => {
     const invitation = await Invitation.query({ client: trx }).where('id', id).forUpdate().first()
     if (!invitation) throw new AdminWriteError('That invitation no longer exists.')
@@ -118,7 +178,21 @@ export function revokeInvitation(id: number | string) {
       throw new AdminWriteError('Cannot revoke an invitation that was already used.')
     }
 
+    const email = invitation.email
     await invitation.useTransaction(trx).delete()
+
+    await record(
+      trx,
+      await actorFor(trx, actorId),
+      'invitation.revoked',
+      null,
+      `Revoked the invitation for ${email ?? 'an unknown address'}`
+    )
     return invitation
   })
+}
+
+/** The log, newest first, for the dashboard. */
+export function listAuditLog(limit = 100) {
+  return AdminAuditLog.query().orderBy('created_at', 'desc').orderBy('id', 'desc').limit(limit)
 }
