@@ -100,8 +100,10 @@ export class CardAttachmentSchema extends BaseModel {
 }
 
 export class CardSchema extends BaseModel {
-  static $columns = ['columnId', 'createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
+  static $columns = ['archivedBoardId', 'columnId', 'createdAt', 'createdBy', 'description', 'groupId', 'id', 'imageUrl', 'isArchived', 'isDeleted', 'linkTitle', 'linkUrl', 'position', 'title', 'updatedAt', 'updatedBy', 'version', 'youtubeUrl'] as const
   $columns = CardSchema.$columns
+  @column()
+  declare archivedBoardId: number | null
   @column()
   declare columnId: number | null
   @column.dateTime({ autoCreate: true })

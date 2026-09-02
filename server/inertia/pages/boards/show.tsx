@@ -6,7 +6,7 @@ import type { ColumnData } from '~/components/Column'
 import Sidebar from '~/components/Sidebar'
 import Modal from '~/components/ui/Modal'
 import BoardSettingsModal from '~/components/BoardSettingsModal'
-import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2 } from 'lucide-react'
+import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Search, Settings, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -39,6 +39,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
   const syncBookmarks = useSyncBookmarks()
   const [search, setSearch] = useState('')
   const { user, isAdmin, logout } = useAuth()
+  const isMasterAdmin = !!user?.isMasterAdmin
   const [editMode, setEditMode] = useState(isAdmin)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -243,6 +244,18 @@ export default function BoardShow({ board, highlight }: ShowProps) {
             >
               <Settings size={14} />
             </button>
+          )}
+
+          {/* Restoring what someone else deleted is a master's call. */}
+          {isMasterAdmin && (
+            <Link
+              href={`/boards/${boardId}/archive`}
+              aria-label="Recycle bin"
+              title="Recycle bin"
+              className="text-muted hover:text-ink bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm border border-line rounded-lg p-2 hover:bg-white/85 transition-colors"
+            >
+              <Trash2 size={14} />
+            </Link>
           )}
 
           {isAdmin && (

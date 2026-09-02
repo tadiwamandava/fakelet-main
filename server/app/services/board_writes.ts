@@ -266,8 +266,21 @@ export function softDeleteCard(id: number | string, userId: number | null) {
       .first()
     if (!card) throw new MissingTargetError('That card has already been deleted.')
 
+    /**
+     * Remember the board before archiving. The card keeps its parent here, so
+     * this is derivable — but recording it unconditionally means the recycle
+     * bin has one rule rather than two, and it still works if a later delete
+     * detaches the card.
+     */
+    const boardId = await boardIdForCard(card.id)
+
     card.useTransaction(trx)
-    card.merge({ isDeleted: true, version: (card.version ?? 1) + 1, updatedBy: userId })
+    card.merge({
+      isDeleted: true,
+      archivedBoardId: boardId,
+      version: (card.version ?? 1) + 1,
+      updatedBy: userId,
+    })
     await card.save()
     return card
   })
@@ -457,7 +470,18 @@ export function deleteColumn(id: number | string, userId: number | null) {
         q.where('column_id', column.id)
         if (groupIds.length) q.orWhereIn('group_id', groupIds)
       })
-      .update({ is_deleted: true, group_id: null, column_id: null, updated_by: userId })
+      /**
+       * Detaching is what keeps the cascade from destroying these, but it also
+       * severs the only link back to the board — so the board is written down
+       * here, or the recycle bin could never find them again.
+       */
+      .update({
+        is_deleted: true,
+        archived_board_id: column.boardId,
+        group_id: null,
+        column_id: null,
+        updated_by: userId,
+      })
 
     await column.useTransaction(trx).delete()
   })
@@ -516,5 +540,109 @@ export function deleteGroup(id: number | string, userId: number | null) {
     }
 
     await group.useTransaction(trx).delete()
+  })
+}
+
+// ── Recycle bin ──────────────────────────────────────────────────────────────
+
+/**
+ * Archived cards for a board, newest first.
+ *
+ * Deleting a card is a soft delete, and deleting a column archives everything
+ * under it, so real content accumulates here with no way back — this is the
+ * only thing that reads it. Cards archived before `archived_board_id` existed
+ * and already detached from their column cannot be attributed to any board;
+ * they are not listed, and `countUnattributableArchived` reports them so the
+ * page can say so rather than pretending they are not there.
+ */
+export function listArchivedCards(boardId: number | string) {
+  return Card.query()
+    .where('is_deleted', true)
+    .where('archived_board_id', boardId)
+    .orderBy('updated_at', 'desc')
+    .orderBy('id', 'desc')
+    .limit(200)
+}
+
+export async function countUnattributableArchived(): Promise<number> {
+  const [{ count }] = await db
+    .from('cards')
+    .where('is_deleted', true)
+    .whereNull('archived_board_id')
+    .count('* as count')
+  return Number(count)
+}
+
+/**
+ * Puts an archived card back on its board.
+ *
+ * Two cases. A card that still has its group or column goes back where it was.
+ * A card orphaned by a column delete has nowhere to return to, so the caller
+ * names a destination column — the recycle bin offers the board's columns for
+ * exactly this. Either way the position is allocated the same way as any other
+ * write, at the end of the destination.
+ */
+export function restoreCard(
+  id: number | string,
+  destination: { groupId?: unknown; columnId?: unknown } | null,
+  userId: number | null
+) {
+  return db.transaction(async (trx) => {
+    const card = await Card.query({ client: trx })
+      .where('id', id)
+      .where('is_deleted', true)
+      .forUpdate()
+      .first()
+    if (!card) throw new MissingTargetError('That card is not in the recycle bin.')
+
+    /**
+     * Prefer where it came from; fall back to what the caller chose. A card
+     * whose original container has since been deleted has to be told where to
+     * go, which is why the destination is asked for rather than guessed.
+     */
+    const original =
+      card.groupId || card.columnId
+        ? { groupId: card.groupId, columnId: card.columnId }
+        : destination
+
+    if (!original) {
+      throw new WriteRejectedError('Choose a column to restore this card into.')
+    }
+
+    const parent = readParent(original)
+    await lockCardParent(trx, parent)
+    const position = await nextPositionIn(trx, parent)
+
+    card.useTransaction(trx)
+    card.merge({
+      isDeleted: false,
+      archivedBoardId: null,
+      ...parentKeys(parent),
+      position,
+      version: (card.version ?? 1) + 1,
+      updatedBy: userId,
+    })
+    await card.save()
+    return card
+  })
+}
+
+/**
+ * Removes an archived card for good.
+ *
+ * The recycle bin would otherwise only ever grow, and some things are deleted
+ * precisely because they should not be recoverable.
+ */
+export function purgeCard(id: number | string) {
+  return db.transaction(async (trx) => {
+    const card = await Card.query({ client: trx })
+      .where('id', id)
+      .where('is_deleted', true)
+      .forUpdate()
+      .first()
+    if (!card) throw new MissingTargetError('That card is not in the recycle bin.')
+
+    await card.useTransaction(trx).delete()
+    return card
   })
 }

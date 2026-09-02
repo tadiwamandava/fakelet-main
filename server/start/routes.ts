@@ -129,6 +129,11 @@ router
     router.patch('/admin/users/:id/master', [AdminPagesController, 'toggleMaster'])
     router.post('/admin/users/:id/sign-out', [AdminPagesController, 'signOutUser'])
     router.post('/admin/users/:id/password', [AdminPagesController, 'setUserPassword'])
+
+    // Recycle bin — deleted content is a master's to restore or destroy.
+    router.get('/boards/:id/archive', [BoardPagesController, 'archive']).as('web.boards.archive')
+    router.post('/cards/:id/restore', [BoardPagesController, 'restoreCard'])
+    router.delete('/cards/:id/purge', [BoardPagesController, 'purgeCard'])
   })
   .use(middleware.admin({ guards: ['web'], master: true }))
 

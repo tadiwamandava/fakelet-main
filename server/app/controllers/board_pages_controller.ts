@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import type { HttpContext } from '@adonisjs/core/http'
 import Board from '#models/board'
+import Column from '#models/column'
 import Card from '#models/card'
 import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
@@ -415,6 +416,54 @@ export default class BoardPagesController {
 
     session.flash('created', { imageUrl })
     broadcastBoardChanged(ctx, board.id)
+    return response.redirect().back()
+  }
+
+  // ── Recycle bin (master admins only) ───────────────────────────────────────
+
+  /**
+   * GET /boards/:id/archive
+   *
+   * Deleted cards are archived rather than destroyed, and deleting a column
+   * archives everything under it, so this is the only place that content can be
+   * seen or brought back.
+   */
+  async archive({ params, inertia }: HttpContext) {
+    const board = await Board.findOrFail(params.id)
+    const cards = await writes.listArchivedCards(board.id)
+    const columns = await Column.query().where('board_id', board.id).orderBy('position').orderBy('id')
+
+    return inertia.render('boards/archive', {
+      board: { id: board.id, title: board.title },
+      columns: columns.map((c) => ({ id: c.id, title: c.title })),
+      cards: cards.map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        imageUrl: c.imageUrl,
+        /** False when the card's container is gone and a destination is needed. */
+        hasHome: !!(c.groupId || c.columnId),
+        archivedAt: c.updatedAt?.toISO() ?? null,
+      })),
+      /** Archived before the board was recorded, and no longer attributable. */
+      unattributable: await writes.countUnattributableArchived(),
+    })
+  }
+
+  async restoreCard(ctx: HttpContext) {
+    const { params, request, auth, response } = ctx
+    const columnId = Number(request.input('columnId')) || null
+
+    const outcome = await guarded(ctx, () =>
+      writes.restoreCard(params.id, columnId ? { columnId } : null, auth.user?.id ?? null)
+    )
+    if (outcome.ok) broadcastBoardChanged(ctx, await writes.boardIdForCard(params.id))
+    return response.redirect().back()
+  }
+
+  async purgeCard(ctx: HttpContext) {
+    const { params, response } = ctx
+    await guarded(ctx, () => writes.purgeCard(params.id))
     return response.redirect().back()
   }
 
