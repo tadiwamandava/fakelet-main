@@ -48,7 +48,7 @@ export default function Signup({ invitationKey, email, valid }: SignupProps) {
         className="relative isolate overflow-hidden min-h-dvh flex items-center justify-center bg-paper px-4"
       >
         <Head title="Create your account" />
-        <HiveBanner minimal opacity={0.6} className="h-28 !bottom-auto" />
+        <HiveBanner variant="radial" minimal opacity={0.7} />
         <div className="relative z-10 bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm text-center">
           <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-4" />
           <p className="text-sm text-brand font-medium mb-2">
@@ -75,7 +75,7 @@ export default function Signup({ invitationKey, email, valid }: SignupProps) {
       className="relative isolate overflow-hidden min-h-dvh flex items-center justify-center bg-paper px-4"
     >
       <Head title="Create your account" />
-      <HiveBanner minimal opacity={0.6} className="h-28 !bottom-auto" />
+      <HiveBanner variant="radial" minimal opacity={0.7} />
 
       <div className="relative z-10 bg-white border border-line rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-sm">
         <img src={logo} alt="K20 Center" className="h-10 mx-auto mb-3" />

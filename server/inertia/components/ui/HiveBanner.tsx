@@ -5,6 +5,13 @@ interface HiveBannerProps {
   opacity?: number
   /** Minimalist mode: outline hexagons only, no fills, no bees */
   minimal?: boolean
+  /**
+   * `band` is the horizontal strip used along the top of a page.
+   *
+   * `radial` grows a honeycomb out from the middle instead, for pages built
+   * around one centred panel — the pattern reads as continuing behind it.
+   */
+  variant?: 'band' | 'radial'
 }
 
 const GOLD = '#E8BF3D'
@@ -36,6 +43,71 @@ const HEXES: Hex[] = [
   { cx: 110, cy: 48, r: 7, kind: 'fill', o: 0.15 },
   { cx: 1065, cy: 47, r: 8, kind: 'fill', o: 0.15 },
 ]
+
+/**
+ * Stable pseudo-random in [0,1) for a grid cell.
+ *
+ * The scatter has to be identical on the server and the client, and identical
+ * between renders, or hexagons would jump around on hydration — so this is a
+ * hash of the coordinates rather than Math.random.
+ */
+function noise(a: number, b: number): number {
+  const n = Math.sin(a * 127.1 + b * 311.7) * 43758.5453
+  return n - Math.floor(n)
+}
+
+/**
+ * A honeycomb spreading out from the centre of a 1000×1000 field.
+ *
+ * Tightly packed and strong in the middle, thinning and fading as it goes out,
+ * so a panel sitting over the centre looks like it is covering more of the same
+ * pattern rather than sitting on a decoration that stops at its edge. Cells are
+ * dropped increasingly often with distance, which both makes the dissolve look
+ * natural and keeps the node count reasonable.
+ */
+const CENTRE = 500
+const REACH = 660
+
+function radialHexes(): Hex[] {
+  const r = 25
+  const stepX = r * 1.5
+  const stepY = r * Math.sqrt(3)
+  const hexes: Hex[] = []
+
+  for (let col = -18; col <= 18; col++) {
+    for (let row = -16; row <= 16; row++) {
+      const cx = CENTRE + col * stepX
+      // Flat-top hexagons interlock by offsetting every other column half a step.
+      const cy = CENTRE + row * stepY + (Math.abs(col) % 2 === 1 ? stepY / 2 : 0)
+
+      const distance = Math.hypot(cx - CENTRE, cy - CENTRE)
+      if (distance > REACH) continue
+
+      const t = distance / REACH
+
+      /**
+       * Solid comb through the middle, breaking up only past a third of the
+       * way out. Dissolving from the very centre would read as an even scatter
+       * rather than something radiating outwards.
+       */
+      const density = t < 0.34 ? 1 : 1 - ((t - 0.34) / 0.66) * 0.92
+      if (noise(col, row) > density) continue
+
+      hexes.push({
+        cx,
+        cy,
+        r: r * (1 - t * 0.25),
+        kind: noise(row * 7, col * 13) > 0.8 ? 'fill' : 'outline',
+        // Squared falloff, so the edge is clearly weaker than the middle.
+        o: (1 - t) ** 2.2,
+      })
+    }
+  }
+
+  return hexes
+}
+
+const RADIAL_HEXES = radialHexes()
 
 function hexPoints(cx: number, cy: number, r: number): string {
   const a = r * 0.8660254 // r * sin(60°)
@@ -72,19 +144,36 @@ function Bee({ x, y, rotate = 0, scale = 1 }: { x: number; y: number; rotate?: n
  * Place inside an element made `relative isolate overflow-hidden`; it renders
  * behind that element's content (`-z-10`).
  */
-export default function HiveBanner({ className = '', opacity = 0.9, minimal = false }: HiveBannerProps) {
-  const edgeFade = 'linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%)'
-  const hexes = minimal ? HEXES.filter((h) => h.kind === 'outline') : HEXES
+export default function HiveBanner({
+  className = '',
+  opacity = 0.9,
+  minimal = false,
+  variant = 'band',
+}: HiveBannerProps) {
+  const radial = variant === 'radial'
+
+  /**
+   * The band fades at its left and right ends; the radial field fades on every
+   * side. Each hexagon already dims with distance from the centre, so this only
+   * has to clear the outermost ring rather than carry the effect.
+   */
+  const fade = radial
+    ? 'radial-gradient(circle at 50% 50%, #000 0%, #000 55%, transparent 88%)'
+    : 'linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%)'
+
+  const source = radial ? RADIAL_HEXES : HEXES
+  const hexes = minimal ? source.filter((h) => h.kind === 'outline') : source
+
   return (
     <div
       aria-hidden="true"
       className={`pointer-events-none absolute inset-0 -z-10 ${className}`}
-      style={{ opacity, WebkitMaskImage: edgeFade, maskImage: edgeFade }}
+      style={{ opacity, WebkitMaskImage: fade, maskImage: fade }}
     >
       <svg
         width="100%"
         height="100%"
-        viewBox="0 0 1200 90"
+        viewBox={radial ? '0 0 1000 1000' : '0 0 1200 90'}
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -104,7 +193,7 @@ export default function HiveBanner({ className = '', opacity = 0.9, minimal = fa
           )
         )}
 
-        {!minimal && (
+        {!minimal && !radial && (
           <>
             <Bee x={445} y={20} rotate={-18} scale={1.15} />
             <Bee x={705} y={18} rotate={14} scale={1.05} />
