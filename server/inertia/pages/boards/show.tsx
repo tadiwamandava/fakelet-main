@@ -284,6 +284,7 @@ export default function BoardShow({ board, highlight }: ShowProps) {
                 open={addingColumn}
                 onClose={() => { setAddingColumn(false); setNewColumnTitle('') }}
                 title="Add column"
+                dirty={!!newColumnTitle.trim()}
               >
                 <div className="flex flex-col gap-3">
                   <div>

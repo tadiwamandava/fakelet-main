@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Check, ImagePlus, Link2, Paperclip, Play, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
@@ -68,6 +68,18 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
 
   if (open && form.title === undefined) handleOpen()
 
+  /**
+   * Forget the draft once the dialog is dismissed.
+   *
+   * handleOpen only refills the form while it is still empty, so without this
+   * the component keeps whatever was last typed: cancel an edit, reopen the
+   * card, and the text you just discarded is sitting there again — over the top
+   * of whatever the card actually says now.
+   */
+  useEffect(() => {
+    if (!open) setForm({})
+  }, [open])
+
   const set = (key: FieldKey) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -96,6 +108,25 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
     uploadAttachment.mutate({ cardId: card.id, file })
     e.target.value = ''
   }
+
+  /**
+   * Whether anything has actually been typed.
+   *
+   * A freshly added card opens its editor pre-filled with "New card", so
+   * comparing against the saved values — rather than just tracking whether the
+   * editor was opened — keeps an untouched new card dismissable, and still
+   * cleaned up, while protecting one the user has started writing.
+   */
+  const dirty =
+    open &&
+    form.title !== undefined &&
+    ((form.title ?? '') !== (card.title || '') ||
+      (form.description ?? '') !== (card.description || '') ||
+      (form.linkUrl ?? '') !== (card.linkUrl || '') ||
+      (form.linkTitle ?? '') !== (card.linkTitle || '') ||
+      imageUrl !== (card.imageUrl || '') ||
+      youtubeUrl !== (card.youtubeUrl || '') ||
+      (moveKey ?? '') !== (currentMoveKey ?? ''))
 
   function handleSave() {
     const target =
@@ -127,7 +158,7 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   )
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit card">
+    <Modal open={open} onClose={onClose} title="Edit card" dirty={dirty}>
       <div className="flex flex-col gap-3">
         {/*
           The save was refused, so nothing below has been written. The card

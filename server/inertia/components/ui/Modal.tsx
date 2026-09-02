@@ -34,21 +34,45 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  /**
+   * Whether the dialog holds edits that have not been saved.
+   *
+   * When it does, the dismissals that are easy to trigger by accident stop
+   * throwing that work away: a click on the page behind is ignored outright,
+   * and the deliberate ones ask first. Dialogs with nothing to lose — a delete
+   * confirmation, say — leave this unset and close as freely as before.
+   */
+  dirty?: boolean
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function Modal({ open, onClose, title, children, dirty = false }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
-  // Keep the latest onClose without making it an effect dependency — otherwise a
+  /**
+   * Closes, unless that would silently discard something.
+   *
+   * A click on the backdrop is nearly always a miss — reaching for the board
+   * behind, or catching the edge of a phone screen — so while there are unsaved
+   * edits it does nothing at all. The close button and Escape are aimed
+   * deliberately, so they ask rather than refuse; either way the way out is
+   * never more than one more click.
+   */
+  function requestClose(deliberate: boolean) {
+    if (!dirty) return onClose()
+    if (!deliberate) return
+    if (window.confirm('Discard your unsaved changes?')) onClose()
+  }
+
+  // Keep the latest handler without making it an effect dependency — otherwise a
   // new inline callback on every parent render would re-run the effect (and its
   // focus-restore cleanup) on each keystroke, kicking focus out of the inputs.
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  const onCloseRef = useRef(requestClose)
+  onCloseRef.current = requestClose
 
   useEffect(() => {
     if (!open) return
@@ -62,7 +86,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        onCloseRef.current()
+        onCloseRef.current(true)
         return
       }
       if (e.key !== 'Tab' || !dialog) return
@@ -101,7 +125,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      onClick={onClose}
+      onClick={() => requestClose(false)}
       className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
     >
       <div
@@ -115,7 +139,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <h3 id={titleId} className="font-serif text-lg text-ink">{title}</h3>
-          <button onClick={onClose} aria-label="Close dialog" title="Close" className="text-muted hover:text-ink">
+          <button onClick={() => requestClose(true)} aria-label="Close dialog" title="Close" className="text-muted hover:text-ink">
             <X size={18} />
           </button>
         </div>

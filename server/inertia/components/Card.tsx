@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDndContext } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -120,6 +120,15 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
   // Track whether a freshly-added card was ever saved, so cancelling it discards it
   const savedRef = useRef(false)
   const [conflict, setConflict] = useState<string | null>(null)
+
+  /**
+   * A card added from "+ Add card" asks to open its editor, but the flag only
+   * arrives once the write comes back — after this component has mounted — so
+   * the initial state above misses it and the card is left sitting there blank.
+   */
+  useEffect(() => {
+    if (autoEdit) setEditing(true)
+  }, [autoEdit])
 
   function handleClose() {
     setEditing(false)

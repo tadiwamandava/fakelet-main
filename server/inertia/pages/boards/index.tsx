@@ -37,6 +37,9 @@ export default function BoardsIndex({ boards }: IndexProps) {
   // Local preview: the pasted URL, or an object URL for a chosen-but-not-yet-uploaded file
   const imagePreview = newImageFile ? URL.createObjectURL(newImageFile) : resolveImageUrl(newImageUrl)
 
+  /** Anything typed into the new-board form counts, since it starts empty. */
+  const createDirty = !!(newTitle || newDescription || newImageUrl || newImageFile)
+
   function resetCreate() {
     setCreating(false)
     setNewTitle('')
@@ -215,7 +218,7 @@ export default function BoardsIndex({ boards }: IndexProps) {
       </main>
 
       {/* New board modal */}
-      <Modal open={creating} onClose={resetCreate} title="New board">
+      <Modal open={creating} onClose={resetCreate} title="New board" dirty={createDirty}>
         <div className="flex flex-col gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">Title</label>

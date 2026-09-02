@@ -36,6 +36,12 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
     )
   }
 
+  const dirty =
+    open &&
+    (title !== board.title ||
+      description !== (board.description ?? '') ||
+      imageUrl !== (board.imageUrl ?? ''))
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -46,7 +52,7 @@ export default function BoardSettingsModal({ open, onClose, board }: BoardSettin
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Board settings">
+    <Modal open={open} onClose={onClose} title="Board settings" dirty={dirty}>
       <div className="flex flex-col gap-4">
         {/* Title */}
         <div>
