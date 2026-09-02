@@ -29,10 +29,24 @@ export default class extends BaseSeeder {
      */
     const password = configured ?? (app.inProduction ? randomBytes(12).toString('base64url') : DEV_PASSWORD)
 
-    const user = await User.firstOrCreate({ email }, { email, password, isAdmin: true })
+    const user = await User.firstOrCreate(
+      { email },
+      { email, password, isAdmin: true, isMasterAdmin: true }
+    )
 
     if (!user.$isLocal) {
-      console.log(`[seed] Admin "${email}" already exists — left unchanged.`)
+      /**
+       * The password is still never touched — but master access is, because a
+       * deployment that has no master at all cannot grant admin to anyone, and
+       * re-seeding is the documented way back from that.
+       */
+      if (!user.isMasterAdmin) {
+        user.merge({ isAdmin: true, isMasterAdmin: true })
+        await user.save()
+        console.log(`[seed] Admin "${email}" already existed — promoted to master admin.`)
+      } else {
+        console.log(`[seed] Master admin "${email}" already exists — left unchanged.`)
+      }
       return
     }
 

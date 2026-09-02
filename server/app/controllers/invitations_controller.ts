@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Invitation from '#models/invitation'
 import { sendInvitationEmail } from '#services/mail_service'
+import { AdminWriteError, revokeInvitation } from '#services/admin_writes'
 import env from '#start/env'
 
 export default class InvitationsController {
@@ -52,14 +53,23 @@ export default class InvitationsController {
     }
   }
 
-  async destroy({ params, auth, response }: HttpContext) {
-    const user = await auth.authenticate()
-    if (!user.isAdmin) return response.forbidden({ error: 'Forbidden' })
-
-    const invitation = await Invitation.findOrFail(params.id)
-    if (invitation.usedAt) return response.badRequest({ error: 'Cannot revoke a used invitation.' })
-
-    await invitation.delete()
-    return response.noContent()
+  /**
+   * DELETE /api/v1/invitations/:id — master only, matching the dashboard.
+   *
+   * Goes through the shared service so the rule is written once; the route
+   * carries the master check.
+   */
+  async destroy({ params, response }: HttpContext) {
+    try {
+      await revokeInvitation(params.id)
+      return response.noContent()
+    } catch (error) {
+      if (error instanceof AdminWriteError) {
+        return response.unprocessableEntity({
+          error: { code: 'E_ADMIN_WRITE_REJECTED', message: error.message },
+        })
+      }
+      throw error
+    }
   }
 }

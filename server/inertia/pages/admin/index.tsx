@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldOff, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Check, Copy, KeyRound, Mail, Shield, ShieldMinus, ShieldOff, ShieldPlus, Trash2, Users } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import Modal from '~/components/ui/Modal'
 import HiveBanner from '~/components/ui/HiveBanner'
@@ -20,6 +20,7 @@ type AdminUser = {
   id: number
   email: string
   isAdmin: boolean
+  isMasterAdmin: boolean
   createdAt: string | null
 }
 
@@ -84,7 +85,9 @@ export default function AdminIndex({ invitations, users }: AdminProps) {
         </div>
 
         {tab === 'invitations' && <InvitationsTab invitations={invitations} />}
-        {tab === 'users' && <UsersTab users={users} currentUserId={user?.id ?? 0} />}
+        {tab === 'users' && (
+          <UsersTab users={users} currentUserId={user?.id ?? 0} isMaster={!!user?.isMasterAdmin} />
+        )}
       </main>
     </div>
   )
@@ -233,11 +236,22 @@ function InvitationsTab({ invitations }: { invitations: Invitation[] }) {
   )
 }
 
-function UsersTab({ users, currentUserId }: { users: AdminUser[]; currentUserId: number }) {
+function UsersTab({
+  users,
+  currentUserId,
+  isMaster,
+}: {
+  users: AdminUser[]
+  currentUserId: number
+  /** Only master admins may grant or revoke access; everyone else reads. */
+  isMaster: boolean
+}) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
   const [togglingAdmin, setTogglingAdmin] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const [togglingMaster, setTogglingMaster] = useState(false)
 
   const toggleAdmin = {
     isPending: togglingAdmin,
@@ -247,6 +261,17 @@ function UsersTab({ users, currentUserId }: { users: AdminUser[]; currentUserId:
         preserveScroll: true,
         onStart: () => setTogglingAdmin(true),
         onFinish: () => setTogglingAdmin(false),
+      }),
+  }
+
+  const toggleMaster = {
+    isPending: togglingMaster,
+    mutate: (id: number) =>
+      router.patch(`/admin/users/${id}/master`, {}, {
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => setTogglingMaster(true),
+        onFinish: () => setTogglingMaster(false),
       }),
   }
 
@@ -280,8 +305,14 @@ function UsersTab({ users, currentUserId }: { users: AdminUser[]; currentUserId:
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium text-ink truncate">{u.email}</span>
-                    {u.isAdmin && (
-                      <span className="bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0">Admin</span>
+                    {u.isMasterAdmin ? (
+                      <span className="bg-brand/10 text-brand text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0">
+                        Master admin
+                      </span>
+                    ) : (
+                      u.isAdmin && (
+                        <span className="bg-blue/10 text-blue text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0">Admin</span>
+                      )
                     )}
                     {isMe && (
                       <span className="text-[10px] text-muted shrink-0">(you)</span>
@@ -289,24 +320,45 @@ function UsersTab({ users, currentUserId }: { users: AdminUser[]; currentUserId:
                   </div>
                   <p className="text-xs text-muted truncate">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ''}</p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => toggleAdmin.mutate(u.id)}
-                    disabled={isMe || toggleAdmin.isPending}
-                    title={u.isAdmin ? 'Remove admin' : 'Make admin'}
-                    className="p-1.5 text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
-                  >
-                    {u.isAdmin ? <ShieldOff size={15} /> : <Shield size={15} />}
-                  </button>
-                  <button
-                    onClick={() => setConfirmDeleteId(u.id)}
-                    disabled={isMe}
-                    title="Delete user"
-                    className="p-1.5 text-muted hover:text-brand transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                {/*
+                  Granting and revoking access is master-only, and the server
+                  enforces that on both surfaces — hiding the controls here just
+                  spares ordinary admins buttons that would always be refused.
+                */}
+                {isMaster && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => toggleMaster.mutate(u.id)}
+                      disabled={isMe || toggleMaster.isPending}
+                      title={u.isMasterAdmin ? 'Remove master admin' : 'Make master admin'}
+                      className="p-1.5 text-muted hover:text-brand transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                    >
+                      {u.isMasterAdmin ? <ShieldMinus size={15} /> : <ShieldPlus size={15} />}
+                    </button>
+                    <button
+                      onClick={() => toggleAdmin.mutate(u.id)}
+                      disabled={isMe || u.isMasterAdmin || toggleAdmin.isPending}
+                      title={
+                        u.isMasterAdmin
+                          ? 'Remove master access first'
+                          : u.isAdmin
+                            ? 'Remove admin'
+                            : 'Make admin'
+                      }
+                      className="p-1.5 text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                    >
+                      {u.isAdmin ? <ShieldOff size={15} /> : <Shield size={15} />}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(u.id)}
+                      disabled={isMe}
+                      title="Delete user"
+                      className="p-1.5 text-muted hover:text-brand transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}

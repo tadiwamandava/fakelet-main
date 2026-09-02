@@ -22,7 +22,15 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
        * The signed-in admin, or null for an anonymous visitor on a shared board
        * link. Mirrors UserTransformer so the client sees one user shape.
        */
-      auth: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null,
+      auth: user
+        ? {
+            id: user.id,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            /** Master implies admin, so this only ever narrows what is shown. */
+            isMasterAdmin: user.isMasterAdmin,
+          }
+        : null,
 
       /**
        * Validation errors from a failed submission, in Inertia's error shape.

@@ -4,6 +4,12 @@ export interface AuthUser {
   id: number
   email: string
   isAdmin: boolean
+  /**
+   * Master admins own access control — granting and revoking admin, and
+   * removing accounts. Master implies admin, so `isAdmin` still answers "can
+   * this person edit boards" and nothing that reads it needs to change.
+   */
+  isMasterAdmin: boolean
 }
 
 interface AuthState {

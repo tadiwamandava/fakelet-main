@@ -107,12 +107,28 @@ router
     router.delete('/cards/attachments/:id', [BoardPagesController, 'destroyCardAttachment'])
 
     router.get('/admin', [AdminPagesController, 'index']).as('web.admin.index')
+    // Any admin may invite. A redeemed invitation only ever creates an ordinary
+    // admin, so this grows the admin list without reaching master.
     router.post('/admin/invitations', [AdminPagesController, 'storeInvitation'])
+  })
+  .use(middleware.admin({ guards: ['web'] }))
+
+/**
+ * Access control — master admins only.
+ *
+ * These are every route that can revoke someone's access or hand out master,
+ * kept together so it stays obvious what the tier is for. The same four are
+ * mirrored on /api/v1 below; both call the same service, so neither is a way
+ * around the other.
+ */
+router
+  .group(() => {
     router.delete('/admin/invitations/:id', [AdminPagesController, 'destroyInvitation'])
     router.delete('/admin/users/:id', [AdminPagesController, 'destroyUser'])
     router.patch('/admin/users/:id/admin', [AdminPagesController, 'toggleAdmin'])
+    router.patch('/admin/users/:id/master', [AdminPagesController, 'toggleMaster'])
   })
-  .use(middleware.admin({ guards: ['web'] }))
+  .use(middleware.admin({ guards: ['web'], master: true }))
 
 router
   .group(() => {
@@ -147,13 +163,19 @@ router
       .group(() => {
         router.get('/invitations', [InvitationsController, 'index'])
         router.post('/invitations', [InvitationsController, 'store'])
-        router.delete('/invitations/:id', [InvitationsController, 'destroy'])
-
         router.get('/admin/users', [AdminController, 'users'])
-        router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
-        router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
       })
       .use(middleware.admin({ guards: ['api'] }))
+
+    // Access control — master only, mirroring the dashboard routes above.
+    router
+      .group(() => {
+        router.delete('/invitations/:id', [InvitationsController, 'destroy'])
+        router.delete('/admin/users/:id', [AdminController, 'deleteUser'])
+        router.patch('/admin/users/:id/admin', [AdminController, 'toggleAdmin'])
+        router.patch('/admin/users/:id/master', [AdminController, 'toggleMaster'])
+      })
+      .use(middleware.admin({ guards: ['api'], master: true }))
 
     // Board list is admin-only; a single board stays public for shared links
     router.get('/boards', [BoardsController, 'index']).use(middleware.auth({ guards: ['api'] }))

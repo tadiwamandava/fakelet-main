@@ -3,12 +3,34 @@ import env from '#start/env'
 import User from '#models/user'
 import Invitation from '#models/invitation'
 import { sendInvitationEmail } from '#services/mail_service'
+import * as admin from '#services/admin_writes'
+
+/**
+ * Turns a refused access-control change into a message on the page.
+ *
+ * These are rules the user can act on — you cannot demote yourself, you cannot
+ * remove the last master — not exceptional conditions, so they read better as a
+ * flash on the dashboard than as an error page.
+ */
+async function guarded(ctx: HttpContext, run: () => Promise<unknown>) {
+  try {
+    await run()
+    return true
+  } catch (error) {
+    if (error instanceof admin.AdminWriteError) {
+      ctx.session.flash('inputErrorsBag', { user: error.message })
+      return false
+    }
+    throw error
+  }
+}
 
 /**
  * Admin dashboard: manage invitations and users.
  *
  * Every route here sits behind the admin middleware on the web guard, so the
- * controller does not repeat the authorization check.
+ * controller does not repeat the authorization check. The routes that grant or
+ * revoke access are additionally pinned to master admins in start/routes.ts.
  */
 export default class AdminPagesController {
   /**
@@ -44,6 +66,7 @@ export default class AdminPagesController {
       id: u.id,
       email: u.email,
       isAdmin: u.isAdmin,
+      isMasterAdmin: u.isMasterAdmin,
       createdAt: u.createdAt?.toISO() ?? null,
     }))
   }
@@ -73,48 +96,38 @@ export default class AdminPagesController {
   }
 
   /**
-   * DELETE /admin/invitations/:id
+   * DELETE /admin/invitations/:id — master only.
    */
-  async destroyInvitation({ params, response, session }: HttpContext) {
-    const invitation = await Invitation.findOrFail(params.id)
-
-    if (invitation.usedAt) {
-      session.flash('inputErrorsBag', { invitation: 'Cannot revoke an invitation that was used.' })
-      return response.redirect().back()
-    }
-
-    await invitation.delete()
+  async destroyInvitation(ctx: HttpContext) {
+    const { params, response } = ctx
+    await guarded(ctx, () => admin.revokeInvitation(params.id))
     return response.redirect().back()
   }
 
   /**
-   * DELETE /admin/users/:id
+   * DELETE /admin/users/:id — master only.
    */
-  async destroyUser({ params, auth, response, session }: HttpContext) {
-    const me = auth.getUserOrFail()
-    if (me.id === Number(params.id)) {
-      session.flash('inputErrorsBag', { user: 'You cannot delete your own account.' })
-      return response.redirect().back()
-    }
-
-    const user = await User.findOrFail(params.id)
-    await user.delete()
+  async destroyUser(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => admin.deleteUser(auth.getUserOrFail().id, Number(params.id)))
     return response.redirect().back()
   }
 
   /**
-   * PATCH /admin/users/:id/admin
+   * PATCH /admin/users/:id/admin — master only.
    */
-  async toggleAdmin({ params, auth, response, session }: HttpContext) {
-    const me = auth.getUserOrFail()
-    if (me.id === Number(params.id)) {
-      session.flash('inputErrorsBag', { user: 'You cannot change your own admin status.' })
-      return response.redirect().back()
-    }
+  async toggleAdmin(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => admin.toggleAdmin(auth.getUserOrFail().id, Number(params.id)))
+    return response.redirect().back()
+  }
 
-    const user = await User.findOrFail(params.id)
-    user.isAdmin = !user.isAdmin
-    await user.save()
+  /**
+   * PATCH /admin/users/:id/master — master only.
+   */
+  async toggleMaster(ctx: HttpContext) {
+    const { params, auth, response } = ctx
+    await guarded(ctx, () => admin.toggleMaster(auth.getUserOrFail().id, Number(params.id)))
     return response.redirect().back()
   }
 }
