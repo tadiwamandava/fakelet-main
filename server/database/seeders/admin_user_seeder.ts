@@ -27,7 +27,8 @@ export default class extends BaseSeeder {
      * A random one is printed instead, which is useless to anyone who cannot
      * read the output.
      */
-    const password = configured ?? (app.inProduction ? randomBytes(12).toString('base64url') : DEV_PASSWORD)
+    const password =
+      configured ?? (app.inProduction ? randomBytes(12).toString('base64url') : DEV_PASSWORD)
 
     const user = await User.firstOrCreate(
       { email },

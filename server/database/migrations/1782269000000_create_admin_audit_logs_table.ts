@@ -19,12 +19,24 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.integer('actor_id').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
+      table
+        .integer('actor_id')
+        .unsigned()
+        .nullable()
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
       table.string('actor_email', 254).nullable()
 
       table.string('action', 40).notNullable()
 
-      table.integer('target_user_id').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
+      table
+        .integer('target_user_id')
+        .unsigned()
+        .nullable()
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
       table.string('target_email', 254).nullable()
 
       /** Human-readable summary, written once so the list needs no assembly. */
