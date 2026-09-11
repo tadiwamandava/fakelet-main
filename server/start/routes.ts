@@ -78,6 +78,9 @@ router
 // Named distinctly from the API's auto-generated "boards.show"
 router.get('/boards/:id', [BoardPagesController, 'show']).as('web.boards.show')
 
+// The board's notes share the board's audience — students read, admins edit.
+router.get('/boards/:id/document', [BoardPagesController, 'document']).as('web.boards.document')
+
 // Board list and editing — admin only
 router
   .group(() => {

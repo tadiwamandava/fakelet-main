@@ -3,6 +3,8 @@ import type { ChangeEvent } from 'react'
 import { Check, ImagePlus, Link2, Paperclip, Play, Trash2 } from 'lucide-react'
 import type { Mutation } from '~/lib/mutations'
 import Modal from '~/components/ui/Modal'
+import RichTextEditor from '~/components/ui/RichTextEditor'
+import { isEmpty } from '~/lib/richText'
 import { resolveImageUrl } from '~/utils/imageUrl'
 import type { CardData, CardUpdateInput, MoveTarget } from './Card'
 
@@ -30,7 +32,6 @@ interface CardEditorProps {
 
 const FIELDS: FieldDef[] = [
   { key: 'title', label: 'Title (optional)' },
-  { key: 'description', label: 'Description', textarea: true },
   { key: 'linkUrl', label: 'Link URL' },
   { key: 'linkTitle', label: 'Link label' },
 ]
@@ -55,7 +56,6 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
   function handleOpen() {
     setForm({
       title: card.title || '',
-      description: card.description || '',
       linkUrl: card.linkUrl || '',
       linkTitle: card.linkTitle || '',
     })
@@ -121,7 +121,6 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
     open &&
     form.title !== undefined &&
     ((form.title ?? '') !== (card.title || '') ||
-      (form.description ?? '') !== (card.description || '') ||
       (form.linkUrl ?? '') !== (card.linkUrl || '') ||
       (form.linkTitle ?? '') !== (card.linkTitle || '') ||
       imageUrl !== (card.imageUrl || '') ||
@@ -138,7 +137,8 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
    */
   const hasContent = !!(
     form.title?.trim() ||
-    form.description?.trim() ||
+    // Saved by the socket, not this form — but a card that has one is not empty.
+    !isEmpty(card.description) ||
     form.linkUrl?.trim() ||
     (mediaMode === 'image' && imageUrl.trim()) ||
     (mediaMode === 'youtube' && youtubeUrl.trim()) ||
@@ -191,6 +191,22 @@ export default function CardEditor({ open, onClose, card, onSave, saving, upload
             {conflict} Your changes are still here — press Save again to keep them.
           </div>
         )}
+        {/*
+          The description is a shared document rather than a form field: it
+          saves itself as you type and reaches anyone else on the card
+          immediately, so it sits outside the Save button's world entirely.
+        */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">
+            Description
+          </label>
+          <RichTextEditor
+            document={`card:${card.id}`}
+            fallbackHtml={card.description}
+            placeholder="Describe this card…"
+          />
+        </div>
+
         {FIELDS.map((field) => (
           <div key={field.key}>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted mb-1">

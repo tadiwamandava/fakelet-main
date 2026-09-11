@@ -6,12 +6,13 @@ import type { ColumnData } from '~/components/Column'
 import Sidebar from '~/components/Sidebar'
 import Modal from '~/components/ui/Modal'
 import BoardSettingsModal from '~/components/BoardSettingsModal'
-import { Check, Eye, LogIn, LogOut, Menu, Pencil, Plus, Recycle, Search, Share2 } from 'lucide-react'
+import { Check, Eye, LogIn, LogOut, Menu, NotebookPen, Pencil, Plus, Recycle, Search, Share2 } from 'lucide-react'
 import { useAuth } from '~/lib/auth'
 import { useCardMutations, useColumnMutations, useGroupMutations } from '~/hooks/useBoardMutations'
 import HiveBanner from '~/components/ui/HiveBanner'
 import ConflictBanner from '~/components/ui/ConflictBanner'
 import { useBoardChannel } from '~/lib/realtime'
+import { toPlainText } from '~/lib/richText'
 import { useBoardDnd } from '~/lib/useBoardDnd'
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
@@ -142,7 +143,9 @@ export default function BoardShow({ board, highlight }: ShowProps) {
 
   const q = search.trim().toLowerCase()
   const matchesCard = (c: { title: string; description?: string | null }) =>
-    c.title.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q)
+    // Descriptions are HTML now, so match the readable text — otherwise a tag
+    // landing mid-word would hide a card from its own search term.
+    c.title.toLowerCase().includes(q) || toPlainText(c.description).toLowerCase().includes(q)
   const columns = q
     ? board.columns
         .map((col) => ({
@@ -235,6 +238,16 @@ export default function BoardShow({ board, highlight }: ShowProps) {
             {linkCopied ? <Check size={14} /> : <Share2 size={14} />}
             <span className="hidden sm:inline">{linkCopied ? 'Copied' : 'Share'}</span>
           </button>
+
+          {/* Notes are for everyone, so this sits outside the admin checks. */}
+          <Link
+            href={`/boards/${boardId}/document`}
+            aria-label="Board notes"
+            title="Board notes"
+            className="text-muted hover:text-ink bg-white/65 backdrop-blur-md backdrop-saturate-150 shadow-sm border border-line rounded-lg p-2 hover:bg-white/85 transition-colors"
+          >
+            <NotebookPen size={14} />
+          </Link>
 
           {/*
             Restoring what someone else deleted is a master's call.

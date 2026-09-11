@@ -433,6 +433,20 @@ export default class BoardPagesController {
   }
 
   /**
+   * GET /boards/:id/document — the board's shared notes.
+   *
+   * Public, like the board itself: a board shares its notes through the same
+   * link. Admins get the live editor, everyone else the rendered content.
+   */
+  async document({ params, inertia }: HttpContext) {
+    const board = await Board.findOrFail(params.id)
+
+    return inertia.render('boards/document', {
+      board: { id: board.id, title: board.title, document: board.document ?? null },
+    })
+  }
+
+  /**
    * GET /collab/ticket
    *
    * A short-lived pass for the collaboration socket. The upgrade never reaches
