@@ -59,6 +59,7 @@ export default defineConfig({
     () => import('@adonisjs/core/providers/edge_provider'),
     () => import('@adonisjs/vite/vite_provider'),
     () => import('@adonisjs/inertia/inertia_provider'),
+    () => import('#providers/collab_provider'),
     () => import('@adonisjs/transmit/transmit_provider')
   ],
 

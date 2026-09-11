@@ -110,6 +110,9 @@ router
     // Any admin may invite. A redeemed invitation only ever creates an ordinary
     // admin, so this grows the admin list without reaching master.
     router.post('/admin/invitations', [AdminPagesController, 'storeInvitation'])
+
+    // Pass for the collaboration socket — see #helpers/collab_auth.
+    router.get('/collab/ticket', [BoardPagesController, 'collabTicket'])
   })
   .use(middleware.admin({ guards: ['web'] }))
 

@@ -21,6 +21,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '~/': `${fileURLToPath(new URL('./inertia', import.meta.url))}/`,
+      // Code shared with the server, so the editor schema has one definition.
+      '#shared/': `${fileURLToPath(new URL('./shared', import.meta.url))}/`,
     },
   },
 })

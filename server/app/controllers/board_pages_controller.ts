@@ -7,6 +7,7 @@ import CardAttachment from '#models/card_attachment'
 import { findBoardForDisplay } from '#services/board_service'
 import * as writes from '#services/board_writes'
 import { broadcastBoardChanged } from '#services/board_broadcast'
+import { issueCollabTicket } from '#helpers/collab_auth'
 import { mirrorRemoteImage } from '#services/remote_file_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
 import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
@@ -60,6 +61,18 @@ async function resolveImageInput(
  * back fresh props, so the stale snapshot that caused the conflict is replaced
  * in the same round trip.
  */
+/**
+ * A stable colour for someone's caret and selection.
+ *
+ * Derived from the user id rather than assigned on connect, so the same person
+ * is the same colour to everyone and stays that colour across reconnects —
+ * which is what makes "the blue caret is Ana" hold up over a session.
+ */
+function caretColour(userId: number): string {
+  const palette = ['#910D28', '#1D6F8C', '#2E7D4F', '#8A5A00', '#6B3FA0', '#B04A2E']
+  return palette[userId % palette.length]
+}
+
 /** Ids as they arrive from a drag: anything that is not a real id is dropped. */
 function idList(input: unknown): number[] {
   return Array.isArray(input) ? input.map(Number).filter((id) => Number.isInteger(id) && id > 0) : []
@@ -417,6 +430,24 @@ export default class BoardPagesController {
     session.flash('created', { imageUrl })
     broadcastBoardChanged(ctx, board.id)
     return response.redirect().back()
+  }
+
+  /**
+   * GET /collab/ticket
+   *
+   * A short-lived pass for the collaboration socket. The upgrade never reaches
+   * the router, so the session cookie cannot authorise it — an ordinary
+   * authenticated route issues the pass instead, and the socket checks that.
+   */
+  async collabTicket({ auth, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    return response.ok({
+      token: issueCollabTicket({ userId: user.id, name: user.email }),
+      // Shown beside this person's caret in other people's editors.
+      name: user.email,
+      color: caretColour(user.id),
+    })
   }
 
   // ── Recycle bin (master admins only) ───────────────────────────────────────

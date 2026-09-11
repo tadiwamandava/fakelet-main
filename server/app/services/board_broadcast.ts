@@ -31,3 +31,18 @@ export function broadcastBoardChanged(ctx: HttpContext, boardId: number | null |
   const origin = ctx.request.header('x-hive-client')
   transmit.broadcastExcept(boardChannel(boardId), { at: Date.now() }, origin ?? [])
 }
+
+/**
+ * The same announcement, from somewhere with no request to read.
+ *
+ * The collaboration socket saves documents on a debounce, long after the
+ * request that opened it — and it is not an HTTP request at all — so there is
+ * no originating client to leave out. Everyone on the board hears about it,
+ * including whoever was typing; their editor holds its own state through the
+ * refresh, so the extra reload costs them nothing.
+ */
+export function broadcastBoardChangedById(boardId: number | null | undefined) {
+  if (!boardId) return
+
+  transmit.broadcast(boardChannel(boardId), { at: Date.now() })
+}

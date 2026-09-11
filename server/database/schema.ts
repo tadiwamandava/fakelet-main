@@ -54,7 +54,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class BoardSchema extends BaseModel {
-  static $columns = ['createdAt', 'createdBy', 'description', 'id', 'imageUrl', 'references', 'title', 'updatedAt', 'updatedBy'] as const
+  static $columns = ['createdAt', 'createdBy', 'description', 'document', 'id', 'imageUrl', 'references', 'title', 'updatedAt', 'updatedBy'] as const
   $columns = BoardSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -62,6 +62,8 @@ export class BoardSchema extends BaseModel {
   declare createdBy: number | null
   @column()
   declare description: string | null
+  @column()
+  declare document: string | null
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -138,6 +140,21 @@ export class CardSchema extends BaseModel {
   declare version: number | null
   @column()
   declare youtubeUrl: string | null
+}
+
+export class CollabDocumentSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'name', 'state', 'updatedAt'] as const
+  $columns = CollabDocumentSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare state: Buffer
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }
 
 export class ColumnSchema extends BaseModel {
