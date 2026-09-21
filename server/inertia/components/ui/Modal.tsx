@@ -54,25 +54,22 @@ export default function Modal({ open, onClose, title, children, dirty = false }:
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
   /**
-   * Closes, unless that would silently discard something.
+   * Closing is deliberate only: the close button, or a Cancel the dialog
+   * supplies itself.
    *
-   * A click on the backdrop is nearly always a miss — reaching for the board
-   * behind, or catching the edge of a phone screen — so while there are unsaved
-   * edits it does nothing at all. The close button and Escape are aimed
-   * deliberately, so they ask rather than refuse; either way the way out is
-   * never more than one more click.
+   * The backdrop used to close on click, and that was worse than it sounds.
+   * Press inside a field, drag to select text, release past the dialog's edge,
+   * and the browser fires the click on the common ancestor — the backdrop — so
+   * selecting a word could throw the dialog away. Guarding it for unsaved edits
+   * only narrowed that; the dismissal itself was the problem.
+   *
+   * Unsaved edits still prompt, because the close button is aimed on purpose
+   * and the question is then worth asking.
    */
-  function requestClose(deliberate: boolean) {
+  function requestClose() {
     if (!dirty) return onClose()
-    if (!deliberate) return
     if (window.confirm('Discard your unsaved changes?')) onClose()
   }
-
-  // Keep the latest handler without making it an effect dependency — otherwise a
-  // new inline callback on every parent render would re-run the effect (and its
-  // focus-restore cleanup) on each keystroke, kicking focus out of the inputs.
-  const onCloseRef = useRef(requestClose)
-  onCloseRef.current = requestClose
 
   useEffect(() => {
     if (!open) return
@@ -85,10 +82,12 @@ export default function Modal({ open, onClose, title, children, dirty = false }:
     ;(first ?? dialog)?.focus()
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        onCloseRef.current(true)
-        return
-      }
+      /**
+       * Escape deliberately does not close. The close button is reachable by
+       * keyboard — the trap below cycles focus rather than holding it — so this
+       * is unconventional rather than a dead end, but it is the price of one
+       * exit that cannot be triggered by accident.
+       */
       if (e.key !== 'Tab' || !dialog) return
       // Keep Tab focus inside the dialog (focus trap).
       const nodes = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE))
@@ -123,23 +122,20 @@ export default function Modal({ open, onClose, title, children, dirty = false }:
 
   if (!open) return null
 
+  // The backdrop only dims the page — it carries no click handler.
   return (
-    <div
-      onClick={() => requestClose(false)}
-      className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
-    >
+    <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        onClick={(e) => e.stopPropagation()}
         className="bg-white border border-line rounded-2xl w-full max-w-md shadow-xl overflow-hidden outline-none flex flex-col max-h-[calc(100dvh-2rem)]"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <h3 id={titleId} className="font-serif text-lg text-ink">{title}</h3>
-          <button onClick={() => requestClose(true)} aria-label="Close dialog" title="Close" className="text-muted hover:text-ink">
+          <button onClick={requestClose} aria-label="Close dialog" title="Close" className="text-muted hover:text-ink">
             <X size={18} />
           </button>
         </div>
