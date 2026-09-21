@@ -1,6 +1,6 @@
 # Hive
 
-**K20's Hub for Integrated Visual Education** — educators curate boards of
+**K20's Hub for Integrated V(something) Education** — educators curate boards of
 resources (links, images, videos, documents) organised into columns and groups,
 then share them with students through a link. Students open a shared board and
 browse it read-only; no account required.
@@ -16,6 +16,7 @@ browse it read-only; no account required.
 - **Two admin tiers.** Ordinary admins curate boards and may invite people. **Master admins** own access control: granting and revoking admin, handing out master, deleting accounts, and revoking invitations. Ordinary admins can grow the admin list but never shrink it.
 - **Master-only tools** — an activity log of every access change, signing an account out of every session and API token, setting someone's password, and a per-board recycle bin for restoring deleted cards.
 - **Admin dashboard** — manage invitations, users and activity.
+- **Collaborative rich text.** Card descriptions and a per-board notes document are edited by several admins at once, with live carets and no save button — changes merge as they are typed. Students read the notes through the same shared link.
 - **Bookmarks, references and search** within a board.
 
 ## Stack
@@ -132,7 +133,7 @@ Two constraints come with it:
 - **The reverse proxy must not buffer or compress `text/event-stream`.** On
   nginx, for the `__transmit` location: `proxy_buffering off; gzip off;
   proxy_http_version 1.1; proxy_read_timeout 1h;`.
-- **One process only.** `config/transmit.ts` broadcasts in-process. Under PM2
+- **One process only.** This applies twice over — `config/transmit.ts` broadcasts in-process, and the collaboration socket holds documents in memory. Two people editing the same card on different instances would silently diverge, each saving over the other. Under PM2
   cluster mode or behind more than one instance, an admin connected to one
   instance never hears about a write served by another — silently. Adding
   instances means adding a Redis transport in the same change.

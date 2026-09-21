@@ -7,6 +7,7 @@ import type { Mutation } from '~/lib/mutations'
 import CardEditor from './CardEditor'
 import { acceptsDrag, cardId, parseId } from '~/lib/boardDnd'
 import { resolveImageUrl } from '~/utils/imageUrl'
+import { isEmpty, toPlainText } from '~/lib/richText'
 
 export type CardAttachment = {
   id: number
@@ -222,12 +223,18 @@ export default function Card({ card, bookmarked, onToggleBookmark, editMode = fa
         {/* Titles are optional — an image or link card may not have one. */}
         {card.title && <p className="font-semibold text-sm text-ink mb-1">{card.title}</p>}
 
-        {card.description && (
+        {!isEmpty(card.description) && (
           <div className="mb-2">
-            <p className={`text-xs text-muted leading-relaxed ${descExpanded ? '' : 'line-clamp-3'}`}>
-              {card.description}
-            </p>
-            {card.description.length > 120 && (
+            {/*
+              Descriptions are rich text now. The server sanitises on write —
+              scripts, event handlers and javascript: URLs never reach the
+              column — so this renders the markup rather than printing its tags.
+            */}
+            <div
+              className={`prose-hive text-xs text-muted leading-relaxed ${descExpanded ? '' : 'line-clamp-3'}`}
+              dangerouslySetInnerHTML={{ __html: card.description ?? '' }}
+            />
+            {toPlainText(card.description).length > 120 && (
               <button
                 onClick={(e) => { e.stopPropagation(); setDescExpanded((x) => !x) }}
                 className="text-xs text-brand font-medium hover:underline mt-0.5"

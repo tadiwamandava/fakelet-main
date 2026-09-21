@@ -1,8 +1,9 @@
 import * as Y from 'yjs'
-import { generateHTML, generateJSON } from '@tiptap/html'
 import { getSchema } from '@tiptap/core'
 import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProsemirrorJSON } from 'y-prosemirror'
 import { editorExtensions, EDITOR_FIELD } from '#shared/editor_schema'
+import { toDocument } from '#helpers/rich_text'
+import type { RichDocument } from '#helpers/rich_text'
 
 /**
  * Turning a Y.Doc into HTML and back.
@@ -37,9 +38,14 @@ export function documentName(ref: DocumentRef): string {
   return `${ref.kind}:${ref.id}`
 }
 
-/** Renders a document's body to HTML, ready for sanitising and storage. */
-export function renderDocument(doc: Y.Doc): string {
-  return generateHTML(yXmlFragmentToProsemirrorJSON(doc.getXmlFragment(EDITOR_FIELD)), editorExtensions)
+/**
+ * The Y.Doc's body as a Tiptap document, ready for storage.
+ *
+ * Stops at the node tree rather than going on to HTML: the tree is what is
+ * stored, and rendering happens only where something needs to display it.
+ */
+export function renderDocument(doc: Y.Doc): RichDocument {
+  return yXmlFragmentToProsemirrorJSON(doc.getXmlFragment(EDITOR_FIELD)) as RichDocument
 }
 
 /**
@@ -50,15 +56,12 @@ export function renderDocument(doc: Y.Doc): string {
  * has state would append the content rather than replace it, because a CRDT
  * merges rather than overwrites.
  */
-export function seedDocument(doc: Y.Doc, html: string): void {
-  if (!html.trim()) return
+export function seedDocument(doc: Y.Doc, content: unknown): void {
+  const source = toDocument(content)
+  if (!source.content || source.content.length === 0) return
 
   const fragment = doc.getXmlFragment(EDITOR_FIELD)
   if (fragment.length > 0) return
 
-  prosemirrorJSONToYXmlFragment(
-    getSchema(editorExtensions),
-    generateJSON(html, editorExtensions),
-    fragment
-  )
+  prosemirrorJSONToYXmlFragment(getSchema(editorExtensions), source as never, fragment)
 }

@@ -2,7 +2,7 @@ import db from '@adonisjs/lucid/services/db'
 import Board from '#models/board'
 import Card from '#models/card'
 import type { DocumentRef } from '#helpers/collab_documents'
-import { plainTextToRichText, sanitizeRichText } from '#helpers/rich_text'
+import type { RichDocument } from '#helpers/rich_text'
 
 /**
  * Where a collaborative document lives between sessions.
@@ -32,38 +32,44 @@ export async function storeState(name: string, state: Uint8Array): Promise<void>
 }
 
 /**
- * The HTML a document already holds, for seeding a Y.Doc the first time.
+ * What a document already holds, for seeding a Y.Doc the first time.
  *
- * Descriptions written before this feature are bare text whose line breaks came
- * from CSS, so they are converted on the way in — otherwise they would collapse
- * into one run-on paragraph the moment they became a rich-text document.
+ * Both models `consume` this column, so a row still holding plain text from
+ * before this feature arrives here already shaped as a document — the tolerance
+ * lives in the model rather than being repeated at every reader.
  */
-export async function loadContent(ref: DocumentRef): Promise<string> {
+export async function loadContent(ref: DocumentRef): Promise<RichDocument | null> {
   if (ref.kind === 'card') {
     const card = await Card.query().where('id', ref.id).where('is_deleted', false).first()
-    if (!card?.description) return ''
-
-    return /<[a-z][\s\S]*>/i.test(card.description)
-      ? card.description
-      : plainTextToRichText(card.description)
+    return card?.description ?? null
   }
 
   const board = await Board.find(ref.id)
-  return board?.document ?? ''
+  return board?.document ?? null
 }
 
 /**
- * Writes the rendered document back to the row the rest of the app reads.
+ * Writes the document back to the row the rest of the app reads.
  *
- * Sanitised here rather than trusted: this HTML is about to be served to
- * students on a public board, and an editor is not the only thing that can put
- * content into a Y.Doc.
+ * Goes through the model deliberately. The raw query builder would bypass the
+ * column's `prepare` hook, and the symptom would be an object stringified by
+ * the driver's own rules landing in a text column — the write would appear to
+ * succeed and the row would be unreadable.
  */
-export async function storeContent(ref: DocumentRef, html: string): Promise<void> {
-  const clean = sanitizeRichText(html)
-  const table = ref.kind === 'card' ? 'cards' : 'boards'
-  const column = ref.kind === 'card' ? 'description' : 'document'
+export async function storeContent(ref: DocumentRef, content: RichDocument): Promise<void> {
+  if (ref.kind === 'card') {
+    const card = await Card.find(ref.id)
+    if (!card) return
 
-  await db.from(table).where('id', ref.id).update({ [column]: clean, updated_at: new Date() })
+    card.description = content
+    await card.save()
+    return
+  }
+
+  const board = await Board.find(ref.id)
+  if (!board) return
+
+  board.document = content
+  await board.save()
 }
 

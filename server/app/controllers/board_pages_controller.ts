@@ -8,6 +8,7 @@ import { findBoardForDisplay } from '#services/board_service'
 import * as writes from '#services/board_writes'
 import { broadcastBoardChanged } from '#services/board_broadcast'
 import { issueCollabTicket } from '#helpers/collab_auth'
+import { documentToHtml } from '#helpers/rich_text'
 import { mirrorRemoteImage } from '#services/remote_file_service'
 import { UPLOADS_DIR } from '#helpers/uploads'
 import { ATTACHMENT_EXTNAMES, ATTACHMENT_MAX_SIZE, mimeTypeFor } from '#helpers/attachments'
@@ -433,6 +434,21 @@ export default class BoardPagesController {
   }
 
   /**
+   * GET /boards/:id/document — the board's shared notes.
+   *
+   * Public, like the board itself: a board shares its notes through the same
+   * link. Admins get the live editor, everyone else the rendered content.
+   */
+  async document({ params, inertia }: HttpContext) {
+    const board = await Board.findOrFail(params.id)
+
+    return inertia.render('boards/document', {
+      // Built by hand, so it does not pass through the column's serialize hook.
+      board: { id: board.id, title: board.title, document: documentToHtml(board.document) || null },
+    })
+  }
+
+  /**
    * GET /collab/ticket
    *
    * A short-lived pass for the collaboration socket. The upgrade never reaches
@@ -470,7 +486,7 @@ export default class BoardPagesController {
       cards: cards.map((c) => ({
         id: c.id,
         title: c.title,
-        description: c.description,
+        description: documentToHtml(c.description),
         imageUrl: c.imageUrl,
         /** False when the card's container is gone and a destination is needed. */
         hasHome: !!(c.groupId || c.columnId),
